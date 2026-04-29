@@ -53,10 +53,6 @@ RecurringIncome.belongsTo(User, { foreignKey: "user_id" })
 MonthlyIncome.hasMany(IncomeTax, { foreignKey: "monthly_income_id" })
 IncomeTax.belongsTo(MonthlyIncome, { foreignKey: "monthly_income_id" })
 
-// Family -> Category
-Family.hasMany(Category, { foreignKey: "family_id" })
-Category.belongsTo(Family, { foreignKey: "family_id" })
-
 // User -> Category
 User.hasMany(Category, { foreignKey: "user_id" })
 Category.belongsTo(User, { foreignKey: "user_id" })
@@ -64,10 +60,6 @@ Category.belongsTo(User, { foreignKey: "user_id" })
 // Category -> Subcategory
 Category.hasMany(Subcategory, { foreignKey: "category_id" })
 Subcategory.belongsTo(Category, { foreignKey: "category_id" })
-
-// Family -> Expense
-Family.hasMany(Expense, { foreignKey: "family_id" })
-Expense.belongsTo(Family, { foreignKey: "family_id" })
 
 // Month -> Expense
 Month.hasMany(Expense, { foreignKey: "month_id" })
@@ -128,10 +120,6 @@ Debt.belongsTo(User, { foreignKey: "debtor_id", as: "debtor" })
 // Expense -> Debt
 Expense.hasMany(Debt, { foreignKey: "expense_id" })
 Debt.belongsTo(Expense, { foreignKey: "expense_id" })
-
-// Family -> BudgetRule
-Family.hasMany(BudgetRule, { foreignKey: "family_id" })
-BudgetRule.belongsTo(Family, { foreignKey: "family_id" })
 
 // User -> BudgetRule
 User.hasMany(BudgetRule, { foreignKey: "user_id" })

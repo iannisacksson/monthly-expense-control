@@ -1,7 +1,7 @@
 import { BudgetRule } from "../models/index"
 
 export class BudgetRuleRepository {
-  async create(data: { user_id?: string; family_id?: string; name: string }) {
+  async create(data: { user_id?: string; name: string }) {
     return BudgetRule.create(data)
   }
 

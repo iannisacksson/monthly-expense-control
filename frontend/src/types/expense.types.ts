@@ -1,7 +1,5 @@
 export interface Expense {
   id: string;
-  user_id?: string;
-  family_id?: string;
   month_id: string;
   category_id: string;
   subcategory_id?: string;
@@ -19,7 +17,6 @@ export interface Expense {
 
 export interface CreateExpenseDTO {
   user_id?: string;
-  family_id?: string;
   month_id: string;
   category_id: string;
   subcategory_id?: string;

@@ -75,9 +75,7 @@ export class RecurringExpenseService {
     }
 
     const categoryUserId = category.getDataValue("user_id") as string | null
-    const categoryFamilyId = category.getDataValue("family_id") as string | null
-    const isSameOwner = (params.userId && categoryUserId === params.userId)
-      || (!!params.familyId && categoryFamilyId === params.familyId)
+    const isSameOwner = !!params.userId && categoryUserId === params.userId
 
     if (!isSameOwner) {
       throw new Error("Category must belong to the same owner as the recurring expense")
@@ -168,8 +166,6 @@ export class RecurringExpenseService {
     }
 
     await expenseRepository.create({
-      user_id: data.userId,
-      family_id: data.familyId,
       month_id: data.monthId,
       category_id: data.categoryId,
       subcategory_id: data.subcategoryId,
@@ -206,8 +202,6 @@ export class RecurringExpenseService {
       const month = await this.findMonthByIdOrThrow(monthId)
 
       await expenseRepository.create({
-        user_id: data.userId,
-        family_id: data.familyId,
         month_id: monthId,
         category_id: data.categoryId,
         subcategory_id: data.subcategoryId,

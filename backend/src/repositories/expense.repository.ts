@@ -3,8 +3,6 @@ import { Expense } from "../models/index"
 
 export class ExpenseRepository {
   async create(data: {
-    user_id?: string
-    family_id?: string
     month_id: string
     category_id: string
     subcategory_id?: string

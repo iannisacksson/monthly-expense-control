@@ -1,6 +1,5 @@
 import { BudgetRuleRepository } from "../repositories/budget-rule.repository"
 import { BudgetAllocationRepository } from "../repositories/budget-allocation.repository"
-import { FamilyRepository } from "../repositories/family.repository"
 import { CategoryRepository } from "../repositories/category.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateBudgetRuleDTO, UpdateBudgetRuleDTO } from "../dtos/budget-rule.dto"
@@ -8,35 +7,19 @@ import { CreateBudgetAllocationDTO, UpdateBudgetAllocationDTO } from "../dtos/bu
 
 const budgetRuleRepository = new BudgetRuleRepository()
 const budgetAllocationRepository = new BudgetAllocationRepository()
-const familyRepository = new FamilyRepository()
 const categoryRepository = new CategoryRepository()
 const userRepository = new UserRepository()
 
 export class BudgetService {
-  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
-    return userId ? undefined : familyId ?? undefined
-  }
-
-  private getEffectiveOwner(record: { getDataValue: (field: string) => unknown }) {
-    const userId = record.getDataValue("user_id") as string | null
-    const familyId = record.getDataValue("family_id") as string | null
-
-    return {
-      userId: userId ?? undefined,
-      familyId: this.getLegacyFamilyId(userId, familyId),
-    }
-  }
-
   private async ensureCategoryMatchesRuleOwner(categoryId: string, rule: { getDataValue: (field: string) => unknown }) {
     const category = await categoryRepository.findById(categoryId)
     if (!category) {
       throw new Error("Category not found")
     }
 
-    const categoryOwner = this.getEffectiveOwner(category)
-    const ruleOwner = this.getEffectiveOwner(rule)
-    const isSameOwner = (categoryOwner.userId && ruleOwner.userId && categoryOwner.userId === ruleOwner.userId)
-      || (!!categoryOwner.familyId && !!ruleOwner.familyId && categoryOwner.familyId === ruleOwner.familyId)
+    const categoryUserId = category.getDataValue("user_id") as string | null
+    const ruleUserId = rule.getDataValue("user_id") as string | null
+    const isSameOwner = !!categoryUserId && !!ruleUserId && categoryUserId === ruleUserId
 
     if (!isSameOwner) {
       throw new Error("Category must belong to the same owner as the budget rule")
@@ -55,7 +38,6 @@ export class BudgetService {
     }
 
     const ownerUserId = data.user_id
-    const legacyFamilyId = undefined
 
     if (ownerUserId) {
       const user = await userRepository.findById(ownerUserId)
@@ -64,16 +46,8 @@ export class BudgetService {
       }
     }
 
-    if (legacyFamilyId) {
-      const family = await familyRepository.findById(legacyFamilyId)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
     return budgetRuleRepository.create({
       user_id: ownerUserId,
-      family_id: legacyFamilyId,
       name: data.name,
     })
   }

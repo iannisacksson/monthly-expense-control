@@ -7,10 +7,6 @@ export const Expense = sequelize.define("Expense", {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  family_id: {
-    type: DataTypes.UUID,
-    allowNull: false
-  },
   month_id: {
     type: DataTypes.UUID,
     allowNull: false
@@ -61,7 +57,7 @@ export const Expense = sequelize.define("Expense", {
   timestamps: true,
   updatedAt: false,
   indexes: [
-    { fields: ["family_id", "month_id"] },
+    { fields: ["month_id"] },
     { fields: ["category_id"] }
   ]
 })

@@ -1,7 +1,7 @@
 import { Category } from "../models/index"
 
 export class CategoryRepository {
-  async create(data: { user_id?: string; family_id?: string; name: string; type: string }) {
+  async create(data: { user_id?: string; name: string; type: string }) {
     return Category.create(data)
   }
 

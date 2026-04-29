@@ -435,8 +435,8 @@ The current Sequelize models and migrations show three different removal states.
 ### Ready for next physical-removal planning step
 
 - `categories` and `budget_rules`
-- rationale: active routes, DTOs, and frontend flows are already user-scoped; `family_id` remains only as transitional persistence compatibility in `20260426000019-refactor-categories-and-budget-rules-to-user-context.js`
-- expected next migration step: backfill any remaining null `user_id`, drop Family associations in the ORM, remove `family_id` columns and related indexes/foreign keys once legacy rows are verified
+- status: migration file `20260429000029-remove-family-ownership-from-categories-budget-rules-and-expenses.js` removes the legacy `family_id` columns from the active schema path
+- rationale: active routes, DTOs, frontend flows, and ORM associations are already user-scoped
 
 ### Not ready for column drop yet
 
@@ -445,8 +445,8 @@ The current Sequelize models and migrations show three different removal states.
 - required before drop: finish data backfill, remove family-based month fallback in services, remove legacy unique/index definitions, then drop `family_id`
 
 - `expenses`
-- rationale: service validation already prefers effective user ownership, but the physical row still stores `family_id` and the model/indexes remain family-centered
-- required before drop: backfill or derive owner-safe expense rows from `month_id`, replace family-based indexes, then remove `family_id`
+- status: migration file `20260429000029-remove-family-ownership-from-categories-budget-rules-and-expenses.js` removes the legacy `family_id` column and replaces the family-centered index with a `month_id` index
+- rationale: active persistence now derives ownership from `month_id`, while month-level compatibility remains the only remaining bridge for older aggregates
 
 - `recurring_incomes`, `recurring_expenses`, and `installment_groups`
 - rationale: active create/list flows are now user-scoped, but persisted legacy rows still rely on `family_id` compatibility and `20260426000020-refactor-recurring-and-installment-ownership.js` only made the old column nullable
@@ -456,4 +456,4 @@ The current Sequelize models and migrations show three different removal states.
 
 - `debts`
 - rationale: the aggregate is intentionally outside the active product direction and still encodes a family relationship rather than month ownership
-- decision: keep as legacy read-only data until archival/removal or a separate redesign into a user-owned liability model
+- decision: treat the table as definitive archival legacy only, remove it from the HTTP/frontend contract, and only revisit it in a separate archival or redesign step

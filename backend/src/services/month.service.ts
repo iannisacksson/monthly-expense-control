@@ -36,12 +36,9 @@ export class MonthService {
     }
 
     const monthUserId = month.getDataValue("user_id") as string | null
-    const monthFamilyId = month.getDataValue("family_id") as string | null
     const ruleUserId = rule.getDataValue("user_id") as string | null
-    const ruleFamilyId = rule.getDataValue("family_id") as string | null
 
-    const sameOwner = (monthUserId && ruleUserId && monthUserId === ruleUserId)
-      || (monthFamilyId && ruleFamilyId && monthFamilyId === ruleFamilyId)
+    const sameOwner = !!monthUserId && !!ruleUserId && monthUserId === ruleUserId
 
     if (!sameOwner) {
       throw new Error("Budget rule must belong to the same owner as the month")

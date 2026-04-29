@@ -1,7 +1,6 @@
 export interface BudgetRule {
   id: string;
   user_id?: string;
-  family_id?: string;
   name: string;
 }
 

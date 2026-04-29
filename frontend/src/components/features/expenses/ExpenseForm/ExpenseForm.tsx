@@ -6,7 +6,6 @@ import { parseCurrencyInputToNumber, toCurrencyInputValue } from "../../../../ut
 import type { Expense, CreateExpenseDTO, Category, Subcategory } from "../../../../types";
 
 interface ExpenseFormProps {
-  familyId?: string;
   userId?: string;
   monthId: string;
   categories: Category[];
@@ -23,7 +22,6 @@ interface ExpenseFormProps {
 }
 
 export default function ExpenseForm({
-  familyId,
   userId,
   monthId,
   categories,
@@ -72,7 +70,6 @@ export default function ExpenseForm({
 
     onSubmit({
       user_id: userId,
-      family_id: familyId,
       month_id: monthId,
       category_id: categoryId,
       subcategory_id: subcategoryId || undefined,

@@ -1,21 +1,15 @@
 import { ExpenseRepository } from "../repositories/expense.repository"
 import { MonthRepository } from "../repositories/month.repository"
-import { FamilyRepository } from "../repositories/family.repository"
 import { CategoryRepository } from "../repositories/category.repository"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
 import { BulkDeleteExpensesDTO, BulkMarkExpensesPaidDTO, CreateExpenseDTO, UpdateExpenseDTO } from "../dtos/expense.dto"
 
 const expenseRepository = new ExpenseRepository()
 const monthRepository = new MonthRepository()
-const familyRepository = new FamilyRepository()
 const categoryRepository = new CategoryRepository()
 const subcategoryRepository = new SubcategoryRepository()
 
 export class ExpenseService {
-  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
-    return userId ? undefined : familyId ?? undefined
-  }
-
   private getMonthDate(month: Awaited<ReturnType<MonthRepository["findById"]>>) {
     if (!month) {
       throw new Error("Month not found")
@@ -40,7 +34,6 @@ export class ExpenseService {
 
   private async validateCategoryAndSubcategory(params: {
     userId?: string
-    familyId?: string
     categoryId: string
     subcategoryId?: string
   }) {
@@ -50,9 +43,7 @@ export class ExpenseService {
     }
 
     const categoryUserId = category.getDataValue("user_id") as string | null
-    const categoryFamilyId = category.getDataValue("family_id") as string | null
-    const isSameOwner = (params.userId && categoryUserId === params.userId)
-      || (!!params.familyId && categoryFamilyId === params.familyId)
+    const isSameOwner = !!params.userId && categoryUserId === params.userId
 
     if (!isSameOwner) {
       throw new Error("Category must belong to the same owner as the expense")
@@ -81,28 +72,18 @@ export class ExpenseService {
 
     const month = this.ensureMonthIsOpen(await monthRepository.findById(data.month_id))
     const monthUserId = month.getDataValue("user_id") as string | null
-    const monthFamilyId = month.getDataValue("family_id") as string | null
     const ownerUserId = data.user_id ?? monthUserId ?? undefined
-    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, data.family_id ?? monthFamilyId)
+
+    if (!ownerUserId) {
+      throw new Error("Expense must belong to the owner user of the selected month")
+    }
 
     if (ownerUserId && monthUserId !== ownerUserId) {
       throw new Error("Month must belong to the same user as the expense")
     }
 
-    if (legacyFamilyId) {
-      const family = await familyRepository.findById(legacyFamilyId)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
-    if (legacyFamilyId && monthFamilyId !== legacyFamilyId) {
-      throw new Error("Month must belong to the same family as the expense")
-    }
-
     await this.validateCategoryAndSubcategory({
       userId: ownerUserId,
-      familyId: legacyFamilyId,
       categoryId: data.category_id,
       subcategoryId: data.subcategory_id,
     })
@@ -110,9 +91,15 @@ export class ExpenseService {
     const expenseDate = data.expense_date ?? this.getMonthDate(month)
 
     return expenseRepository.create({
-      ...data,
-      user_id: ownerUserId,
-      family_id: legacyFamilyId,
+      month_id: data.month_id,
+      category_id: data.category_id,
+      subcategory_id: data.subcategory_id,
+      paid_by: data.paid_by,
+      responsible_user_id: data.responsible_user_id,
+      installment_group_id: data.installment_group_id,
+      recurring_expense_id: data.recurring_expense_id,
+      description: data.description,
+      value: data.value,
       expense_date: expenseDate,
       payment_date: data.payment_date,
     })
@@ -167,17 +154,14 @@ export class ExpenseService {
     const nextSubcategoryId = data.subcategory_id !== undefined
       ? data.subcategory_id
       : (existingExpense.getDataValue("subcategory_id") as string | undefined)
-    const ownerUserId = (existingExpense.getDataValue("user_id") as string | null)
-      ?? (month.getDataValue("user_id") as string | null)
-      ?? undefined
-    const legacyFamilyId = this.getLegacyFamilyId(
-      ownerUserId,
-      (existingExpense.getDataValue("family_id") as string | null) ?? (month.getDataValue("family_id") as string | null)
-    )
+    const ownerUserId = (month.getDataValue("user_id") as string | null) ?? undefined
+
+    if (!ownerUserId) {
+      throw new Error("Expense must belong to the owner user of the selected month")
+    }
 
     await this.validateCategoryAndSubcategory({
       userId: ownerUserId,
-      familyId: legacyFamilyId,
       categoryId: nextCategoryId,
       subcategoryId: nextSubcategoryId,
     })

@@ -11,10 +11,6 @@ export const BudgetRule = sequelize.define("BudgetRule", {
     type: DataTypes.UUID,
     allowNull: true
   },
-  family_id: {
-    type: DataTypes.UUID,
-    allowNull: true
-  },
   name: {
     type: DataTypes.TEXT,
     allowNull: false

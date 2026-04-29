@@ -11,10 +11,6 @@ export const Category = sequelize.define("Category", {
     type: DataTypes.UUID,
     allowNull: true
   },
-  family_id: {
-    type: DataTypes.UUID,
-    allowNull: true
-  },
   name: {
     type: DataTypes.TEXT,
     allowNull: false

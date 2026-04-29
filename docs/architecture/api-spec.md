@@ -577,22 +577,6 @@ DELETE /api/v1/recurring-expenses/{id}
 
 ---
 
-# Resource: Debts
-
-Debt is a legacy migration/export resource and is not part of the active product contract.
-
-## List Debts by Family
-
-GET /api/v1/debts/family/{familyId}
-
-Behavior note:
-
-- this route exists only for temporary legacy read access
-- new frontend flows must not depend on debt endpoints
-- write endpoints for debt are out of the active contract until a future user-owned redesign exists
-
----
-
 # Resource: Dashboard
 
 Represents month-level financial visibility for a user.
@@ -621,3 +605,5 @@ The response must include enough data to render:
 The API no longer treats families or family members as first-class product resources.
 
 Legacy family-scoped endpoints may temporarily coexist during migration, but new implementation must prefer user-scoped routes and validations.
+
+Debt is archived outside the HTTP contract and must not be exposed as an active API resource.

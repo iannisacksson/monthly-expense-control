@@ -1,7 +1,6 @@
 export interface Category {
   user_id?: string;
   id: string;
-  family_id?: string;
   name: string;
   type: string;
 }

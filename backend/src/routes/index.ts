@@ -11,7 +11,6 @@ import subcategoryRoutes from "./subcategory.routes"
 import expenseRoutes from "./expense.routes"
 import installmentGroupRoutes from "./installment-group.routes"
 import recurringExpenseRoutes from "./recurring-expense.routes"
-import debtRoutes from "./debt.routes"
 import budgetRoutes from "./budget.routes"
 
 const router = Router()
@@ -32,7 +31,6 @@ router.use("/subcategories", subcategoryRoutes)
 router.use("/expenses", expenseRoutes)
 router.use("/installment-groups", installmentGroupRoutes)
 router.use("/recurring-expenses", recurringExpenseRoutes)
-router.use("/debts", debtRoutes)
 router.use("/budgets", budgetRoutes)
 
 export default router
