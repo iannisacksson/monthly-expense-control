@@ -1,50 +1,79 @@
-# React + TypeScript + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Purpose
 
-Currently, two official plugins are available:
+This workspace contains the React frontend for the monthly expense control application.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The frontend is part of the repository monorepo and should be managed through the root npm workspaces setup.
 
-## Expanding the ESLint configuration
+## Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- React
+- TypeScript
+- Vite
+- React Router
+- Axios
+- TanStack React Query
+- Zustand
 
-- Configure the top-level `parserOptions` property like this:
+## Monorepo Commands
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Run these commands from the repository root:
+
+```bash
+npm install
+npm run dev:frontend
+npm run build:frontend
+npm run lint:frontend
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+You can still run workspace-local scripts from `frontend/`, but the root commands are the default entrypoint.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## Folder Overview
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```text
+frontend/
+├ public/
+├ src/
+│ ├ assets/
+│ ├ components/
+│ ├ config/
+│ ├ hooks/
+│ ├ layouts/
+│ ├ pages/
+│ ├ routes/
+│ ├ services/
+│ ├ store/
+│ ├ styles/
+│ ├ types/
+│ └ utils/
+├ index.html
+├ package.json
+└ vite.config.ts
 ```
+
+## Architectural Notes
+
+- server state is handled with React Query
+- client-side global state uses Zustand where needed
+- API communication goes through `src/services`
+- route composition lives in `src/routes`
+- pages compose hooks and UI components
+
+## Product State
+
+The frontend is in a transition from legacy family-based navigation to user-centered monthly flows.
+
+Current code includes both:
+
+- target user-scoped flows
+- legacy family compatibility screens and routes still present during migration
+
+When updating screens, prefer the user-centered flow unless the change is explicitly about legacy compatibility.
+
+## Related Documentation
+
+- `docs/architecture/frontend/architecture.md`
+- `docs/ai/frontend/development-workflow.md`
+- `docs/product/vision.md`
+- `docs/adr/ADR-003-user-month-refactor.md`

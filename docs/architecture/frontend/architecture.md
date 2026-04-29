@@ -18,35 +18,40 @@ All frontend code must follow this architecture.
 
 # Frontend Technology Stack
 
-The frontend will use the following technologies:
+The frontend currently uses the following technologies:
 
 React  
 TypeScript  
 Vite  
 Axios  
 React Router  
-
-Optional tools that may be added later:
-
-React Query (for server state management)  
-Zustand (for client state management)
+TanStack React Query  
+Zustand
 
 ---
 
 # Frontend Architecture Overview
 
-The frontend follows a **component-based architecture**.
+The frontend follows a **component-based architecture** with explicit separation between API services, server-state hooks, and page composition.
 
 Key principles:
 
 - reusable UI components
 - separation between UI and business logic
 - centralized API communication
+- server state managed through hooks built on React Query
+- small global client state handled through Zustand stores
 - predictable folder structure
 
 The frontend communicates with the backend through the REST API defined in:
 
 docs/architecture/api-spec.md
+
+Current implementation note:
+
+- the target product direction is `User + Month`
+- the codebase still contains legacy family-scoped routes and screens during migration
+- new frontend work should prefer user-scoped flows unless the task is explicitly about compatibility behavior
 
 ---
 
@@ -66,6 +71,8 @@ store/
 types/
 utils/
 routes/
+config/
+styles/
 
 main.tsx
 App.tsx
@@ -188,6 +195,8 @@ Hooks may:
 - manage state
 - transform API responses
 
+In the current codebase, data-fetching hooks should prefer React Query.
+
 ---
 
 ## services
@@ -209,6 +218,8 @@ Responsibilities:
 - centralize API configuration
 
 Services should use Axios.
+
+Services should not own UI state.
 
 Example:
 
@@ -239,9 +250,7 @@ auth.store.ts
 settings.store.ts
 
 
-This layer may use:
-
-Zustand or other state management libraries.
+This layer uses Zustand for small pieces of app-wide client state, such as auth/session context.
 
 ---
 
@@ -321,24 +330,17 @@ The frontend must communicate with the backend API defined in:
 
 docs/architecture/api-spec.md
 
-Rules:
+Current integration rules:
 
-- all HTTP requests must go through services
-- components must not call Axios directly
-- services handle API endpoints
+- HTTP requests belong in `services/`
+- React Query hooks belong in `hooks/`
+- pages and components should not call Axios directly when a service already exists
+- migration-aware features may temporarily support both user-scoped and family-scoped endpoints
+- new product-facing flows should prefer user-scoped endpoints
 
 Example flow:
 
-
-Component → Hook → Service → API
-
-
----
-
-# Example Request Flow
-
-
-ExpensesPage
+`Page -> Hook -> Service -> API`
 ↓
 useExpenses Hook
 ↓
@@ -367,7 +369,9 @@ AI tools must not create alternative architectures unless explicitly requested.
 
 # Related Documents
 
-docs/product/features.md  
+docs/product/vision.md  
+docs/domain/domain-model.md  
+docs/adr/ADR-003-user-month-refactor.md  
 docs/architecture/api-spec.md  
 docs/architecture/dto-spec.md  
 docs/architecture/project-structure.md  

@@ -84,6 +84,12 @@ User + Month
 
 The product must not depend on family membership or shared ownership as the main product flow.
 
+Current delivery note:
+
+- the product direction is already user-centered
+- the implementation still contains legacy family compatibility in some backend endpoints, frontend routes, and migration support code
+- legacy family flows are transitional, not the desired long-term user experience
+
 ---
 
 ### Financial Transparency

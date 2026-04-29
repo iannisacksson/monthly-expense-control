@@ -36,7 +36,15 @@ Each step references documentation that AI assistants must read.
 
 AI assistants must first read:
 
-docs/product/features.md
+docs/product/vision.md
+
+Then consult, when relevant:
+
+docs/domain/domain-model.md
+
+If the feature touches migration behavior or ownership rules, also read:
+
+docs/adr/ADR-003-user-month-refactor.md
 
 Goal:
 
@@ -44,7 +52,7 @@ Understand the feature requirements and user interactions.
 
 Example prompt:
 
-Read features.md and explain the feature to be implemented.
+Read the vision and domain docs and explain the feature to be implemented.
 
 ---
 
@@ -57,6 +65,11 @@ docs/architecture/api-spec.md
 Goal:
 
 Understand the backend endpoints that the frontend must call.
+
+AI assistants must distinguish between:
+
+- target user-scoped endpoints
+- temporary legacy family-scoped endpoints still required for compatibility
 
 Example prompt:
 
@@ -184,6 +197,8 @@ Example:
 /expenses  
 /categories
 
+When both route models exist, prefer user-scoped routes for new product work.
+
 ---
 
 # Step 8 — Validate the Implementation
@@ -210,7 +225,7 @@ Example: Expenses feature.
 
 Steps:
 
-1. Review feature description
+1. Review product vision and domain context
 2. Review API endpoints
 3. Generate expense.service.ts
 4. Generate useExpenses hook
@@ -235,7 +250,9 @@ AI tools should not skip workflow steps.
 
 # Related Documents
 
-docs/product/features.md  
+docs/product/vision.md  
+docs/domain/domain-model.md  
+docs/adr/ADR-003-user-month-refactor.md  
 docs/architecture/api-spec.md  
 docs/architecture/frontend/architecture.md  
 docs/architecture/frontend/component-structure.md  

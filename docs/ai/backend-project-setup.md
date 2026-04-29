@@ -2,306 +2,194 @@
 
 ## Purpose
 
-This document helps AI assistants configure the backend project from scratch.
+This document explains how AI assistants should work with the backend in the current repository.
 
 It defines:
 
-- project initialization
-- dependency installation
-- TypeScript configuration
-- Express server setup
-- Sequelize configuration
-- PostgreSQL connection
-- project folder structure
+- the monorepo entrypoint
+- backend package boundaries
+- dependency management rules
+- backend runtime and build expectations
+- folder placement for new backend code
 
-AI tools must follow these instructions when generating the initial backend configuration.
+AI tools must follow this document when creating or changing backend code.
+
+---
+
+# Current Repository Context
+
+The project is an npm workspaces monorepo.
+
+- repository root owns the workspaces configuration
+- `backend/` is one workspace
+- `frontend/` is one workspace
+- installation must happen from the repository root
+
+Do not reinitialize the backend as a standalone repository.
+
+Do not add a second package manager.
 
 ---
 
 # Technology Stack
 
-The backend must use the following technologies:
+The backend uses:
 
-Runtime: Node.js  
-Language: TypeScript  
-Framework: Express  
-ORM: Sequelize  
-Database: PostgreSQL  
+- Node.js
+- TypeScript
+- Express
+- Sequelize
+- PostgreSQL
+- dotenv
 
-Do not introduce alternative frameworks.
+Do not introduce alternative backend frameworks unless explicitly requested.
 
-Disallowed tools:
+Disallowed by default:
 
-NestJS  
-Prisma  
-TypeORM  
-Fastify  
-
----
-
-# Step 1 — Project Initialization
-
-Initialize the Node project.
-
-Expected command:
-
-npm init -y
-
-This creates the base:
-
-package.json
+- NestJS
+- Prisma
+- TypeORM
+- Fastify
 
 ---
 
-# Step 2 — Install Dependencies
+# Workspace Setup Rules
 
-Install runtime dependencies:
+## Root Install Command
 
+Use the repository root for installation:
 
-npm install express sequelize pg pg-hstore dotenv
+```bash
+npm install
+```
 
+If a new backend dependency is needed, prefer one of these commands from the repository root:
 
-Install development dependencies:
+```bash
+npm install <package> --workspace backend
+npm install -D <package> --workspace backend
+```
 
+## Root Scripts
 
-npm install -D typescript ts-node-dev @types/node @types/express
+Important root commands:
 
+```bash
+npm run dev:backend
+npm run build:backend
+npm run build
+```
+
+## Backend Local Scripts
+
+The backend workspace keeps its own package scripts in `backend/package.json` for internal build and dev commands.
 
 ---
 
-# Step 3 — TypeScript Configuration
+# Backend Folder Structure
 
-Create the TypeScript configuration.
+Backend code must live under `backend/`.
 
-Expected file:
+```text
+backend/
+├ package.json
+├ tsconfig.json
+├ src/
+│ ├ app.ts
+│ ├ server.ts
+│ ├ config/
+│ ├ controllers/
+│ ├ database/
+│ ├ dtos/
+│ ├ middlewares/
+│ ├ models/
+│ ├ repositories/
+│ ├ routes/
+│ ├ services/
+│ └ utils/
+└ dist/
+```
 
+Use this placement rule:
 
-tsconfig.json
+- HTTP boundary code in `controllers/`
+- business logic in `services/`
+- persistence logic in `repositories/`
+- Sequelize table models in `models/`
+- route registration in `routes/`
+- DTOs in `dtos/`
+- database bootstrap and migrations in `database/`
 
+Business logic must not be implemented in controllers or Sequelize models.
 
-Configuration example:
+---
 
-```json
-{
- "compilerOptions": {
-  "target": "ES2020",
-  "module": "commonjs",
-  "rootDir": "./src",
-  "outDir": "./dist",
-  "strict": true,
-  "esModuleInterop": true
- }
-}
-Step 4 — Project Folder Structure
+# Backend Bootstrapping Expectations
 
-The backend must use this structure:
+## Express App
 
-src/
+Main application file:
 
-controllers
-services
-repositories
-models
-routes
-dtos
-middlewares
-config
-database
-utils
+`backend/src/app.ts`
 
-Example:
+Purpose:
 
-src/
- ├ controllers
- ├ services
- ├ repositories
- ├ models
- ├ routes
- ├ dtos
- ├ middlewares
- ├ config
- ├ database
- │   ├ connection.ts
- │   └ migrations
- └ utils
+- configure middleware
+- register routes
+- export the Express app
 
-AI tools must follow this structure.
+## HTTP Server
 
-Step 5 — Express Application Setup
+Server bootstrap file:
 
-Create the main Express application file.
+`backend/src/server.ts`
 
-Expected file:
+Purpose:
 
-src/app.ts
+- load environment configuration
+- start the HTTP server
 
-Example structure:
+## Environment Variables
 
-import express from "express"
+Backend environment variables are currently stored in `backend/.env`.
 
-const app = express()
+Typical variables include:
 
-app.use(express.json())
+- `PORT`
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
 
-export default app
-Step 6 — HTTP Server
+Use `dotenv` consistently with the current backend bootstrap.
 
-Create the HTTP server bootstrap.
+## Database Migrations
 
-Expected file:
-
-src/server.ts
-
-Example:
-
-import app from "./app"
-
-const PORT = process.env.PORT || 3000
-
-app.listen(PORT, () => {
- console.log(`Server running on port ${PORT}`)
-})
-Step 7 — Environment Configuration
-
-Environment variables must be stored in:
-
-.env
-
-Example variables:
-
-PORT=3000
-
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=finance_app
-DB_USER=postgres
-DB_PASSWORD=postgres
-
-Use dotenv to load environment variables.
-
-Step 8 — Database Connection
-
-Create the database connection file.
-
-Expected file:
-
-src/database/connection.ts
-
-Example:
-
-import { Sequelize } from "sequelize"
-import dotenv from "dotenv"
-
-dotenv.config()
-
-export const sequelize = new Sequelize(
- process.env.DB_NAME!,
- process.env.DB_USER!,
- process.env.DB_PASSWORD!,
- {
-  host: process.env.DB_HOST,
-  dialect: "postgres"
- }
-)
-Step 9 — Sequelize Models
-
-Models must be stored in:
-
-src/models
-
-Each model represents a table defined in:
-
-docs/architecture/database-model.md
-
-Example model:
-
-import { DataTypes } from "sequelize"
-import { sequelize } from "../database/connection"
-
-export const User = sequelize.define("User", {
-
- id: {
-  type: DataTypes.UUID,
-  primaryKey: true
- },
-
- name: {
-  type: DataTypes.STRING
- }
-
-})
-Step 10 — Routes
-
-Routes must be stored in:
-
-src/routes
-
-Example route:
-
-import { Router } from "express"
-
-const router = Router()
-
-router.get("/health", (req, res) => {
- res.json({ status: "ok" })
-})
-
-export default router
-
-Routes should be imported in:
-
-src/app.ts
-Step 11 — Package Scripts
-
-Add scripts to:
-
-package.json
-
-Example:
-
-"scripts": {
- "dev": "ts-node-dev src/server.ts",
- "build": "tsc",
- "start": "node dist/server.js"
-}
-Step 12 — Database Migrations
-
-Migrations must be stored in:
-
-src/database/migrations
+Migrations must live in `backend/src/database/migrations`.
 
 Sequelize CLI may be used to manage migrations.
 
-AI Guardrails
+---
 
-When generating backend setup code, AI tools must follow these rules:
+# Data and Model Rules
 
-Use TypeScript
+- Sequelize models represent database tables only
+- schema must follow `docs/architecture/database-model.md`
+- business invariants must live in services and use-cases, not in controllers
+- repository methods should isolate ORM details from the rest of the application
 
-Use Express
+---
 
-Use Sequelize
+# AI Assistant Rules
 
-Use PostgreSQL
+When implementing backend changes, AI assistants must:
 
-Follow the defined folder structure
+- work inside `backend/`, not at the repository root, except for workspace configuration
+- install backend dependencies through the root workspace command
+- preserve the layered backend structure
+- respect the domain model in `docs/domain/`
+- keep business logic out of controllers
+- keep Sequelize models focused on persistence structure
 
-Match the database schema defined in:
-
-docs/architecture/database-model.md
-
-Do not introduce alternative frameworks.
-
-Expected Result
-
-After following this setup guide, the backend should have:
-
-a working Express server
-
-TypeScript configuration
-
-Sequelize connection
-
-PostgreSQL integration
-
-organized folder structure
+If setup guidance conflicts with the actual repository layout, follow the monorepo layout and update documentation accordingly.

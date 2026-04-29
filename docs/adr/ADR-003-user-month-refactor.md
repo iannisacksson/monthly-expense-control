@@ -2,7 +2,9 @@
 
 ## Status
 
-Proposed
+Accepted
+
+Implementation state: In progress
 
 ---
 
@@ -99,7 +101,7 @@ This avoids mixing two domain changes in one cutover.
 
 ## Authentication and Route Design
 
-The current frontend store keeps only the token and does not expose authenticated user identity.
+The frontend store now persists token and current user identity, but the application still keeps explicit route parameters and compatibility behavior during the migration.
 
 The current backend also does not show an active request identity layer in the main app wiring.
 
@@ -113,6 +115,19 @@ The safe route migration is:
 - only then simplify routes and payloads to operate on the authenticated user context
 
 This prevents hidden coupling to incomplete auth infrastructure.
+
+## Current Implementation Snapshot
+
+The migration is partially implemented.
+
+Observed current state:
+
+- user-scoped data paths already exist for part of the application
+- legacy family-scoped routes, services, and screens still exist
+- compatibility behavior is still active in both backend and frontend
+- the repository has been consolidated as a monorepo, but the domain migration is not complete
+
+This ADR remains the target architectural direction and must be read together with the current transitional reality.
 
 ---
 

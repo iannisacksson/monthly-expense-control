@@ -1,389 +1,213 @@
-# Project Structure — Backend
+# Project Structure
 
 ## Purpose
 
-This document defines the folder structure of the backend project.
+This document defines the current repository structure.
 
-The goal is to ensure:
+The goals are:
 
-- consistent project organization
-- predictable file placement
-- easier AI-assisted code generation
-- maintainable architecture
+- make the monorepo layout explicit
+- show where backend and frontend code live
+- preserve predictable file placement
+- keep AI-assisted changes aligned with the real project shape
 
-All backend code must follow this structure.
+All code changes must follow this repository layout.
 
 ---
 
-# Backend Root Structure
+# Repository Layout
 
+The project is an npm workspaces monorepo rooted at the repository root.
 
+Current top-level structure:
+
+```text
+/
+├ package.json
+├ package-lock.json
+├ backend/
+├ frontend/
+├ docs/
+└ .github/
+```
+
+## Root Responsibilities
+
+The repository root is responsible for:
+
+- npm workspaces configuration
+- shared install entrypoint through `npm install`
+- root scripts for backend and frontend
+- shared Git repository and ignore rules
+- cross-project documentation in `docs/`
+
+Current root scripts live in the root `package.json` and include:
+
+- `npm run dev:backend`
+- `npm run dev:frontend`
+- `npm run build`
+- `npm run build:backend`
+- `npm run build:frontend`
+- `npm run lint:frontend`
+
+---
+
+# Backend Structure
+
+The backend application lives in `backend/`.
+
+```text
 backend/
+├ package.json
+├ tsconfig.json
+├ src/
+│ ├ app.ts
+│ ├ server.ts
+│ ├ config/
+│ ├ controllers/
+│ ├ database/
+│ ├ dtos/
+│ ├ middlewares/
+│ ├ models/
+│ ├ repositories/
+│ ├ routes/
+│ ├ services/
+│ └ utils/
+└ dist/
+```
 
-src/
-controllers/
-services/
-repositories/
-models/
-routes/
-dtos/
-database/
-config/
-middlewares/
-utils/
+## Backend Folder Responsibilities
 
-app.ts
-server.ts
+### controllers
 
+Location: `backend/src/controllers`
 
----
-
-# Folder Responsibilities
-
-## controllers
-
-Location:
-
-
-src/controllers
-
-
-Purpose:
-
-Handle HTTP requests and responses.
+Purpose: handle HTTP requests and responses.
 
 Responsibilities:
 
 - receive requests
-- validate DTOs
+- validate DTO shape at the boundary when needed
 - call services
-- return responses
+- return HTTP responses
 
-Controllers must NOT contain business logic.
+Controllers must not contain business logic.
 
-Example:
+### services
 
+Location: `backend/src/services`
 
-expense.controller.ts
-user.controller.ts
-
-
----
-
-## services
-
-Location:
-
-
-src/services
-
-
-Purpose:
-
-Implement business logic.
+Purpose: implement business logic and application rules.
 
 Responsibilities:
 
 - enforce domain rules
 - coordinate repositories
-- trigger domain events
+- validate invariants
+- orchestrate mutations and reads
 
-Services must not access the database directly.
+### repositories
 
-They must use repositories.
+Location: `backend/src/repositories`
 
-Example:
-
-
-expense.service.ts
-user.service.ts
-
-
----
-
-## repositories
-
-Location:
-
-
-src/repositories
-
-
-Purpose:
-
-Encapsulate persistence logic.
+Purpose: encapsulate persistence logic.
 
 Responsibilities:
 
-- database queries
-- interaction with Sequelize models
-- data retrieval and persistence
+- query the database
+- interact with Sequelize models
+- isolate persistence concerns from services
 
-Repositories isolate the ORM from the rest of the system.
+### models
 
-Example:
+Location: `backend/src/models`
 
+Purpose: define Sequelize models representing database tables only.
 
-expense.repository.ts
-user.repository.ts
+Models must follow `docs/architecture/database-model.md` and must not contain business logic.
 
+### routes
 
----
+Location: `backend/src/routes`
 
-## models
+Purpose: register Express endpoints and map them to controllers.
 
-Location:
+### dtos
 
+Location: `backend/src/dtos`
 
-src/models
+Purpose: define request and response contracts used at the application boundary.
 
+### database
 
-Purpose:
+Location: `backend/src/database`
 
-Define Sequelize models representing database tables.
+Purpose: database connection, migrations, and persistence bootstrap.
 
-Models must follow the schema defined in:
+### config
 
-docs/architecture/database-model.md
+Location: `backend/src/config`
 
-Example:
+Purpose: application and infrastructure configuration.
 
+### middlewares
 
-expense.model.ts
-user.model.ts
+Location: `backend/src/middlewares`
 
+Purpose: Express middleware functions.
 
----
+### utils
 
-## routes
+Location: `backend/src/utils`
 
-Location:
-
-
-src/routes
-
-
-Purpose:
-
-Define Express routes and map endpoints to controllers.
-
-Example:
-
-
-expense.routes.ts
-user.routes.ts
-
+Purpose: small shared utilities that do not belong to a domain service.
 
 ---
 
-## dtos
+# Frontend Structure
 
-Location:
+The frontend application lives in `frontend/`.
 
+```text
+frontend/
+├ package.json
+├ vite.config.ts
+├ src/
+│ ├ App.tsx
+│ ├ main.tsx
+│ ├ assets/
+│ ├ components/
+│ ├ config/
+│ ├ hooks/
+│ ├ layouts/
+│ ├ pages/
+│ ├ routes/
+│ ├ services/
+│ ├ store/
+│ ├ styles/
+│ ├ types/
+│ └ utils/
+└ public/
+```
 
-src/dtos
-
-
-Purpose:
-
-Define Data Transfer Objects used by controllers.
-
-DTOs define the shape of requests and responses.
-
-They must follow:
-
-docs/architecture/dto-spec.md
-
-Example:
-
-
-create-expense.dto.ts
-update-expense.dto.ts
-
-
----
-
-## database
-
-Location:
-
-
-src/database
-
-
-Purpose:
-
-Database initialization and Sequelize configuration.
-
-Example:
-
-
-sequelize.ts
-
+Frontend-specific responsibilities are documented in `docs/architecture/frontend/architecture.md`.
 
 ---
 
-## config
+# Documentation Structure
 
-Location:
+Cross-project documentation lives in `docs/`.
 
+Key areas:
 
-src/config
+- `docs/domain/`: domain rules and model
+- `docs/architecture/`: technical architecture and contracts
+- `docs/product/`: product direction
+- `docs/adr/`: architecture decisions
+- `docs/ai/`: AI-oriented implementation guidance
 
+Documentation must distinguish between:
 
-Purpose:
-
-Application configuration.
-
-Example:
-
-
-database.config.ts
-app.config.ts
-
-
----
-
-## middlewares
-
-Location:
-
-
-src/middlewares
-
-
-Purpose:
-
-Express middleware functions.
-
-Example:
-
-
-error-handler.middleware.ts
-auth.middleware.ts
-
-
----
-
-## utils
-
-Location:
-
-
-src/utils
-
-
-Purpose:
-
-Utility functions shared across the backend.
-
-Example:
-
-
-date.utils.ts
-validation.utils.ts
-
-
----
-
-# Application Entry Points
-
-## app.ts
-
-Purpose:
-
-Configure the Express application.
-
-Responsibilities:
-
-- register middlewares
-- register routes
-- configure error handling
-
----
-
-## server.ts
-
-Purpose:
-
-Start the HTTP server.
-
-Responsibilities:
-
-- initialize app
-- connect to database
-- start listening on a port
-
----
-
-# Expected Backend Structure
-
-Example:
-
-
-backend/
-
-src/
-
-controllers/
-expense.controller.ts
-user.controller.ts
-
-services/
-expense.service.ts
-user.service.ts
-
-repositories/
-expense.repository.ts
-user.repository.ts
-
-models/
-expense.model.ts
-user.model.ts
-
-routes/
-expense.routes.ts
-user.routes.ts
-
-dtos/
-create-expense.dto.ts
-update-expense.dto.ts
-
-database/
-sequelize.ts
-
-config/
-database.config.ts
-
-middlewares/
-error-handler.middleware.ts
-
-utils/
-date.utils.ts
-
-app.ts
-server.ts
-
-
----
-
-# AI Development Rules
-
-When generating backend code, AI tools must:
-
-1. place files in the correct folders
-2. respect layer responsibilities
-3. follow backend-architecture.md
-4. follow repository-pattern.md
-
-AI tools must not introduce new folder structures unless explicitly approved.
-
----
-
-# Related Documents
-
-docs/architecture/backend-architecture.md  
-docs/architecture/database-model.md  
-docs/architecture/repository-pattern.md  
-docs/architecture/dto-spec.md  
-docs/ai/backend-coding-rules.md
+- current implemented state
+- transition state where legacy compatibility still exists
+- target architecture or product direction
