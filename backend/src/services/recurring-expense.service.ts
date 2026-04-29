@@ -16,6 +16,10 @@ const subcategoryRepository = new SubcategoryRepository()
 const userRepository = new UserRepository()
 
 export class RecurringExpenseService {
+  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
+    return userId ? undefined : familyId ?? undefined
+  }
+
   private async findMonthByIdOrThrow(id: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
@@ -123,16 +127,18 @@ export class RecurringExpenseService {
   }
 
   private async ensureMonth(params: { userId?: string; familyId?: string; year: number; month: number }) {
+    const legacyFamilyId = this.getLegacyFamilyId(params.userId, params.familyId)
+
     let targetMonth = params.userId
       ? await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
-      : params.familyId
-        ? await monthRepository.findByFamilyAndPeriod(params.familyId, params.year, params.month)
+      : legacyFamilyId
+        ? await monthRepository.findByFamilyAndPeriod(legacyFamilyId, params.year, params.month)
         : null
 
     if (!targetMonth) {
       targetMonth = await monthRepository.create({
         user_id: params.userId,
-        family_id: params.familyId,
+        family_id: legacyFamilyId,
         year: params.year,
         month: params.month,
         status: "open"
@@ -233,10 +239,12 @@ export class RecurringExpenseService {
       throw new Error("Start month not found")
     }
 
+    const legacyFamilyId = this.getLegacyFamilyId(data.userId, data.familyId)
+
     const ownerMonths = data.userId
       ? await monthRepository.findByUserId(data.userId)
-      : data.familyId
-        ? await monthRepository.findByFamilyId(data.familyId)
+      : legacyFamilyId
+        ? await monthRepository.findByFamilyId(legacyFamilyId)
         : []
 
     const eligibleMonthIds = ownerMonths
@@ -265,10 +273,11 @@ export class RecurringExpenseService {
 
     const userId = month.getDataValue("user_id") as string | null
     const familyId = month.getDataValue("family_id") as string | null
+    const legacyFamilyId = this.getLegacyFamilyId(userId, familyId)
     const recurringExpenses = userId
       ? await recurringExpenseRepository.findByUserId(userId)
-      : familyId
-        ? await recurringExpenseRepository.findByFamilyId(familyId)
+      : legacyFamilyId
+        ? await recurringExpenseRepository.findByFamilyId(legacyFamilyId)
         : []
 
     for (const recurringExpense of recurringExpenses) {

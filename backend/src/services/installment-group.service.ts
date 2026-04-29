@@ -16,6 +16,10 @@ const subcategoryRepository = new SubcategoryRepository()
 const userRepository = new UserRepository()
 
 export class InstallmentGroupService {
+  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
+    return userId ? undefined : familyId ?? undefined
+  }
+
   private async findMonthByIdOrThrow(id: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
@@ -45,16 +49,18 @@ export class InstallmentGroupService {
   }
 
   private async ensureMonth(params: { userId?: string; familyId?: string; year: number; month: number }) {
+    const legacyFamilyId = this.getLegacyFamilyId(params.userId, params.familyId)
+
     let targetMonth = params.userId
       ? await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
-      : params.familyId
-        ? await monthRepository.findByFamilyAndPeriod(params.familyId, params.year, params.month)
+      : legacyFamilyId
+        ? await monthRepository.findByFamilyAndPeriod(legacyFamilyId, params.year, params.month)
         : null
 
     if (!targetMonth) {
       targetMonth = await monthRepository.create({
         user_id: params.userId,
-        family_id: params.familyId,
+        family_id: legacyFamilyId,
         year: params.year,
         month: params.month,
         status: "open"

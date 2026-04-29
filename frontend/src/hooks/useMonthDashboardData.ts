@@ -1,13 +1,10 @@
 import { useQueries } from "@tanstack/react-query";
 import {
-  useFamily,
   useMonth,
-  useFamilyMembers,
   useMonthlyIncomes,
   useCategories,
   useExpenses,
   useBudgetRules,
-  useDebts,
   useUsers,
 } from "./index";
 import { incomeTaxService, subcategoryService } from "../services";
@@ -22,17 +19,13 @@ export type MonthExpenseListItem = Expense & {
   paidByName?: string;
 };
 
-export function useMonthDashboardData(params: { familyId?: string; userId?: string; monthId: string }) {
-  const { data: family } = useFamily(params.familyId ?? "");
+export function useMonthDashboardData(params: { userId?: string; monthId: string }) {
   const { data: month } = useMonth(params.monthId);
-  const { data: members } = useFamilyMembers(params.familyId ?? "");
   const { data: incomes, isLoading: loadingIncomes } = useMonthlyIncomes(params.monthId);
   const resolvedUserId = month?.user_id ?? params.userId;
-  const resolvedFamilyId = params.familyId ?? month?.family_id;
-  const { data: categories } = useCategories({ familyId: resolvedFamilyId, userId: resolvedUserId });
-  const { data: expenses, isLoading: loadingExpenses } = useExpenses({ familyId: resolvedFamilyId, userId: resolvedUserId, monthId: params.monthId });
-  const { data: debts } = useDebts(resolvedFamilyId ?? "");
-  const { data: budgetRules } = useBudgetRules({ familyId: resolvedFamilyId, userId: resolvedUserId });
+  const { data: categories } = useCategories({ userId: resolvedUserId });
+  const { data: expenses, isLoading: loadingExpenses } = useExpenses({ userId: resolvedUserId, monthId: params.monthId });
+  const { data: budgetRules } = useBudgetRules({ userId: resolvedUserId });
   const { data: users } = useUsers();
 
   // Load taxes per income
@@ -95,16 +88,17 @@ export function useMonthDashboardData(params: { familyId?: string; userId?: stri
   const totalExpenses = (expenses ?? []).reduce((s, e) => s + Number(e.value), 0);
   const balance = netIncome - totalExpenses;
 
-  const memberOptions = (members ?? []).map((m) => ({ value: m.user_id, label: userNameMap[m.user_id] ?? m.user_id }));
+  const memberOptions = resolvedUserId
+    ? [{ value: resolvedUserId, label: userNameMap[resolvedUserId] ?? resolvedUserId }]
+    : [];
 
   const loadingTaxes = taxQueries.some((query) => query.isLoading);
   const loadingSubcategories = subQueries.some((query) => query.isLoading);
   const isLoading = loadingIncomes || loadingExpenses || loadingTaxes || loadingSubcategories;
 
   return {
-    family,
     month,
-    members: members ?? [],
+    currentUserName: resolvedUserId ? userNameMap[resolvedUserId] ?? resolvedUserId : undefined,
     memberOptions,
     incomes: incomes ?? [],
     allTaxes,
@@ -112,7 +106,6 @@ export function useMonthDashboardData(params: { familyId?: string; userId?: stri
     allSubcategories,
     expenses: expenses ?? [],
     expensesByType,
-    debts: debts ?? [],
     budgetRules: budgetRules ?? [],
     grossIncome,
     totalTaxes,

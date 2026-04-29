@@ -36,7 +36,6 @@ import MonthSummaryHeader from "../components/features/month-dashboard/MonthSumm
 import IncomeOverviewCard from "../components/features/month-dashboard/IncomeOverviewCard";
 import CategoryExpenseColumn from "../components/features/month-dashboard/CategoryExpenseColumn";
 import BudgetComparisonTable from "../components/features/month-dashboard/BudgetComparisonTable";
-import DebtsSummaryCard from "../components/features/month-dashboard/DebtsSummaryCard";
 import IncomeForm from "../components/features/incomes/IncomeForm/IncomeForm";
 import RecurringIncomeForm from "../components/features/incomes/RecurringIncomeForm/RecurringIncomeForm";
 import IncomeTaxForm from "../components/features/income-taxes/IncomeTaxForm/IncomeTaxForm";
@@ -88,9 +87,8 @@ const COLUMN_CONFIG: { type: string; title: string; color: string }[] = [
 export default function MonthDetailPage() {
   const { userId, monthId } = useParams<{ userId?: string; monthId: string }>();
   const dashboard = useMonthDashboardData({ userId, monthId: monthId! });
-  const resolvedFamilyId = dashboard.month?.family_id;
   const resolvedUserId = dashboard.month?.user_id ?? userId;
-  const ownerContext = { familyId: resolvedFamilyId, userId: resolvedUserId };
+  const ownerContext = { userId: resolvedUserId };
   const { data: installmentGroups = [] } = useInstallmentGroups(ownerContext);
   const { data: recurringExpenses = [] } = useRecurringExpenses(ownerContext);
   const { data: recurringIncomes = [] } = useRecurringIncomes(ownerContext);
@@ -604,7 +602,7 @@ export default function MonthDetailPage() {
       <section className="page-hero">
         <div className="page-hero__content">
           <div className="page-hero__eyebrow">Painel do período</div>
-          <h1 className="page-title">{dashboard.family?.name ?? "Usuário"} — {monthLabel}</h1>
+          <h1 className="page-title">{dashboard.currentUserName ?? "Usuário"} — {monthLabel}</h1>
           <p className="page-subtitle">Concentre receitas, impostos, despesas e automatizações do mês em uma leitura única e mais organizada.</p>
         </div>
         <div className="page-hero__actions">
@@ -615,13 +613,6 @@ export default function MonthDetailPage() {
             <Button onClick={handleFinalizeMonth} disabled={finalizeMonth.isPending}>
               {finalizeMonth.isPending ? "Finalizando..." : "Finalizar mês"}
             </Button>
-          )}
-          {resolvedFamilyId && (
-            <div className="page-hero__links">
-              <Link to={`/families/${resolvedFamilyId}/budgets`}>
-                Gerenciar orçamento
-              </Link>
-            </div>
           )}
         </div>
       </section>
@@ -759,9 +750,6 @@ export default function MonthDetailPage() {
           ruleName={dashboard.budgetRules.find((rule) => rule.id === selectedBudgetRuleId)?.name}
         />
       </div>
-
-      {/* Debts */}
-      <DebtsSummaryCard debts={dashboard.debts} />
 
       <div className="section-grid">
         <section className="section-panel">
@@ -1097,7 +1085,6 @@ export default function MonthDetailPage() {
           </div>
         )}
         <ExpenseForm
-          familyId={resolvedFamilyId}
           userId={resolvedUserId}
           monthId={monthId!}
           categories={expenseModal.editing ? dashboard.categories : formCategories}
@@ -1166,7 +1153,6 @@ export default function MonthDetailPage() {
       >
         <InstallmentPurchaseForm
           userId={dashboard.month?.user_id}
-          familyId={resolvedFamilyId ?? ""}
           monthId={monthId!}
           categories={dashboard.categories}
           subcategories={dashboard.allSubcategories}
@@ -1185,7 +1171,6 @@ export default function MonthDetailPage() {
       >
         <RecurringExpenseForm
           userId={dashboard.month?.user_id}
-          familyId={resolvedFamilyId ?? ""}
           monthId={monthId!}
           categories={dashboard.categories}
           subcategories={dashboard.allSubcategories}

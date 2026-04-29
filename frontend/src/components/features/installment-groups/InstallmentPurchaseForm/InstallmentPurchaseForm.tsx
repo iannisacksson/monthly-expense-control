@@ -7,7 +7,7 @@ import type { Category, CreateInstallmentGroupDTO, InstallmentGroup, Subcategory
 
 interface InstallmentPurchaseFormProps {
   userId?: string;
-  familyId: string;
+  familyId?: string;
   monthId: string;
   categories: Category[];
   subcategories: Subcategory[];
