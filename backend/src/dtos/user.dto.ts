@@ -9,3 +9,11 @@ export interface UpdateUserDTO {
   email?: string
   password_hash?: string
 }
+
+export interface UserPublicDTO {
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  updatedAt: string
+}

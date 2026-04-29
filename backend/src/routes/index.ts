@@ -1,4 +1,5 @@
 import { Router } from "express"
+import authRoutes from "./auth.routes"
 import userRoutes from "./user.routes"
 import monthRoutes from "./month.routes"
 import monthlyIncomeRoutes from "./monthly-income.routes"
@@ -17,6 +18,7 @@ router.get("/health", (req, res) => {
   res.json({ status: "ok" })
 })
 
+router.use("/auth", authRoutes)
 router.use("/users", userRoutes)
 router.use("/months", monthRoutes)
 router.use("/monthly-incomes", monthlyIncomeRoutes)
