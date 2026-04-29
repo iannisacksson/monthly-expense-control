@@ -9,8 +9,8 @@ import type {
 
 const RECURRING_EXPENSES_KEY = ["recurring-expenses"] as const;
 
-export function useRecurringExpenses(params: { familyId?: string; userId?: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useRecurringExpenses(params: { userId?: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...RECURRING_EXPENSES_KEY, ownerKey],
@@ -19,13 +19,9 @@ export function useRecurringExpenses(params: { familyId?: string; userId?: strin
         return recurringExpenseService.listByUser(params.userId);
       }
 
-      if (params.familyId) {
-        return recurringExpenseService.listByFamily(params.familyId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: !!params.userId || !!params.familyId,
+    enabled: !!params.userId,
   });
 }
 

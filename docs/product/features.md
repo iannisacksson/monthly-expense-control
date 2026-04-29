@@ -343,6 +343,7 @@ The system must:
 - preserve traceability between the installment group and generated expenses
 - integrate installment expenses into monthly views
 - distinguish clearly between editing one monthly occurrence and editing the series definition
+- treat installment listing and creation as user-scoped application flows, resolving any legacy family fallback from the selected start month instead of from active frontend payloads
 
 ### Domain Entities
 
@@ -383,6 +384,7 @@ The system must:
 - integrate recurring expenses into monthly views
 - make the scope of edits explicit in the UI and backend contract
 - allow recurring definitions to stay active indefinitely by default, without requiring a fixed month count
+- treat recurring expense listing and creation as user-scoped application flows, resolving any legacy family fallback from the selected start month instead of from active frontend payloads
 
 ### Domain Entities
 

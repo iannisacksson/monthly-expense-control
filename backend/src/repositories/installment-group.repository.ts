@@ -21,10 +21,6 @@ export class InstallmentGroupRepository {
     return InstallmentGroup.findByPk(id)
   }
 
-  async findByFamilyId(familyId: string) {
-    return InstallmentGroup.findAll({ where: { family_id: familyId } })
-  }
-
   async findByUserId(userId: string) {
     return InstallmentGroup.findAll({ where: { user_id: userId } })
   }

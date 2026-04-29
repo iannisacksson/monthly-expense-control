@@ -8,7 +8,6 @@ export interface Category {
 
 export interface CreateCategoryDTO {
   user_id?: string;
-  family_id?: string;
   name: string;
   type: string;
 }

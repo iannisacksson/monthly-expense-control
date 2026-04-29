@@ -21,15 +21,6 @@ export const listRecurringExpensesByUser = async (req: Request, res: Response) =
   }
 }
 
-export const listRecurringExpensesByFamily = async (req: Request, res: Response) => {
-  try {
-    const result = await recurringExpenseService.listRecurringExpensesByFamily(req.params.familyId as string)
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getRecurringExpenseById = async (req: Request, res: Response) => {
   try {
     const result = await recurringExpenseService.findRecurringExpenseById(req.params.id as string)

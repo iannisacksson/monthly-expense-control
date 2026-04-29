@@ -15,11 +15,6 @@ export const installmentGroupService = {
     return data;
   },
 
-  async listByFamily(familyId: string): Promise<InstallmentGroup[]> {
-    const { data } = await httpClient.get<InstallmentGroup[]>(`/installment-groups/family/${familyId}`);
-    return data;
-  },
-
   async getById(id: string): Promise<InstallmentGroup> {
     const { data } = await httpClient.get<InstallmentGroup>(`/installment-groups/${id}`);
     return data;

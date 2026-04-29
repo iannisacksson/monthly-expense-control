@@ -229,53 +229,58 @@ export class InstallmentGroupService {
   }
 
   async createInstallmentPurchase(data: CreateInstallmentGroupDTO) {
-    if (!data.user_id && !data.family_id) {
-      throw new Error("Installment group must belong to a user or a legacy family context")
-    }
-
     this.validateBaseFields({
       totalValue: data.total_value,
       installments: data.installments,
       startingInstallmentNumber: data.starting_installment_number,
     })
 
-    await this.validateCategoryAndSubcategory({
-      userId: data.user_id,
-      familyId: data.family_id,
-      categoryId: data.category_id,
-      subcategoryId: data.subcategory_id,
-    })
-
-    if (data.user_id) {
-      const user = await userRepository.findById(data.user_id)
-      if (!user) {
-        throw new Error("User not found")
-      }
-    }
-
-    if (data.family_id) {
-      const family = await familyRepository.findById(data.family_id)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
     const startMonth = await monthRepository.findById(data.start_month_id)
     if (!startMonth) {
       throw new Error("Start month not found")
     }
 
-    if (data.user_id && startMonth.getDataValue("user_id") !== data.user_id) {
+    const monthUserId = startMonth.getDataValue("user_id") as string | null
+    const monthFamilyId = startMonth.getDataValue("family_id") as string | null
+    const ownerUserId = data.user_id ?? monthUserId ?? undefined
+    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, monthFamilyId)
+
+    if (!ownerUserId && !legacyFamilyId) {
+      throw new Error("Installment group must belong to a user or a legacy family context")
+    }
+
+    await this.validateCategoryAndSubcategory({
+      userId: ownerUserId,
+      familyId: legacyFamilyId,
+      categoryId: data.category_id,
+      subcategoryId: data.subcategory_id,
+    })
+
+    if (ownerUserId) {
+      const user = await userRepository.findById(ownerUserId)
+      if (!user) {
+        throw new Error("User not found")
+      }
+    }
+
+    if (legacyFamilyId) {
+      const family = await familyRepository.findById(legacyFamilyId)
+      if (!family) {
+        throw new Error("Family not found")
+      }
+    }
+
+    if (ownerUserId && monthUserId !== ownerUserId) {
       throw new Error("Start month must belong to the same user as the installment purchase")
     }
 
-    if (data.family_id && startMonth.getDataValue("family_id") !== data.family_id) {
+    if (legacyFamilyId && monthFamilyId !== legacyFamilyId) {
       throw new Error("Start month must belong to the same family as the installment purchase")
     }
 
     const group = await installmentGroupRepository.create({
-      user_id: data.user_id,
-      family_id: data.family_id,
+      user_id: ownerUserId,
+      family_id: legacyFamilyId,
       description: data.description,
       total_value: data.total_value,
       installments: data.installments,
@@ -289,8 +294,8 @@ export class InstallmentGroupService {
 
     await this.generateInstallmentExpenses({
       installmentGroupId: group.getDataValue("id") as string,
-      userId: data.user_id,
-      familyId: data.family_id,
+      userId: ownerUserId,
+      familyId: legacyFamilyId,
       description: data.description,
       totalValue: data.total_value,
       installments: data.installments,
@@ -311,10 +316,6 @@ export class InstallmentGroupService {
       throw new Error("Installment group not found")
     }
     return group
-  }
-
-  async listInstallmentGroupsByFamily(familyId: string) {
-    return installmentGroupRepository.findByFamilyId(familyId)
   }
 
   async listInstallmentGroupsByUser(userId: string) {

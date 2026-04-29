@@ -2,7 +2,6 @@ export type RecurringExpenseScope = "single_occurrence" | "future_occurrences" |
 
 export interface CreateRecurringExpenseDTO {
   user_id?: string
-  family_id?: string
   description: string
   value: number
   category_id: string

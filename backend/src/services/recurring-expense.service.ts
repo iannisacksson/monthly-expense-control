@@ -312,51 +312,68 @@ export class RecurringExpenseService {
       status: data.status,
     })
 
-    if (!data.user_id && !data.family_id) {
-      throw new Error("Recurring expense must belong to a user or a legacy family context")
-    }
-
-    if (data.user_id) {
-      const user = await userRepository.findById(data.user_id)
-      if (!user) {
-        throw new Error("User not found")
-      }
-    }
-
-    if (data.family_id) {
-      const family = await familyRepository.findById(data.family_id)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
     const startMonth = await monthRepository.findById(data.start_month_id)
     if (!startMonth) {
       throw new Error("Start month not found")
     }
 
-    if (data.user_id && startMonth.getDataValue("user_id") !== data.user_id) {
+    const monthUserId = startMonth.getDataValue("user_id") as string | null
+    const monthFamilyId = startMonth.getDataValue("family_id") as string | null
+    const ownerUserId = data.user_id ?? monthUserId ?? undefined
+    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, monthFamilyId)
+
+    if (!ownerUserId && !legacyFamilyId) {
+      throw new Error("Recurring expense must belong to a user or a legacy family context")
+    }
+
+    if (ownerUserId) {
+      const user = await userRepository.findById(ownerUserId)
+      if (!user) {
+        throw new Error("User not found")
+      }
+    }
+
+    if (legacyFamilyId) {
+      const family = await familyRepository.findById(legacyFamilyId)
+      if (!family) {
+        throw new Error("Family not found")
+      }
+    }
+
+    if (ownerUserId && monthUserId !== ownerUserId) {
       throw new Error("Start month must belong to the same user as the recurring expense")
     }
 
-    if (data.family_id && startMonth.getDataValue("family_id") !== data.family_id) {
+    if (legacyFamilyId && monthFamilyId !== legacyFamilyId) {
       throw new Error("Start month must belong to the same family as the recurring expense")
     }
 
     await this.validateCategoryAndSubcategory({
-      userId: data.user_id,
-      familyId: data.family_id,
+      userId: ownerUserId,
+      familyId: legacyFamilyId,
       categoryId: data.category_id,
       subcategoryId: data.subcategory_id,
     })
 
-    const recurringExpense = await recurringExpenseRepository.create(data)
+    const recurringExpense = await recurringExpenseRepository.create({
+      user_id: ownerUserId,
+      family_id: legacyFamilyId,
+      description: data.description,
+      value: data.value,
+      category_id: data.category_id,
+      subcategory_id: data.subcategory_id,
+      paid_by: data.paid_by,
+      responsible_user_id: data.responsible_user_id,
+      start_month_id: data.start_month_id,
+      occurrences: data.occurrences,
+      status: data.status,
+    })
 
     if (data.status === "active") {
       await this.syncRecurringExpenseToOwnerMonths({
         recurringExpenseId: recurringExpense.getDataValue("id") as string,
-        userId: data.user_id,
-        familyId: data.family_id,
+        userId: ownerUserId,
+        familyId: legacyFamilyId,
         description: data.description,
         value: data.value,
         categoryId: data.category_id,
@@ -369,10 +386,6 @@ export class RecurringExpenseService {
     }
 
     return recurringExpense
-  }
-
-  async listRecurringExpensesByFamily(familyId: string) {
-    return recurringExpenseRepository.findByFamilyId(familyId)
   }
 
   async listRecurringExpensesByUser(userId: string) {

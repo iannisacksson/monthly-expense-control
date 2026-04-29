@@ -18,7 +18,6 @@ export interface RecurringExpense {
 
 export interface CreateRecurringExpenseDTO {
   user_id?: string;
-  family_id?: string;
   description: string;
   value: number;
   category_id: string;

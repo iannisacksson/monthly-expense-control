@@ -140,6 +140,8 @@ Current compatibility decision for adjacent flows:
 - category backend listing is now user-scoped only
 - budget rule listing in the active application is now user-scoped only
 - family-scoped expense listing is no longer part of the active frontend surface and should not return as a compatibility path
+- recurring expense and installment group listing in the active application are now user-scoped only
+- active create payloads for recurring expenses and installment groups no longer need `family_id`; legacy family fallback is resolved internally from persisted month ownership when required
 
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
 
@@ -170,6 +172,7 @@ These parts must be adapted, not just removed:
 - Expense category validation must follow the same owner as the selected month, preferring `user_id` and using `family_id` only for legacy fallback months
 - RecurringExpense generation must create month records by `user_id`
 - InstallmentGroup generation must create month records by `user_id`
+- active DTOs for category, budget rule, recurring expense, and installment group creation should stop carrying `family_id` once the corresponding surface is user-only
 - dashboard aggregation queries must filter by `user_id + month_id`
 - frontend routes must stop carrying `familyId`
 - frontend list and form services must stop calling family-scoped endpoints

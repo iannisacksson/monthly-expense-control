@@ -12,7 +12,6 @@ import type {
 
 interface RecurringExpenseFormProps {
   userId?: string;
-  familyId?: string;
   monthId: string;
   categories: Category[];
   subcategories: Subcategory[];
@@ -30,7 +29,6 @@ const statusOptions = [
 
 export default function RecurringExpenseForm({
   userId,
-  familyId,
   monthId,
   categories,
   subcategories,
@@ -67,7 +65,6 @@ export default function RecurringExpenseForm({
 
     onSubmit({
       user_id: userId,
-      family_id: familyId,
       description,
       value: parseCurrencyInputToNumber(valueInput),
       category_id: categoryId,

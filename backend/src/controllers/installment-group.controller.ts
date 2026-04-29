@@ -21,15 +21,6 @@ export const listInstallmentGroupsByUser = async (req: Request, res: Response) =
   }
 }
 
-export const listInstallmentGroupsByFamily = async (req: Request, res: Response) => {
-  try {
-    const result = await installmentGroupService.listInstallmentGroupsByFamily(req.params.familyId as string)
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getInstallmentGroupById = async (req: Request, res: Response) => {
   try {
     const result = await installmentGroupService.findInstallmentGroupById(req.params.id as string)

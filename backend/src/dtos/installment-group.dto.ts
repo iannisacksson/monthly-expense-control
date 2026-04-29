@@ -2,7 +2,6 @@ export type InstallmentGroupScope = "single_occurrence" | "future_occurrences" |
 
 export interface CreateInstallmentGroupDTO {
   user_id?: string
-  family_id?: string
   description: string
   total_value: number
   installments: number

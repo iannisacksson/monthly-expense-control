@@ -15,11 +15,6 @@ export const recurringExpenseService = {
     return data;
   },
 
-  async listByFamily(familyId: string): Promise<RecurringExpense[]> {
-    const { data } = await httpClient.get<RecurringExpense[]>(`/recurring-expenses/family/${familyId}`);
-    return data;
-  },
-
   async getById(id: string): Promise<RecurringExpense> {
     const { data } = await httpClient.get<RecurringExpense>(`/recurring-expenses/${id}`);
     return data;

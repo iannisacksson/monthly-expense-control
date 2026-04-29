@@ -9,8 +9,8 @@ import type {
 
 const INSTALLMENTS_KEY = ["installment-groups"] as const;
 
-export function useInstallmentGroups(params: { familyId?: string; userId?: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useInstallmentGroups(params: { userId?: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...INSTALLMENTS_KEY, ownerKey],
@@ -19,13 +19,9 @@ export function useInstallmentGroups(params: { familyId?: string; userId?: strin
         return installmentGroupService.listByUser(params.userId);
       }
 
-      if (params.familyId) {
-        return installmentGroupService.listByFamily(params.familyId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: !!params.userId || !!params.familyId,
+    enabled: !!params.userId,
   });
 }
 

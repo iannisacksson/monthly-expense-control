@@ -50,12 +50,12 @@ export class BudgetService {
       throw new Error("Budget rule name must be between 2 and 100 characters")
     }
 
-    if (!data.user_id && !data.family_id) {
-      throw new Error("Budget rule must belong to a user or a legacy family context")
+    if (!data.user_id) {
+      throw new Error("Budget rule must belong to a user")
     }
 
-    const ownerUserId = data.user_id ?? undefined
-    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, data.family_id)
+    const ownerUserId = data.user_id
+    const legacyFamilyId = undefined
 
     if (ownerUserId) {
       const user = await userRepository.findById(ownerUserId)

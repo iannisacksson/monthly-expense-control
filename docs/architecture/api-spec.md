@@ -447,6 +447,11 @@ Represents installment purchase series.
 
 POST /api/v1/installment-groups
 
+Behavior note:
+
+- active create payloads are user-scoped and rely on `start_month_id` plus optional `user_id`
+- any legacy `family_id` fallback must be resolved internally from the selected start month while legacy persisted data still exists
+
 ## List Installment Groups by User
 
 GET /api/v1/installment-groups/user/{userId}
@@ -507,6 +512,11 @@ Represents recurring expense series.
 ## Create Recurring Expense
 
 POST /api/v1/recurring-expenses
+
+Behavior note:
+
+- active create payloads are user-scoped and rely on `start_month_id` plus optional `user_id`
+- any legacy `family_id` fallback must be resolved internally from the selected start month while legacy persisted data still exists
 
 ## List Recurring Expenses by User
 

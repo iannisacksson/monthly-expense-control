@@ -7,7 +7,6 @@ import type { Category, CreateInstallmentGroupDTO, InstallmentGroup, Subcategory
 
 interface InstallmentPurchaseFormProps {
   userId?: string;
-  familyId?: string;
   monthId: string;
   categories: Category[];
   subcategories: Subcategory[];
@@ -20,7 +19,6 @@ interface InstallmentPurchaseFormProps {
 
 export default function InstallmentPurchaseForm({
   userId,
-  familyId,
   monthId,
   categories,
   subcategories,
@@ -68,7 +66,6 @@ export default function InstallmentPurchaseForm({
 
     onSubmit({
       user_id: userId,
-      family_id: familyId,
       description,
       total_value: totalValue,
       installments: Number(installments),
