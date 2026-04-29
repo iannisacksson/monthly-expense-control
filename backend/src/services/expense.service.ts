@@ -3,6 +3,7 @@ import { MonthRepository } from "../repositories/month.repository"
 import { CategoryRepository } from "../repositories/category.repository"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
 import { BulkDeleteExpensesDTO, BulkMarkExpensesPaidDTO, CreateExpenseDTO, UpdateExpenseDTO } from "../dtos/expense.dto"
+import { ForbiddenError } from "../utils/errors"
 
 const expenseRepository = new ExpenseRepository()
 const monthRepository = new MonthRepository()
@@ -105,11 +106,13 @@ export class ExpenseService {
     })
   }
 
-  async findExpenseById(id: string) {
+  async findExpenseById(id: string, requestingUserId: string) {
     const expense = await expenseRepository.findById(id)
     if (!expense) {
       throw new Error("Expense not found")
     }
+    const month = await monthRepository.findById(expense.getDataValue("month_id") as string)
+    if (!month || month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return expense
   }
 
@@ -120,7 +123,7 @@ export class ExpenseService {
     }
 
     if (month.getDataValue("user_id") !== userId) {
-      throw new Error("Month must belong to the selected user")
+      throw new ForbiddenError()
     }
 
     return expenseRepository.findByMonthId(monthId)
@@ -130,7 +133,7 @@ export class ExpenseService {
     return expenseRepository.findByCategoryId(categoryId)
   }
 
-  async updateExpense(id: string, data: UpdateExpenseDTO) {
+  async updateExpense(id: string, data: UpdateExpenseDTO, requestingUserId: string) {
     if (data.value !== undefined && data.value <= 0) {
       throw new Error("Expense amount must be greater than zero")
     }
@@ -149,6 +152,8 @@ export class ExpenseService {
     }
 
     const month = this.ensureMonthIsOpen(await monthRepository.findById(existingExpense.getDataValue("month_id") as string))
+
+    if (month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const nextCategoryId = data.category_id ?? (existingExpense.getDataValue("category_id") as string)
     const nextSubcategoryId = data.subcategory_id !== undefined
@@ -184,13 +189,14 @@ export class ExpenseService {
     return expense
   }
 
-  async deleteExpense(id: string) {
+  async deleteExpense(id: string, requestingUserId: string) {
     const existingExpense = await expenseRepository.findById(id)
     if (!existingExpense) {
       throw new Error("Expense not found")
     }
 
-    this.ensureMonthIsOpen(await monthRepository.findById(existingExpense.getDataValue("month_id") as string))
+    const month = this.ensureMonthIsOpen(await monthRepository.findById(existingExpense.getDataValue("month_id") as string))
+    if (month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const expense = await expenseRepository.delete(id)
     if (!expense) {
@@ -199,11 +205,7 @@ export class ExpenseService {
     return expense
   }
 
-  async bulkDeleteExpenses(data: BulkDeleteExpensesDTO) {
-    if (!data.user_id) {
-      throw new Error("user_id is required")
-    }
-
+  async bulkDeleteExpenses(data: BulkDeleteExpensesDTO, requestingUserId: string) {
     if (!data.month_id) {
       throw new Error("month_id is required")
     }
@@ -214,8 +216,8 @@ export class ExpenseService {
 
     const month = this.ensureMonthIsOpen(await monthRepository.findById(data.month_id))
 
-    if (month.getDataValue("user_id") !== data.user_id) {
-      throw new Error("Month must belong to the selected user")
+    if (month.getDataValue("user_id") !== requestingUserId) {
+      throw new ForbiddenError()
     }
 
     const expenses = await expenseRepository.findByIds(data.expense_ids)
@@ -236,11 +238,7 @@ export class ExpenseService {
     }
   }
 
-  async bulkMarkExpensesPaid(data: BulkMarkExpensesPaidDTO) {
-    if (!data.user_id) {
-      throw new Error("user_id is required")
-    }
-
+  async bulkMarkExpensesPaid(data: BulkMarkExpensesPaidDTO, requestingUserId: string) {
     if (!data.month_id) {
       throw new Error("month_id is required")
     }
@@ -251,8 +249,8 @@ export class ExpenseService {
 
     const month = this.ensureMonthIsOpen(await monthRepository.findById(data.month_id))
 
-    if (month.getDataValue("user_id") !== data.user_id) {
-      throw new Error("Month must belong to the selected user")
+    if (month.getDataValue("user_id") !== requestingUserId) {
+      throw new ForbiddenError()
     }
 
     const expenses = await expenseRepository.findByIds(data.expense_ids)

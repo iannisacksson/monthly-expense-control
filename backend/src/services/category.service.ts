@@ -1,6 +1,7 @@
 import { CategoryRepository } from "../repositories/category.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/category.dto"
+import { ForbiddenError } from "../utils/errors"
 
 const categoryRepository = new CategoryRepository()
 const userRepository = new UserRepository()
@@ -31,18 +32,23 @@ export class CategoryService {
     return categoryRepository.findByUserId(userId)
   }
 
-  async findCategoryById(id: string) {
+  async findCategoryById(id: string, requestingUserId: string) {
     const category = await categoryRepository.findById(id)
     if (!category) {
       throw new Error("Category not found")
     }
+    if (category.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return category
   }
 
-  async updateCategory(id: string, data: UpdateCategoryDTO) {
+  async updateCategory(id: string, data: UpdateCategoryDTO, requestingUserId: string) {
     if (data.name !== undefined && (data.name.length < 2 || data.name.length > 100)) {
       throw new Error("Category name must be between 2 and 100 characters")
     }
+
+    const existing = await categoryRepository.findById(id)
+    if (!existing) throw new Error("Category not found")
+    if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const category = await categoryRepository.update(id, data)
     if (!category) {
@@ -51,7 +57,11 @@ export class CategoryService {
     return category
   }
 
-  async deleteCategory(id: string) {
+  async deleteCategory(id: string, requestingUserId: string) {
+    const existing = await categoryRepository.findById(id)
+    if (!existing) throw new Error("Category not found")
+    if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+
     const category = await categoryRepository.delete(id)
     if (!category) {
       throw new Error("Category not found")

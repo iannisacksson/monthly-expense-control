@@ -5,6 +5,7 @@ import { IncomeTaxRepository } from "../repositories/income-tax.repository"
 import { sequelize } from "../database/connection"
 import { CreateMonthlyIncomeDTO, IncomeTaxationDTO, UpdateMonthlyIncomeDTO } from "../dtos/monthly-income.dto"
 import { IncomeTaxationService } from "./income-taxation.service"
+import { ForbiddenError } from "../utils/errors"
 
 const monthlyIncomeRepository = new MonthlyIncomeRepository()
 const monthRepository = new MonthRepository()
@@ -13,7 +14,7 @@ const incomeTaxRepository = new IncomeTaxRepository()
 const incomeTaxationService = new IncomeTaxationService()
 
 export class MonthlyIncomeService {
-  async registerIncome(data: CreateMonthlyIncomeDTO) {
+  async registerIncome(data: CreateMonthlyIncomeDTO, requestingUserId: string) {
     if (data.gross_income <= 0) {
       throw new Error("Income amount must be greater than zero")
     }
@@ -22,7 +23,7 @@ export class MonthlyIncomeService {
       throw new Error("Income notes must be at most 255 characters")
     }
 
-    const user = await userRepository.findById(data.user_id)
+    const user = await userRepository.findById(requestingUserId)
     if (!user) {
       throw new Error("User not found")
     }
@@ -31,12 +32,13 @@ export class MonthlyIncomeService {
     if (!month) {
       throw new Error("Month not found")
     }
+    if (month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const taxation = incomeTaxationService.normalizeTaxation(data.taxation)
 
     return sequelize.transaction(async (transaction) => {
       const income = await monthlyIncomeRepository.create({
-        user_id: data.user_id,
+        user_id: requestingUserId,
         month_id: data.month_id,
         recurring_income_id: data.recurring_income_id,
         gross_income: data.gross_income,
@@ -65,15 +67,18 @@ export class MonthlyIncomeService {
     })
   }
 
-  async findIncomeById(id: string) {
+  async findIncomeById(id: string, requestingUserId: string) {
     const income = await monthlyIncomeRepository.findById(id)
     if (!income) {
       throw new Error("Monthly income not found")
     }
+    if (income.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return income
   }
 
-  async listIncomesByMonth(monthId: string) {
+  async listIncomesByMonth(monthId: string, requestingUserId: string) {
+    const month = await monthRepository.findById(monthId)
+    if (!month || month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return monthlyIncomeRepository.findByMonthId(monthId)
   }
 
@@ -81,7 +86,7 @@ export class MonthlyIncomeService {
     return monthlyIncomeRepository.findByUserId(userId)
   }
 
-  async updateIncome(id: string, data: UpdateMonthlyIncomeDTO) {
+  async updateIncome(id: string, data: UpdateMonthlyIncomeDTO, requestingUserId: string) {
     if (data.gross_income !== undefined && data.gross_income <= 0) {
       throw new Error("Income amount must be greater than zero")
     }
@@ -90,6 +95,7 @@ export class MonthlyIncomeService {
     if (!existingIncome) {
       throw new Error("Monthly income not found")
     }
+    if (existingIncome.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const resolvedGrossIncome = data.gross_income ?? Number(existingIncome.getDataValue("gross_income"))
     const taxation = this.resolveUpdatedTaxation(existingIncome, data.taxation)
@@ -128,7 +134,11 @@ export class MonthlyIncomeService {
     })
   }
 
-  async deleteIncome(id: string) {
+  async deleteIncome(id: string, requestingUserId: string) {
+    const existing = await monthlyIncomeRepository.findById(id)
+    if (!existing) throw new Error("Monthly income not found")
+    if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+
     const income = await monthlyIncomeRepository.delete(id)
     if (!income) {
       throw new Error("Monthly income not found")

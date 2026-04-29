@@ -93,10 +93,11 @@ textarea {
 .app-sidebar {
   position: sticky;
   top: 0;
+  height: 100vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 28px;
-  min-height: 100vh;
   padding: 28px 22px;
   background: var(--sidebar-surface);
   color: var(--text-inverse);
@@ -838,6 +839,36 @@ textarea {
   border-color: rgba(31, 93, 87, 0.5);
   box-shadow: 0 0 0 4px rgba(31, 93, 87, 0.12);
   background: #fff;
+}
+
+.ui-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ui-password-wrapper .ui-input {
+  padding-right: 88px;
+}
+
+.ui-password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 160ms ease;
+}
+
+.ui-password-toggle:hover {
+  color: var(--text);
 }
 
 .ui-modal-overlay {

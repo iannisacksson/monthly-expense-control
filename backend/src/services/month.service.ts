@@ -4,6 +4,7 @@ import { RecurringIncomeService } from "./recurring-income.service"
 import { UserRepository } from "../repositories/user.repository"
 import { BudgetRuleRepository } from "../repositories/budget-rule.repository"
 import { CreateMonthDTO, UpdateMonthDTO } from "../dtos/month.dto"
+import { ForbiddenError } from "../utils/errors"
 
 const monthRepository = new MonthRepository()
 const userRepository = new UserRepository()
@@ -69,10 +70,13 @@ export class MonthService {
     return month
   }
 
-  async findMonthById(id: string) {
+  async findMonthById(id: string, requestingUserId: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
       throw new Error("Month not found")
+    }
+    if (month.getDataValue("user_id") !== requestingUserId) {
+      throw new ForbiddenError()
     }
     return month
   }
@@ -81,12 +85,16 @@ export class MonthService {
     return monthRepository.findByUserId(userId)
   }
 
-  async updateMonth(id: string, data: UpdateMonthDTO) {
+  async updateMonth(id: string, data: UpdateMonthDTO, requestingUserId: string) {
     if (data.status !== undefined && !["open", "closed"].includes(data.status)) {
       throw new Error("Status must be open or closed")
     }
 
     await this.validateBudgetRuleOwnership(id, data.budget_rule_id)
+
+    const existing = await monthRepository.findById(id)
+    if (!existing) throw new Error("Month not found")
+    if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const month = await monthRepository.update(id, data)
     if (!month) {
@@ -95,20 +103,22 @@ export class MonthService {
     return month
   }
 
-  async deleteMonth(id: string) {
+  async deleteMonth(id: string, requestingUserId: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
       throw new Error("Month not found")
     }
+    if (month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     throw new Error("Month deletion is not allowed")
   }
 
-  async finalizeMonth(id: string) {
+  async finalizeMonth(id: string, requestingUserId: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
       throw new Error("Month not found")
     }
+    if (month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     if ((month.getDataValue("status") as string) === "closed") {
       return month

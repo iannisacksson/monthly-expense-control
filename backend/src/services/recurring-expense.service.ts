@@ -3,6 +3,7 @@ import { CategoryRepository } from "../repositories/category.repository"
 import { ExpenseRepository } from "../repositories/expense.repository"
 import { MonthRepository } from "../repositories/month.repository"
 import { RecurringExpenseRepository } from "../repositories/recurring-expense.repository"
+import { ForbiddenError } from "../utils/errors"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
 import { UserRepository } from "../repositories/user.repository"
 
@@ -272,7 +273,7 @@ export class RecurringExpenseService {
     }
   }
 
-  async createRecurringExpense(data: CreateRecurringExpenseDTO) {
+  async createRecurringExpense(data: CreateRecurringExpenseDTO, requestingUserId: string) {
     this.validateBaseFields({
       description: data.description,
       value: data.value,
@@ -285,31 +286,23 @@ export class RecurringExpenseService {
     }
 
     const monthUserId = startMonth.getDataValue("user_id") as string | null
-    const ownerUserId = data.user_id ?? monthUserId ?? undefined
-
-    if (!ownerUserId) {
-      throw new Error("Recurring expense must belong to the owner user of the selected month")
+    if (monthUserId !== requestingUserId) {
+      throw new ForbiddenError()
     }
 
-    if (ownerUserId) {
-      const user = await userRepository.findById(ownerUserId)
-      if (!user) {
-        throw new Error("User not found")
-      }
-    }
-
-    if (ownerUserId && monthUserId !== ownerUserId) {
-      throw new Error("Start month must belong to the same user as the recurring expense")
+    const user = await userRepository.findById(requestingUserId)
+    if (!user) {
+      throw new Error("User not found")
     }
 
     await this.validateCategoryAndSubcategory({
-      userId: ownerUserId,
+      userId: requestingUserId,
       categoryId: data.category_id,
       subcategoryId: data.subcategory_id,
     })
 
     const recurringExpense = await recurringExpenseRepository.create({
-      user_id: ownerUserId,
+      user_id: requestingUserId,
       description: data.description,
       value: data.value,
       category_id: data.category_id,
@@ -324,7 +317,7 @@ export class RecurringExpenseService {
     if (data.status === "active") {
       await this.syncRecurringExpenseToOwnerMonths({
         recurringExpenseId: recurringExpense.getDataValue("id") as string,
-        userId: ownerUserId,
+        userId: requestingUserId,
         description: data.description,
         value: data.value,
         categoryId: data.category_id,
@@ -339,20 +332,21 @@ export class RecurringExpenseService {
     return recurringExpense
   }
 
-  async listRecurringExpensesByUser(userId: string) {
-    return recurringExpenseRepository.findByUserId(userId)
+  async listRecurringExpensesByUser(requestingUserId: string) {
+    return recurringExpenseRepository.findByUserId(requestingUserId)
   }
 
-  async findRecurringExpenseById(id: string) {
+  async findRecurringExpenseById(id: string, requestingUserId: string) {
     const recurringExpense = await recurringExpenseRepository.findById(id)
     if (!recurringExpense) {
       throw new Error("Recurring expense not found")
     }
+    if (recurringExpense.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return recurringExpense
   }
 
-  async findExpensesByRecurringExpense(id: string) {
-    await this.findRecurringExpenseById(id)
+  async findExpensesByRecurringExpense(id: string, requestingUserId: string) {
+    await this.findRecurringExpenseById(id, requestingUserId)
     return expenseRepository.findByRecurringExpenseId(id)
   }
 
@@ -422,11 +416,12 @@ export class RecurringExpenseService {
     return recurringExpense
   }
 
-  async updateRecurringExpense(id: string, data: UpdateRecurringExpenseDTO) {
+  async updateRecurringExpense(id: string, data: UpdateRecurringExpenseDTO, requestingUserId: string) {
     const existingRecurringExpense = await recurringExpenseRepository.findById(id)
     if (!existingRecurringExpense) {
       throw new Error("Recurring expense not found")
     }
+    if (existingRecurringExpense.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const scope: RecurringExpenseScope = data.scope ?? "whole_series"
 
@@ -539,11 +534,12 @@ export class RecurringExpenseService {
     return newRecurringExpense
   }
 
-  async deleteRecurringExpense(id: string, params?: { scope?: RecurringExpenseScope; effective_month_id?: string }) {
+  async deleteRecurringExpense(id: string, params?: { scope?: RecurringExpenseScope; effective_month_id?: string }, requestingUserId?: string) {
     const recurringExpense = await recurringExpenseRepository.findById(id)
     if (!recurringExpense) {
       throw new Error("Recurring expense not found")
     }
+    if (requestingUserId && recurringExpense.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const scope = params?.scope ?? "whole_series"
 
@@ -582,11 +578,12 @@ export class RecurringExpenseService {
     return recurringExpenseRepository.findById(id)
   }
 
-  async restoreRecurringExpenseOccurrence(id: string, monthId: string) {
+  async restoreRecurringExpenseOccurrence(id: string, monthId: string, requestingUserId: string) {
     const recurringExpense = await recurringExpenseRepository.findById(id)
     if (!recurringExpense) {
       throw new Error("Recurring expense not found")
     }
+    if (recurringExpense.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     if ((recurringExpense.getDataValue("status") as string) !== "active") {
       throw new Error("Only active recurring expenses can restore occurrences")

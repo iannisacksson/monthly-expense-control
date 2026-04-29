@@ -6,6 +6,7 @@ import { RecurringIncomeRepository } from "../repositories/recurring-income.repo
 import { UserRepository } from "../repositories/user.repository"
 import { IncomeTaxationDTO } from "../dtos/monthly-income.dto"
 import { IncomeTaxationService } from "./income-taxation.service"
+import { ForbiddenError } from "../utils/errors"
 
 const recurringIncomeRepository = new RecurringIncomeRepository()
 const monthlyIncomeRepository = new MonthlyIncomeRepository()
@@ -216,7 +217,7 @@ export class RecurringIncomeService {
     }
   }
 
-  async createRecurringIncome(data: CreateRecurringIncomeDTO) {
+  async createRecurringIncome(data: CreateRecurringIncomeDTO, requestingUserId: string) {
     this.validateBaseFields({
       description: data.description,
       grossIncome: data.gross_income,
@@ -226,7 +227,7 @@ export class RecurringIncomeService {
     })
 
     const startMonth = await this.validateUserAndMonth({
-      userId: data.user_id,
+      userId: requestingUserId,
       startMonthId: data.start_month_id,
     })
 
@@ -234,6 +235,7 @@ export class RecurringIncomeService {
 
     const recurringIncome = await recurringIncomeRepository.create({
       ...data,
+      user_id: requestingUserId,
       taxation_mode: taxation.mode,
       taxation_profile: taxation.profile,
       taxation_parameters: taxation.parameters,
@@ -242,7 +244,7 @@ export class RecurringIncomeService {
     if (data.status === "active") {
       await this.syncRecurringIncomeToOwnerMonths({
         recurringIncomeId: recurringIncome.getDataValue("id") as string,
-        userId: data.user_id,
+        userId: requestingUserId,
         description: data.description,
         grossIncome: data.gross_income,
         incomeType: data.income_type,
@@ -259,24 +261,26 @@ export class RecurringIncomeService {
     return recurringIncomeRepository.findByUserId(userId)
   }
 
-  async findRecurringIncomeById(id: string) {
+  async findRecurringIncomeById(id: string, requestingUserId: string) {
     const recurringIncome = await recurringIncomeRepository.findById(id)
     if (!recurringIncome) {
       throw new Error("Recurring income not found")
     }
+    if (recurringIncome.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return recurringIncome
   }
 
-  async findMonthlyIncomesByRecurringIncome(id: string) {
-    await this.findRecurringIncomeById(id)
+  async findMonthlyIncomesByRecurringIncome(id: string, requestingUserId: string) {
+    await this.findRecurringIncomeById(id, requestingUserId)
     return monthlyIncomeRepository.findByRecurringIncomeId(id)
   }
 
-  async updateRecurringIncome(id: string, data: UpdateRecurringIncomeDTO) {
+  async updateRecurringIncome(id: string, data: UpdateRecurringIncomeDTO, requestingUserId: string) {
     const existingRecurringIncome = await recurringIncomeRepository.findById(id)
     if (!existingRecurringIncome) {
       throw new Error("Recurring income not found")
     }
+    if (existingRecurringIncome.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const nextDescription = data.description ?? (existingRecurringIncome.getDataValue("description") as string)
     const nextGrossIncome = data.gross_income ?? Number(existingRecurringIncome.getDataValue("gross_income"))
@@ -328,11 +332,12 @@ export class RecurringIncomeService {
     return recurringIncome
   }
 
-  async deleteRecurringIncome(id: string) {
+  async deleteRecurringIncome(id: string, requestingUserId: string) {
     const recurringIncome = await recurringIncomeRepository.findById(id)
     if (!recurringIncome) {
       throw new Error("Recurring income not found")
     }
+    if (recurringIncome.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     await monthlyIncomeRepository.deleteByRecurringIncomeId(id)
     await recurringIncomeRepository.delete(id)

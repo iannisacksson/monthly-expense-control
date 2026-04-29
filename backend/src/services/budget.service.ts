@@ -4,6 +4,7 @@ import { CategoryRepository } from "../repositories/category.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateBudgetRuleDTO, UpdateBudgetRuleDTO } from "../dtos/budget-rule.dto"
 import { CreateBudgetAllocationDTO, UpdateBudgetAllocationDTO } from "../dtos/budget-allocation.dto"
+import { ForbiddenError } from "../utils/errors"
 
 const budgetRuleRepository = new BudgetRuleRepository()
 const budgetAllocationRepository = new BudgetAllocationRepository()
@@ -28,35 +29,28 @@ export class BudgetService {
     return category
   }
 
-  async createBudgetRule(data: CreateBudgetRuleDTO) {
+  async createBudgetRule(data: CreateBudgetRuleDTO, requestingUserId: string) {
     if (!data.name || data.name.length < 2 || data.name.length > 100) {
       throw new Error("Budget rule name must be between 2 and 100 characters")
     }
 
-    if (!data.user_id) {
-      throw new Error("Budget rule must belong to a user")
-    }
-
-    const ownerUserId = data.user_id
-
-    if (ownerUserId) {
-      const user = await userRepository.findById(ownerUserId)
-      if (!user) {
-        throw new Error("User not found")
-      }
+    const user = await userRepository.findById(requestingUserId)
+    if (!user) {
+      throw new Error("User not found")
     }
 
     return budgetRuleRepository.create({
-      user_id: ownerUserId,
+      user_id: requestingUserId,
       name: data.name,
     })
   }
 
-  async findBudgetRuleById(id: string) {
+  async findBudgetRuleById(id: string, requestingUserId: string) {
     const rule = await budgetRuleRepository.findById(id)
     if (!rule) {
       throw new Error("Budget rule not found")
     }
+    if (rule.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return rule
   }
 
@@ -64,10 +58,14 @@ export class BudgetService {
     return budgetRuleRepository.findByUserId(userId)
   }
 
-  async updateBudgetRule(id: string, data: UpdateBudgetRuleDTO) {
+  async updateBudgetRule(id: string, data: UpdateBudgetRuleDTO, requestingUserId: string) {
     if (data.name !== undefined && (data.name.length < 2 || data.name.length > 100)) {
       throw new Error("Budget rule name must be between 2 and 100 characters")
     }
+
+    const existing = await budgetRuleRepository.findById(id)
+    if (!existing) throw new Error("Budget rule not found")
+    if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const rule = await budgetRuleRepository.update(id, data)
     if (!rule) {
@@ -76,7 +74,11 @@ export class BudgetService {
     return rule
   }
 
-  async deleteBudgetRule(id: string) {
+  async deleteBudgetRule(id: string, requestingUserId: string) {
+    const existing = await budgetRuleRepository.findById(id)
+    if (!existing) throw new Error("Budget rule not found")
+    if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+
     const rule = await budgetRuleRepository.delete(id)
     if (!rule) {
       throw new Error("Budget rule not found")
@@ -84,7 +86,7 @@ export class BudgetService {
     return rule
   }
 
-  async createAllocation(data: CreateBudgetAllocationDTO) {
+  async createAllocation(data: CreateBudgetAllocationDTO, requestingUserId: string) {
     if (data.percentage <= 0 || data.percentage > 100) {
       throw new Error("Percentage must be between 0 and 100")
     }
@@ -93,6 +95,7 @@ export class BudgetService {
     if (!rule) {
       throw new Error("Budget rule not found")
     }
+    if (rule.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     await this.ensureCategoryMatchesRuleOwner(data.category_id, rule)
 
@@ -109,11 +112,13 @@ export class BudgetService {
     return budgetAllocationRepository.create(data)
   }
 
-  async listAllocationsByRule(budgetRuleId: string) {
+  async listAllocationsByRule(budgetRuleId: string, requestingUserId: string) {
+    const rule = await budgetRuleRepository.findById(budgetRuleId)
+    if (!rule || rule.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return budgetAllocationRepository.findByBudgetRuleId(budgetRuleId)
   }
 
-  async updateAllocation(id: string, data: UpdateBudgetAllocationDTO) {
+  async updateAllocation(id: string, data: UpdateBudgetAllocationDTO, requestingUserId: string) {
     if (data.percentage !== undefined && (data.percentage <= 0 || data.percentage > 100)) {
       throw new Error("Percentage must be between 0 and 100")
     }
@@ -128,6 +133,7 @@ export class BudgetService {
     if (!rule) {
       throw new Error("Budget rule not found")
     }
+    if (rule.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     if (data.category_id) {
       await this.ensureCategoryMatchesRuleOwner(data.category_id, rule)
@@ -151,7 +157,12 @@ export class BudgetService {
     return allocation
   }
 
-  async deleteAllocation(id: string) {
+  async deleteAllocation(id: string, requestingUserId: string) {
+    const existing = await budgetAllocationRepository.findById(id)
+    if (!existing) throw new Error("Budget allocation not found")
+    const rule = await budgetRuleRepository.findById(existing.getDataValue("budget_rule_id") as string)
+    if (!rule || rule.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+
     const allocation = await budgetAllocationRepository.delete(id)
     if (!allocation) {
       throw new Error("Budget allocation not found")

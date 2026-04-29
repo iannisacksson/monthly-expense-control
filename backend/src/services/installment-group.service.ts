@@ -5,6 +5,7 @@ import { CategoryRepository } from "../repositories/category.repository"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateInstallmentGroupDTO, InstallmentGroupScope, UpdateInstallmentGroupDTO } from "../dtos/installment-group.dto"
+import { ForbiddenError } from "../utils/errors"
 
 const installmentGroupRepository = new InstallmentGroupRepository()
 const expenseRepository = new ExpenseRepository()
@@ -204,7 +205,7 @@ export class InstallmentGroupService {
     }
   }
 
-  async createInstallmentPurchase(data: CreateInstallmentGroupDTO) {
+  async createInstallmentPurchase(data: CreateInstallmentGroupDTO, requestingUserId: string) {
     this.validateBaseFields({
       totalValue: data.total_value,
       installments: data.installments,
@@ -217,31 +218,23 @@ export class InstallmentGroupService {
     }
 
     const monthUserId = startMonth.getDataValue("user_id") as string | null
-    const ownerUserId = data.user_id ?? monthUserId ?? undefined
-
-    if (!ownerUserId) {
-      throw new Error("Installment group must belong to the owner user of the selected month")
+    if (monthUserId !== requestingUserId) {
+      throw new ForbiddenError()
     }
 
     await this.validateCategoryAndSubcategory({
-      userId: ownerUserId,
+      userId: requestingUserId,
       categoryId: data.category_id,
       subcategoryId: data.subcategory_id,
     })
 
-    if (ownerUserId) {
-      const user = await userRepository.findById(ownerUserId)
-      if (!user) {
-        throw new Error("User not found")
-      }
-    }
-
-    if (ownerUserId && monthUserId !== ownerUserId) {
-      throw new Error("Start month must belong to the same user as the installment purchase")
+    const user = await userRepository.findById(requestingUserId)
+    if (!user) {
+      throw new Error("User not found")
     }
 
     const group = await installmentGroupRepository.create({
-      user_id: ownerUserId,
+      user_id: requestingUserId,
       description: data.description,
       total_value: data.total_value,
       installments: data.installments,
@@ -255,7 +248,7 @@ export class InstallmentGroupService {
 
     await this.generateInstallmentExpenses({
       installmentGroupId: group.getDataValue("id") as string,
-      userId: ownerUserId,
+      userId: requestingUserId,
       description: data.description,
       totalValue: data.total_value,
       installments: data.installments,
@@ -270,11 +263,12 @@ export class InstallmentGroupService {
     return group
   }
 
-  async findInstallmentGroupById(id: string) {
+  async findInstallmentGroupById(id: string, requestingUserId: string) {
     const group = await installmentGroupRepository.findById(id)
     if (!group) {
       throw new Error("Installment group not found")
     }
+    if (group.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return group
   }
 
@@ -282,7 +276,9 @@ export class InstallmentGroupService {
     return installmentGroupRepository.findByUserId(userId)
   }
 
-  async findExpensesByInstallmentGroup(installmentGroupId: string) {
+  async findExpensesByInstallmentGroup(installmentGroupId: string, requestingUserId: string) {
+    const group = await installmentGroupRepository.findById(installmentGroupId)
+    if (!group || group.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return expenseRepository.findByInstallmentGroupId(installmentGroupId)
   }
 
@@ -349,11 +345,12 @@ export class InstallmentGroupService {
     return group
   }
 
-  async updateInstallmentGroup(id: string, data: UpdateInstallmentGroupDTO) {
+  async updateInstallmentGroup(id: string, data: UpdateInstallmentGroupDTO, requestingUserId: string) {
     const existingGroup = await installmentGroupRepository.findById(id)
     if (!existingGroup) {
       throw new Error("Installment group not found")
     }
+    if (existingGroup.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const scope: InstallmentGroupScope = data.scope ?? "whole_series"
 
@@ -472,11 +469,12 @@ export class InstallmentGroupService {
     return newGroup
   }
 
-  async deleteInstallmentGroup(id: string, params?: { scope?: InstallmentGroupScope; effective_month_id?: string }) {
+  async deleteInstallmentGroup(id: string, params?: { scope?: InstallmentGroupScope; effective_month_id?: string }, requestingUserId?: string) {
     const existingGroup = await installmentGroupRepository.findById(id)
     if (!existingGroup) {
       throw new Error("Installment group not found")
     }
+    if (requestingUserId && existingGroup.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const scope = params?.scope ?? "whole_series"
 
@@ -534,11 +532,12 @@ export class InstallmentGroupService {
     return updatedGroup
   }
 
-  async restoreInstallmentOccurrence(id: string, monthId: string) {
+  async restoreInstallmentOccurrence(id: string, monthId: string, requestingUserId: string) {
     const group = await installmentGroupRepository.findById(id)
     if (!group) {
       throw new Error("Installment group not found")
     }
+    if (group.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const startMonthId = group.getDataValue("start_month_id") as string
     const { distance } = await this.getEffectiveMonthContext(startMonthId, monthId)

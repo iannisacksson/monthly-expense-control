@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const register = useRegister();
   const login = useLogin();
   const navigate = useNavigate();
@@ -58,15 +59,28 @@ export default function RegisterPage() {
             required
             autoComplete="email"
           />
-          <Input
-            id="password"
-            label="Senha"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="new-password"
-          />
+          <div className="ui-field">
+            <label htmlFor="password" className="ui-label">Senha</label>
+            <div className="ui-password-wrapper">
+              <input
+                id="password"
+                className="ui-input"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="ui-password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </button>
+            </div>
+          </div>
 
           {error && (
             <p className="auth-form__error">

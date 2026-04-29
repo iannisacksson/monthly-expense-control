@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { authMiddleware } from "../middlewares/auth.middleware"
 import authRoutes from "./auth.routes"
 import userRoutes from "./user.routes"
 import monthRoutes from "./month.routes"
@@ -19,6 +20,10 @@ router.get("/health", (req, res) => {
 })
 
 router.use("/auth", authRoutes)
+
+// All routes below require a valid JWT token
+router.use(authMiddleware)
+
 router.use("/users", userRoutes)
 router.use("/months", monthRoutes)
 router.use("/monthly-incomes", monthlyIncomeRoutes)
