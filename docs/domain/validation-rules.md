@@ -48,9 +48,20 @@ Service validation ensures business rules are respected.
 - must be a valid email format
 - must be unique across users
 
+## password (on registration and profile update)
+
+- required on registration
+- optional on profile update (omit to keep current password)
+- minimum length: 8 characters
+- must contain at least one uppercase letter
+- must contain at least one lowercase letter
+- must contain at least one digit (0–9)
+
 ## password_hash
 
-- required
+- stored internally as bcrypt hash (12 rounds)
+- never returned in any API response
+- never stored as plain text
 
 ---
 

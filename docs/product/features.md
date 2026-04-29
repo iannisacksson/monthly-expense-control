@@ -70,11 +70,7 @@ The system must support simple but structured monthly personal financial managem
 
 The product no longer depends on family, family members, or shared financial spaces as first-class flows.
 
-Current delivery note:
-
-- the target product model is user-centered
-- the codebase still contains legacy compatibility in a few persistence and archival areas, but the active month, recurring, installment, category, budget, and expense flows are already user-scoped
-- legacy family behavior must be treated as transitional compatibility, not as the preferred direction for new work
+Legacy family tables remain in the database for archival compatibility only and are not part of the active application surface.
 
 ---
 
@@ -84,6 +80,8 @@ The MVP focuses on the essential capabilities required for a user to manage mont
 
 Included in MVP:
 
+- user registration, login, and authenticated session management
+- user profile view, edit, and account deletion
 - monthly income tracking per user
 - expense tracking with categories and subcategories
 - installment purchase tracking
@@ -105,6 +103,48 @@ Excluded from MVP:
 - complex accounting workflows
 
 AI tools must prioritize MVP features only.
+
+---
+
+## Feature 0 — User Registration, Login and Profile Management
+
+### Goal
+
+Allow users to create accounts, authenticate, and manage their own profile.
+
+### User Actions
+
+Users can:
+
+- register with name, email, and password
+- log in with email and password
+- view their own profile
+- edit their name, email, and password
+- delete their account
+
+### System Behavior
+
+The system must:
+
+- hash passwords using bcrypt before storing them
+- never return `password_hash` in any API response
+- issue a JWT Bearer Token on successful login
+- protect all resource routes with JWT authentication
+- resolve the user identity from the token, not from request bodies
+- enforce email uniqueness
+- validate password strength on registration and update
+
+### Auth Endpoints
+
+POST /api/v1/auth/register  
+POST /api/v1/auth/login  
+GET /api/v1/auth/me  
+PUT /api/v1/auth/me  
+DELETE /api/v1/auth/me  
+
+### Domain Entities
+
+User
 
 ---
 

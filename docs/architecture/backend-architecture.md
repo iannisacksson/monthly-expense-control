@@ -37,15 +37,48 @@ Language: TypeScript
 Framework: Express
 ORM: Sequelize
 Database: PostgreSQL
+Authentication: JWT Bearer Token (jsonwebtoken)
+Password hashing: bcrypt (12 rounds)
+Environment config: dotenv
 
 
-Additional tools may include:
+---
 
+# Authentication Architecture
 
-Zod or Joi for validation
-JWT for authentication
-dotenv for configuration
+The backend uses stateless JWT Bearer Token authentication.
 
+## Token lifecycle
+
+1. User registers via `POST /api/v1/auth/register`.
+2. User logs in via `POST /api/v1/auth/login`.
+3. The server signs a JWT with payload `{ id, email }` using `JWT_SECRET`.
+4. The client stores the token and sends it on every subsequent request as:
+
+```
+Authorization: Bearer <token>
+```
+
+5. Protected routes validate the token through `authMiddleware`.
+6. `req.user` is populated with `{ id, email }` from the verified token payload.
+7. Controllers and services use `req.user.id` to resolve the authenticated user. User identity is never trusted from request bodies.
+
+## Middleware
+
+`src/middlewares/auth.middleware.ts`
+
+Verifies the JWT. Populates `req.user`. Returns 401 if the token is missing, invalid, or expired.
+
+Protected routes must apply `authMiddleware` before their handler.
+
+Public routes (register, login, health) do not apply `authMiddleware`.
+
+## Environment variables
+
+| variable | purpose |
+|----------|---------|
+| JWT_SECRET | signing secret (required, no default) |
+| JWT_EXPIRES_IN | token lifespan (optional, defaults to 7d) |
 
 ---
 

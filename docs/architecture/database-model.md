@@ -58,11 +58,11 @@ updated_at
 
 # Ownership Model
 
-The target ownership model is User + Month.
+The ownership model is User + Month.
 
-Financial tables must no longer use family ownership as the primary boundary.
+All financial tables are user-owned. No financial table uses `family_id` as an ownership boundary.
 
-During migration, some tables may temporarily contain both `family_id` and `user_id`, but the target schema is user-owned.
+Legacy tables (`families`, `family_members`) exist in the database for archival compatibility only. They are not referenced by active application code.
 
 ---
 
@@ -76,19 +76,26 @@ Stores registered users of the system.
 
 ## Columns
 
-| column | type |
-|------|------|
-| id | uuid (pk) |
-| name | text |
-| email | text |
-| password_hash | text |
-| created_at | timestamp |
-| updated_at | timestamp |
+| column | type | nullable |
+|------|------|------|
+| id | uuid (pk) | NO |
+| name | text | NO |
+| email | text | NO |
+| password_hash | text | NO |
+| created_at | timestamp with time zone | NO |
+| updated_at | timestamp with time zone | NO |
 
 ## Constraints
 
 PRIMARY KEY (id)  
-UNIQUE (email)
+UNIQUE (email)  
+NOT NULL on all columns
+
+## Security
+
+`password_hash` stores the bcrypt hash of the user's password (12 rounds).  
+The plain-text password is never persisted.  
+`password_hash` is never returned by any API endpoint.
 
 ---
 

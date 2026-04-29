@@ -61,12 +61,21 @@ The target ownership boundary of the API is User + Month.
 
 During migration, temporary compatibility endpoints may exist, but new endpoints must prefer user-scoped behavior.
 
+Authentication:
+
+All endpoints except `/auth/register`, `/auth/login`, and `/health` require a valid JWT Bearer token.
+
+The token must be sent in the `Authorization` header:
+
+Authorization: Bearer <token>
+
+The authenticated user identity is always sourced from the token. Clients must not send `user_id` in request bodies for identity resolution.
+
 Current implementation note:
 
-- user-scoped routes already exist for core resources such as months, categories, expenses, recurring entities, and budgets
-- family-scoped compatibility routes still exist for part of the backend surface
-- top-level legacy resources such as `families` and `family-members` are still registered during migration
-- API changes must state whether they affect the target user-scoped contract, the temporary family-scoped compatibility surface, or both
+- all active resource routes are user-scoped
+- legacy `families` and `family-members` tables still exist in the database for archival compatibility but are not exposed through active API routes
+- new work must not reference family ownership in any new endpoint or behavior
 
 ---
 
@@ -88,11 +97,112 @@ GET /api/v1/health
 
 ---
 
+# Resource: Auth
+
+Public endpoints for registration and login. No token required.
+
+## Register
+
+POST /api/v1/auth/register
+
+### Request
+
+{
+  "name": "Maria Silva",
+  "email": "maria@example.com",
+  "password": "SenhaSegura1"
+}
+
+### Response (201)
+
+{
+  "id": "uuid",
+  "name": "Maria Silva",
+  "email": "maria@example.com",
+  "createdAt": "2026-04-29T00:00:00.000Z"
+}
+
+## Login
+
+POST /api/v1/auth/login
+
+### Request
+
+{
+  "email": "maria@example.com",
+  "password": "SenhaSegura1"
+}
+
+### Response (200)
+
+{
+  "token": "<jwt>",
+  "user": {
+    "id": "uuid",
+    "name": "Maria Silva",
+    "email": "maria@example.com"
+  }
+}
+
+## Get Authenticated Profile
+
+GET /api/v1/auth/me
+
+Requires: Authorization: Bearer <token>
+
+### Response (200)
+
+{
+  "id": "uuid",
+  "name": "Maria Silva",
+  "email": "maria@example.com",
+  "created_at": "2026-04-29T00:00:00.000Z",
+  "updated_at": "2026-04-29T00:00:00.000Z"
+}
+
+Note: `password_hash` is never returned in any response.
+
+## Update Authenticated Profile
+
+PUT /api/v1/auth/me
+
+Requires: Authorization: Bearer <token>
+
+### Request (all fields optional)
+
+{
+  "name": "Maria Souza",
+  "email": "maria.souza@example.com",
+  "password": "NovaSenha2"
+}
+
+### Response (200)
+
+Full updated user object (without password_hash).
+
+## Delete Authenticated Account
+
+DELETE /api/v1/auth/me
+
+Requires: Authorization: Bearer <token>
+
+### Response (200)
+
+{
+  "success": true
+}
+
+---
+
 # Resource: Users
+
+Admin-scoped user management routes. These routes return public user data only (no password_hash).
 
 ## Create User
 
 POST /api/v1/users
+
+Note: For self-registration, prefer `POST /api/v1/auth/register`.
 
 ## List Users
 
