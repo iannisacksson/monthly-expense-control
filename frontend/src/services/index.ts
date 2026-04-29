@@ -10,6 +10,5 @@ export { subcategoryService } from "./subcategory.service";
 export { expenseService } from "./expense.service";
 export { installmentGroupService } from "./installment-group.service";
 export { recurringExpenseService } from "./recurring-expense.service";
-export { debtService } from "./debt.service";
 export { budgetService } from "./budget.service";
 export { healthService } from "./health.service";

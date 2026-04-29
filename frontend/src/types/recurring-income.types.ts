@@ -18,7 +18,6 @@ export interface RecurringIncome {
 }
 
 export interface CreateRecurringIncomeDTO {
-  family_id?: string;
   user_id: string;
   description: string;
   gross_income: number;

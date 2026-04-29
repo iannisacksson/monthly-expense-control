@@ -276,9 +276,17 @@ Represents income templates that generate monthly incomes.
 
 POST /api/v1/recurring-incomes
 
+Behavior note:
+
+- the active payload is user-scoped and must not require `family_id`
+- the backend must validate that `start_month_id` belongs to the same owner user
+- any temporary legacy `family_id` persistence must be derived internally from the selected start month, not sent by frontend clients
+
 ## List Recurring Incomes by User
 
 GET /api/v1/recurring-incomes/user/{userId}
+
+There is no active family-scoped recurring income listing route in the target contract.
 
 ## Get Recurring Income by ID
 
@@ -566,6 +574,22 @@ POST /api/v1/recurring-expenses/{id}/restore-occurrence
 ## Delete Recurring Expense
 
 DELETE /api/v1/recurring-expenses/{id}
+
+---
+
+# Resource: Debts
+
+Debt is a legacy migration/export resource and is not part of the active product contract.
+
+## List Debts by Family
+
+GET /api/v1/debts/family/{familyId}
+
+Behavior note:
+
+- this route exists only for temporary legacy read access
+- new frontend flows must not depend on debt endpoints
+- write endpoints for debt are out of the active contract until a future user-owned redesign exists
 
 ---
 

@@ -139,9 +139,12 @@ Current compatibility decision for adjacent flows:
 - category and subcategory frontend routes are now user-scoped only
 - category backend listing is now user-scoped only
 - budget rule listing in the active application is now user-scoped only
+- recurring income listing in the active application is now user-scoped only
+- active create payloads for recurring incomes no longer need `family_id`; legacy family fallback is resolved internally from the selected start month when required
 - family-scoped expense listing is no longer part of the active frontend surface and should not return as a compatibility path
 - recurring expense and installment group listing in the active application are now user-scoped only
 - active create payloads for recurring expenses and installment groups no longer need `family_id`; legacy family fallback is resolved internally from persisted month ownership when required
+- debt is now explicitly outside the active product surface and should remain read-only only where migration or export still requires access to legacy data
 
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
 

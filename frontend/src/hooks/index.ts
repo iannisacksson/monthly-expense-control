@@ -10,5 +10,4 @@ export { useSubcategories, useCreateSubcategory, useUpdateSubcategory, useDelete
 export { useExpenses, useExpense, useCreateExpense, useUpdateExpense, useDeleteExpense, useBulkDeleteExpenses, useBulkMarkExpensesPaid } from "./useExpenses";
 export { useInstallmentGroups, useInstallmentGroup, useInstallmentGroupExpenses, useCreateInstallmentGroup, useUpdateInstallmentGroup, useDeleteInstallmentGroup, useRestoreInstallmentOccurrence } from "./useInstallmentGroups";
 export { useRecurringExpenses, useRecurringExpense, useRecurringExpenseExpenses, useCreateRecurringExpense, useUpdateRecurringExpense, useDeleteRecurringExpense, useRestoreRecurringExpenseOccurrence } from "./useRecurringExpenses";
-export { useDebts, useDebt, useCreateDebt, useUpdateDebt, useDeleteDebt } from "./useDebts";
 export { useBudgetRules, useBudgetRule, useCreateBudgetRule, useUpdateBudgetRule, useDeleteBudgetRule, useBudgetAllocations, useCreateBudgetAllocation, useUpdateBudgetAllocation, useDeleteBudgetAllocation } from "./useBudgets";

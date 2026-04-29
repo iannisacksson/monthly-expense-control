@@ -427,3 +427,33 @@ The safe migration path is additive:
 4. remove legacy `family_id` dependencies after cutover validation
 
 Families and family_members may temporarily remain only as migration aids and legacy references, not as target ownership boundaries.
+
+## Physical `family_id` Removal Readiness
+
+The current Sequelize models and migrations show three different removal states.
+
+### Ready for next physical-removal planning step
+
+- `categories` and `budget_rules`
+- rationale: active routes, DTOs, and frontend flows are already user-scoped; `family_id` remains only as transitional persistence compatibility in `20260426000019-refactor-categories-and-budget-rules-to-user-context.js`
+- expected next migration step: backfill any remaining null `user_id`, drop Family associations in the ORM, remove `family_id` columns and related indexes/foreign keys once legacy rows are verified
+
+### Not ready for column drop yet
+
+- `months`
+- rationale: the table still carries legacy `family_id` uniqueness and remains the bridge for ownership derivation during cutover in `20260426000018-refactor-months-to-user-context.js`
+- required before drop: finish data backfill, remove family-based month fallback in services, remove legacy unique/index definitions, then drop `family_id`
+
+- `expenses`
+- rationale: service validation already prefers effective user ownership, but the physical row still stores `family_id` and the model/indexes remain family-centered
+- required before drop: backfill or derive owner-safe expense rows from `month_id`, replace family-based indexes, then remove `family_id`
+
+- `recurring_incomes`, `recurring_expenses`, and `installment_groups`
+- rationale: active create/list flows are now user-scoped, but persisted legacy rows still rely on `family_id` compatibility and `20260426000020-refactor-recurring-and-installment-ownership.js` only made the old column nullable
+- required before drop: confirm `user_id` is populated for all legacy rows, remove internal fallback helpers, remove Family ORM associations, then drop `family_id`
+
+### Legacy-only, not a User + Month drop candidate
+
+- `debts`
+- rationale: the aggregate is intentionally outside the active product direction and still encodes a family relationship rather than month ownership
+- decision: keep as legacy read-only data until archival/removal or a separate redesign into a user-owned liability model

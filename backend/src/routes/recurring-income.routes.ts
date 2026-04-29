@@ -2,7 +2,6 @@ import { Router } from "express"
 import {
   createRecurringIncome,
   listRecurringIncomesByUser,
-  listRecurringIncomesByFamily,
   getRecurringIncomeById,
   updateRecurringIncome,
   getMonthlyIncomesByRecurringIncome,
@@ -13,7 +12,6 @@ const router = Router()
 
 router.post("/", createRecurringIncome)
 router.get("/user/:userId", listRecurringIncomesByUser)
-router.get("/family/:familyId", listRecurringIncomesByFamily)
 router.get("/:id", getRecurringIncomeById)
 router.put("/:id", updateRecurringIncome)
 router.get("/:id/monthly-incomes", getMonthlyIncomesByRecurringIncome)

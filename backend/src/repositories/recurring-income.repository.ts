@@ -23,10 +23,6 @@ export class RecurringIncomeRepository {
     return RecurringIncome.findByPk(id)
   }
 
-  async findByFamilyId(familyId: string) {
-    return RecurringIncome.findAll({ where: { family_id: familyId } })
-  }
-
   async findByUserId(userId: string) {
     return RecurringIncome.findAll({ where: { user_id: userId } })
   }

@@ -1,5 +1,4 @@
 import { CreateRecurringIncomeDTO, UpdateRecurringIncomeDTO } from "../dtos/recurring-income.dto"
-import { FamilyMemberRepository } from "../repositories/family-member.repository"
 import { FamilyRepository } from "../repositories/family.repository"
 import { IncomeTaxRepository } from "../repositories/income-tax.repository"
 import { MonthRepository } from "../repositories/month.repository"
@@ -15,10 +14,13 @@ const incomeTaxRepository = new IncomeTaxRepository()
 const familyRepository = new FamilyRepository()
 const monthRepository = new MonthRepository()
 const userRepository = new UserRepository()
-const familyMemberRepository = new FamilyMemberRepository()
 const incomeTaxationService = new IncomeTaxationService()
 
 export class RecurringIncomeService {
+  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
+    return userId ? undefined : familyId ?? undefined
+  }
+
   private getMonthDistance(startMonth: any, targetMonth: any) {
     const startYear = startMonth.getDataValue("year") as number
     const startMonthNumber = startMonth.getDataValue("month") as number
@@ -68,8 +70,7 @@ export class RecurringIncomeService {
     return true
   }
 
-  private async validateFamilyUserAndMonth(params: {
-    familyId?: string
+  private async validateUserAndMonth(params: {
     userId: string
     startMonthId: string
   }) {
@@ -78,25 +79,9 @@ export class RecurringIncomeService {
       throw new Error("User not found")
     }
 
-    if (params.familyId) {
-      const family = await familyRepository.findById(params.familyId)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-
-      const member = await familyMemberRepository.findByFamilyAndUserId(params.familyId, params.userId)
-      if (!member) {
-        throw new Error("User must belong to the same family as the recurring income definition")
-      }
-    }
-
     const startMonth = await monthRepository.findById(params.startMonthId)
     if (!startMonth) {
       throw new Error("Start month not found")
-    }
-
-    if (params.familyId && startMonth.getDataValue("family_id") !== params.familyId) {
-      throw new Error("Start month must belong to the same family as the recurring income definition")
     }
 
     const startMonthUserId = startMonth.getDataValue("user_id") as string | null
@@ -251,16 +236,28 @@ export class RecurringIncomeService {
       status: data.status,
     })
 
-    await this.validateFamilyUserAndMonth({
-      familyId: data.family_id,
+    const startMonth = await this.validateUserAndMonth({
       userId: data.user_id,
       startMonthId: data.start_month_id,
     })
+
+    const legacyFamilyId = this.getLegacyFamilyId(
+      data.user_id,
+      startMonth.getDataValue("family_id") as string | null
+    )
+
+    if (legacyFamilyId) {
+      const family = await familyRepository.findById(legacyFamilyId)
+      if (!family) {
+        throw new Error("Family not found")
+      }
+    }
 
     const taxation = incomeTaxationService.normalizeTaxation(data.taxation)
 
     const recurringIncome = await recurringIncomeRepository.create({
       ...data,
+      family_id: legacyFamilyId,
       taxation_mode: taxation.mode,
       taxation_profile: taxation.profile,
       taxation_parameters: taxation.parameters,
@@ -269,7 +266,7 @@ export class RecurringIncomeService {
     if (data.status === "active") {
       await this.syncRecurringIncomeToOwnerMonths({
         recurringIncomeId: recurringIncome.getDataValue("id") as string,
-        familyId: data.family_id,
+        familyId: legacyFamilyId,
         userId: data.user_id,
         description: data.description,
         grossIncome: data.gross_income,
@@ -281,10 +278,6 @@ export class RecurringIncomeService {
     }
 
     return recurringIncome
-  }
-
-  async listRecurringIncomesByFamily(familyId: string) {
-    return recurringIncomeRepository.findByFamilyId(familyId)
   }
 
   async listRecurringIncomesByUser(userId: string) {

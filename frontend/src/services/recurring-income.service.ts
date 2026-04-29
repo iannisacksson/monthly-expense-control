@@ -13,11 +13,6 @@ export const recurringIncomeService = {
     return data;
   },
 
-  async listByFamily(familyId: string): Promise<RecurringIncome[]> {
-    const { data } = await httpClient.get<RecurringIncome[]>(`/recurring-incomes/family/${familyId}`);
-    return data;
-  },
-
   async getById(id: string): Promise<RecurringIncome> {
     const { data } = await httpClient.get<RecurringIncome>(`/recurring-incomes/${id}`);
     return data;

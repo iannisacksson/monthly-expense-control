@@ -4,8 +4,8 @@ import type { CreateRecurringIncomeDTO, UpdateRecurringIncomeDTO } from "../type
 
 const RECURRING_INCOMES_KEY = ["recurring-incomes"] as const;
 
-export function useRecurringIncomes(params: { familyId?: string; userId?: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useRecurringIncomes(params: { userId?: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...RECURRING_INCOMES_KEY, ownerKey],
@@ -14,13 +14,9 @@ export function useRecurringIncomes(params: { familyId?: string; userId?: string
         return recurringIncomeService.listByUser(params.userId);
       }
 
-      if (params.familyId) {
-        return recurringIncomeService.listByFamily(params.familyId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: !!params.userId || !!params.familyId,
+    enabled: !!params.userId,
   });
 }
 
