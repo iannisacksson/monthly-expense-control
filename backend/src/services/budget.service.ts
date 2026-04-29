@@ -13,6 +13,38 @@ const categoryRepository = new CategoryRepository()
 const userRepository = new UserRepository()
 
 export class BudgetService {
+  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
+    return userId ? undefined : familyId ?? undefined
+  }
+
+  private getEffectiveOwner(record: { getDataValue: (field: string) => unknown }) {
+    const userId = record.getDataValue("user_id") as string | null
+    const familyId = record.getDataValue("family_id") as string | null
+
+    return {
+      userId: userId ?? undefined,
+      familyId: this.getLegacyFamilyId(userId, familyId),
+    }
+  }
+
+  private async ensureCategoryMatchesRuleOwner(categoryId: string, rule: { getDataValue: (field: string) => unknown }) {
+    const category = await categoryRepository.findById(categoryId)
+    if (!category) {
+      throw new Error("Category not found")
+    }
+
+    const categoryOwner = this.getEffectiveOwner(category)
+    const ruleOwner = this.getEffectiveOwner(rule)
+    const isSameOwner = (categoryOwner.userId && ruleOwner.userId && categoryOwner.userId === ruleOwner.userId)
+      || (!!categoryOwner.familyId && !!ruleOwner.familyId && categoryOwner.familyId === ruleOwner.familyId)
+
+    if (!isSameOwner) {
+      throw new Error("Category must belong to the same owner as the budget rule")
+    }
+
+    return category
+  }
+
   async createBudgetRule(data: CreateBudgetRuleDTO) {
     if (!data.name || data.name.length < 2 || data.name.length > 100) {
       throw new Error("Budget rule name must be between 2 and 100 characters")
@@ -22,21 +54,28 @@ export class BudgetService {
       throw new Error("Budget rule must belong to a user or a legacy family context")
     }
 
-    if (data.user_id) {
-      const user = await userRepository.findById(data.user_id)
+    const ownerUserId = data.user_id ?? undefined
+    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, data.family_id)
+
+    if (ownerUserId) {
+      const user = await userRepository.findById(ownerUserId)
       if (!user) {
         throw new Error("User not found")
       }
     }
 
-    if (data.family_id) {
-      const family = await familyRepository.findById(data.family_id)
+    if (legacyFamilyId) {
+      const family = await familyRepository.findById(legacyFamilyId)
       if (!family) {
         throw new Error("Family not found")
       }
     }
 
-    return budgetRuleRepository.create(data)
+    return budgetRuleRepository.create({
+      user_id: ownerUserId,
+      family_id: legacyFamilyId,
+      name: data.name,
+    })
   }
 
   async findBudgetRuleById(id: string) {
@@ -45,10 +84,6 @@ export class BudgetService {
       throw new Error("Budget rule not found")
     }
     return rule
-  }
-
-  async listBudgetRulesByFamily(familyId: string) {
-    return budgetRuleRepository.findByFamilyId(familyId)
   }
 
   async listBudgetRulesByUser(userId: string) {
@@ -85,22 +120,7 @@ export class BudgetService {
       throw new Error("Budget rule not found")
     }
 
-    const category = await categoryRepository.findById(data.category_id)
-    if (!category) {
-      throw new Error("Category not found")
-    }
-
-    const categoryUserId = category.getDataValue("user_id") as string | null
-    const ruleUserId = rule.getDataValue("user_id") as string | null
-    const categoryFamilyId = category.getDataValue("family_id") as string | null
-    const ruleFamilyId = rule.getDataValue("family_id") as string | null
-
-    const isSameOwner = (categoryUserId && ruleUserId && categoryUserId === ruleUserId)
-      || (categoryFamilyId && ruleFamilyId && categoryFamilyId === ruleFamilyId)
-
-    if (!isSameOwner) {
-      throw new Error("Category must belong to the same owner as the budget rule")
-    }
+    await this.ensureCategoryMatchesRuleOwner(data.category_id, rule)
 
     const existingAllocations = await budgetAllocationRepository.findByBudgetRuleId(data.budget_rule_id)
     const currentTotal = existingAllocations.reduce(
@@ -136,22 +156,7 @@ export class BudgetService {
     }
 
     if (data.category_id) {
-      const category = await categoryRepository.findById(data.category_id)
-      if (!category) {
-        throw new Error("Category not found")
-      }
-
-      const categoryUserId = category.getDataValue("user_id") as string | null
-      const ruleUserId = rule.getDataValue("user_id") as string | null
-      const categoryFamilyId = category.getDataValue("family_id") as string | null
-      const ruleFamilyId = rule.getDataValue("family_id") as string | null
-
-      const isSameOwner = (categoryUserId && ruleUserId && categoryUserId === ruleUserId)
-        || (categoryFamilyId && ruleFamilyId && categoryFamilyId === ruleFamilyId)
-
-      if (!isSameOwner) {
-        throw new Error("Category must belong to the same owner as the budget rule")
-      }
+      await this.ensureCategoryMatchesRuleOwner(data.category_id, rule)
     }
 
     if (data.percentage !== undefined) {

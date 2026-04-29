@@ -21,15 +21,6 @@ export const listBudgetRulesByUser = async (req: Request, res: Response) => {
   }
 }
 
-export const listBudgetRulesByFamily = async (req: Request, res: Response) => {
-  try {
-    const result = await budgetService.listBudgetRulesByFamily(req.params.familyId as string)
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getBudgetRuleById = async (req: Request, res: Response) => {
   try {
     const result = await budgetService.findBudgetRuleById(req.params.id as string)

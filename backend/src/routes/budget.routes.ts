@@ -2,7 +2,6 @@ import { Router } from "express"
 import {
   createBudgetRule,
   listBudgetRulesByUser,
-  listBudgetRulesByFamily,
   getBudgetRuleById,
   updateBudgetRule,
   deleteBudgetRule,
@@ -16,7 +15,6 @@ const router = Router()
 
 router.post("/rules", createBudgetRule)
 router.get("/rules/user/:userId", listBudgetRulesByUser)
-router.get("/rules/family/:familyId", listBudgetRulesByFamily)
 router.get("/rules/:id", getBudgetRuleById)
 router.put("/rules/:id", updateBudgetRule)
 router.delete("/rules/:id", deleteBudgetRule)

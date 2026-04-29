@@ -21,15 +21,6 @@ export const listCategoriesByUser = async (req: Request, res: Response) => {
   }
 }
 
-export const listCategoriesByFamily = async (req: Request, res: Response) => {
-  try {
-    const result = await categoryService.listCategoriesByFamily(req.params.familyId as string)
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getCategoryById = async (req: Request, res: Response) => {
   try {
     const result = await categoryService.findCategoryById(req.params.id as string)

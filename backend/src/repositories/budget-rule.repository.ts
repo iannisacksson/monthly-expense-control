@@ -9,10 +9,6 @@ export class BudgetRuleRepository {
     return BudgetRule.findByPk(id)
   }
 
-  async findByFamilyId(familyId: string) {
-    return BudgetRule.findAll({ where: { family_id: familyId } })
-  }
-
   async findByUserId(userId: string) {
     return BudgetRule.findAll({ where: { user_id: userId } })
   }

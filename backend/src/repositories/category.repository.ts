@@ -9,10 +9,6 @@ export class CategoryRepository {
     return Category.findByPk(id)
   }
 
-  async findByFamilyId(familyId: string) {
-    return Category.findAll({ where: { family_id: familyId } })
-  }
-
   async findByUserId(userId: string) {
     return Category.findAll({ where: { user_id: userId } })
   }

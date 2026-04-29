@@ -1,10 +1,8 @@
 import { CategoryRepository } from "../repositories/category.repository"
-import { FamilyRepository } from "../repositories/family.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/category.dto"
 
 const categoryRepository = new CategoryRepository()
-const familyRepository = new FamilyRepository()
 const userRepository = new UserRepository()
 
 export class CategoryService {
@@ -13,25 +11,24 @@ export class CategoryService {
       throw new Error("Category name must be between 2 and 100 characters")
     }
 
-    if (!data.user_id && !data.family_id) {
-      throw new Error("Category must belong to a user or a legacy family context")
+    if (!data.user_id) {
+      throw new Error("Category must belong to a user")
     }
 
-    if (data.user_id) {
-      const user = await userRepository.findById(data.user_id)
-      if (!user) {
-        throw new Error("User not found")
-      }
+    const user = await userRepository.findById(data.user_id)
+    if (!user) {
+      throw new Error("User not found")
     }
 
-    if (data.family_id) {
-      const family = await familyRepository.findById(data.family_id)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
+    return categoryRepository.create({
+      user_id: data.user_id,
+      name: data.name,
+      type: data.type,
+    })
+  }
 
-    return categoryRepository.create(data)
+  async listCategoriesByUser(userId: string) {
+    return categoryRepository.findByUserId(userId)
   }
 
   async findCategoryById(id: string) {
@@ -40,14 +37,6 @@ export class CategoryService {
       throw new Error("Category not found")
     }
     return category
-  }
-
-  async listCategoriesByFamily(familyId: string) {
-    return categoryRepository.findByFamilyId(familyId)
-  }
-
-  async listCategoriesByUser(userId: string) {
-    return categoryRepository.findByUserId(userId)
   }
 
   async updateCategory(id: string, data: UpdateCategoryDTO) {
