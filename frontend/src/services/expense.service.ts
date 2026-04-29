@@ -7,11 +7,6 @@ export const expenseService = {
     return data;
   },
 
-  async listByFamilyAndMonth(familyId: string, monthId: string): Promise<Expense[]> {
-    const { data } = await httpClient.get<Expense[]>(`/expenses/family/${familyId}/month/${monthId}`);
-    return data;
-  },
-
   async getById(id: string): Promise<Expense> {
     const { data } = await httpClient.get<Expense>(`/expenses/${id}`);
     return data;

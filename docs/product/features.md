@@ -263,6 +263,11 @@ The system must:
 - allow subcategories to refine classification without breaking the category structure
 - expose category access directly from the monthly navigation flow, without depending on hover-only actions or hidden initial states
 
+Legacy note:
+
+- family-scoped category and subcategory screens may remain temporarily for compatibility while the `families` area still exists
+- those legacy screens must not become the reference flow for month navigation or new frontend work
+
 ### Domain Entities
 
 Category  
@@ -298,6 +303,7 @@ The system must:
 - allocate percentages to categories
 - allow custom financial rules per user
 - enable planned versus actual comparisons in dashboards
+- expose budget management through a user-scoped route so the month detail flow can reach it without falling back to family navigation
 
 ### Domain Entities
 

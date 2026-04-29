@@ -24,18 +24,6 @@ export const listExpensesByUserAndMonth = async (req: Request, res: Response) =>
   }
 }
 
-export const listExpensesByFamilyAndMonth = async (req: Request, res: Response) => {
-  try {
-    const result = await expenseService.findExpensesByFamilyAndMonth(
-      req.params.familyId as string,
-      req.params.monthId as string
-    )
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getExpenseById = async (req: Request, res: Response) => {
   try {
     const result = await expenseService.findExpenseById(req.params.id as string)

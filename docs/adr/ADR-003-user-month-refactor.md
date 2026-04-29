@@ -133,6 +133,12 @@ Expected cutover behavior for months:
 - family-scoped month routes must be removed from backend and frontend
 - remaining family compatibility must not reintroduce month navigation under `/families/:familyId/months`
 
+Current compatibility decision for adjacent flows:
+
+- budget management is already being cut over to user-scoped frontend routes and must be reachable from month detail under `/users/:userId/budgets`
+- family-scoped category screens may remain temporarily only while the legacy `families` area still exists
+- family-scoped expense listing is no longer part of the active frontend surface and should be removed before broader family compatibility cleanup
+
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
 
 ---
@@ -240,6 +246,7 @@ This is the safest option because it prevents silent semantic corruption.
 - update services to validate against `user_id + month_id`
 - keep compatibility reads while legacy data still exists
 - move ownership checks out of family validations and into user/month/category invariants
+- narrow compatibility windows per resource instead of preserving all family-scoped reads uniformly
 
 ### Phase 4 — Feature Completion Under New Model
 
@@ -255,6 +262,7 @@ This is the safest option because it prevents silent semantic corruption.
 - remove family management screens and navigation
 - update dashboard, month details, categories, and budgets to use authenticated user context
 - make month status visible and block incompatible actions when closed
+- keep only explicitly justified family-scoped screens during transition, with a named removal target for each remaining route
 
 ### Phase 6 — Legacy Removal
 

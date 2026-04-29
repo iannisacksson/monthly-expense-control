@@ -192,6 +192,11 @@ POST /api/v1/categories
 
 GET /api/v1/categories/user/{userId}
 
+Legacy compatibility note:
+
+- `GET /api/v1/categories/family/{familyId}` may still exist while family management screens remain in the application
+- that family-scoped endpoint is transitional and must not be used by user-month flows
+
 ## Get Category by ID
 
 GET /api/v1/categories/{id}
@@ -340,6 +345,10 @@ POST /api/v1/expenses
 
 GET /api/v1/expenses/user/{userId}/month/{monthId}
 
+There is no active family-scoped expense listing route in the target contract.
+
+Legacy endpoints such as `GET /api/v1/expenses/family/{familyId}/month/{monthId}` are out of the active app surface and should not be reintroduced in frontend hooks or month flows.
+
 ## Get Expense by ID
 
 GET /api/v1/expenses/{id}
@@ -383,23 +392,28 @@ Represents user-owned budget strategies.
 
 ## Create Budget Rule
 
-POST /api/v1/budget-rules
+POST /api/v1/budgets/rules
 
 ## List Budget Rules by User
 
-GET /api/v1/budget-rules/user/{userId}
+GET /api/v1/budgets/rules/user/{userId}
+
+Legacy compatibility note:
+
+- `GET /api/v1/budgets/rules/family/{familyId}` may still exist during migration for family-scoped compatibility screens
+- active month flows must navigate to user-scoped budget management instead
 
 ## Get Budget Rule by ID
 
-GET /api/v1/budget-rules/{id}
+GET /api/v1/budgets/rules/{id}
 
 ## Update Budget Rule
 
-PUT /api/v1/budget-rules/{id}
+PUT /api/v1/budgets/rules/{id}
 
 ## Delete Budget Rule
 
-DELETE /api/v1/budget-rules/{id}
+DELETE /api/v1/budgets/rules/{id}
 
 ---
 
@@ -409,19 +423,19 @@ Represents category allocations inside a budget rule.
 
 ## Create Allocation
 
-POST /api/v1/budget-allocations
+POST /api/v1/budgets/allocations
 
 ## List Allocations by Budget Rule
 
-GET /api/v1/budget-allocations/budget-rule/{budgetRuleId}
+GET /api/v1/budgets/allocations/rule/{ruleId}
 
 ## Update Allocation
 
-PUT /api/v1/budget-allocations/{id}
+PUT /api/v1/budgets/allocations/{id}
 
 ## Delete Allocation
 
-DELETE /api/v1/budget-allocations/{id}
+DELETE /api/v1/budgets/allocations/{id}
 
 ---
 

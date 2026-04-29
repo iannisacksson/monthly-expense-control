@@ -614,6 +614,13 @@ export default function MonthDetailPage() {
               {finalizeMonth.isPending ? "Finalizando..." : "Finalizar mês"}
             </Button>
           )}
+          {resolvedUserId && (
+            <div className="page-hero__links">
+              <Link to={`/users/${resolvedUserId}/budgets`}>
+                Gerenciar orçamento
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

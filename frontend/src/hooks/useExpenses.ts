@@ -4,8 +4,8 @@ import { expenseService } from "../services";
 
 const EXPENSES_KEY = ["expenses"] as const;
 
-export function useExpenses(params: { familyId?: string; userId?: string; monthId: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useExpenses(params: { userId?: string; monthId: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...EXPENSES_KEY, ownerKey, params.monthId],
@@ -14,13 +14,9 @@ export function useExpenses(params: { familyId?: string; userId?: string; monthI
         return expenseService.listByUserAndMonth(params.userId, params.monthId);
       }
 
-      if (params.familyId) {
-        return expenseService.listByFamilyAndMonth(params.familyId, params.monthId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: (!!params.userId || !!params.familyId) && !!params.monthId,
+    enabled: !!params.userId && !!params.monthId,
   });
 }
 

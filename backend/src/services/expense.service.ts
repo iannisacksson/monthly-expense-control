@@ -109,10 +109,6 @@ export class ExpenseService {
     return expense
   }
 
-  async findExpensesByFamilyAndMonth(familyId: string, monthId: string) {
-    return expenseRepository.findByFamilyAndMonth(familyId, monthId)
-  }
-
   async findExpensesByUserAndMonth(userId: string, monthId: string) {
     const month = await monthRepository.findById(monthId)
     if (!month) {

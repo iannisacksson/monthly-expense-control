@@ -18,6 +18,7 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       { path: "users/:userId/months", element: <MonthsPage /> },
       { path: "users/:userId/months/:monthId", element: <MonthDetailPage /> },
+      { path: "users/:userId/budgets", element: <BudgetsPage /> },
       { path: "users/:userId/categories", element: <CategoriesPage /> },
       { path: "users/:userId/categories/:categoryId/subcategories", element: <SubcategoriesPage /> },
       { path: "families", element: <FamiliesPage /> },

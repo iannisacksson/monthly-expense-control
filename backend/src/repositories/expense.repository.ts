@@ -25,10 +25,6 @@ export class ExpenseRepository {
     return Expense.findByPk(id)
   }
 
-  async findByFamilyAndMonth(familyId: string, monthId: string) {
-    return Expense.findAll({ where: { family_id: familyId, month_id: monthId } })
-  }
-
   async findByMonthId(monthId: string) {
     return Expense.findAll({ where: { month_id: monthId } })
   }
