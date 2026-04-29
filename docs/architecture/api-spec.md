@@ -192,11 +192,6 @@ POST /api/v1/categories
 
 GET /api/v1/categories/user/{userId}
 
-Legacy compatibility note:
-
-- `GET /api/v1/categories/family/{familyId}` may still exist temporarily as backend compatibility
-- that family-scoped endpoint is transitional and must not be used by active frontend routes or user-month flows
-
 ## Get Category by ID
 
 GET /api/v1/categories/{id}
@@ -403,10 +398,10 @@ POST /api/v1/budgets/rules
 
 GET /api/v1/budgets/rules/user/{userId}
 
-Legacy compatibility note:
+Behavior note:
 
-- `GET /api/v1/budgets/rules/family/{familyId}` may still exist during migration for family-scoped compatibility screens
-- active month flows must navigate to user-scoped budget management instead
+- budget rule listing in the active application is user-scoped
+- allocation validation must compare the effective owner of the budget rule and the selected category
 
 ## Get Budget Rule by ID
 

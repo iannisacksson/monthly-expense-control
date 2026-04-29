@@ -266,7 +266,7 @@ The system must:
 Legacy note:
 
 - category and subcategory management must be exposed through user-scoped frontend routes only
-- any remaining family-scoped category compatibility must stay outside the active frontend surface
+- category ownership must be created and listed through user-scoped backend paths only
 
 ### Domain Entities
 
@@ -304,6 +304,7 @@ The system must:
 - allow custom financial rules per user
 - enable planned versus actual comparisons in dashboards
 - expose budget management through a user-scoped route so the month detail flow can reach it without falling back to family navigation
+- validate allocations against the effective owner of the selected budget rule and category, preferring `user_id` and using `family_id` only for legacy persisted records
 
 ### Domain Entities
 

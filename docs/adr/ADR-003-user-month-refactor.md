@@ -137,6 +137,8 @@ Current compatibility decision for adjacent flows:
 
 - budget management is already being cut over to user-scoped frontend routes and must be reachable from month detail under `/users/:userId/budgets`
 - category and subcategory frontend routes are now user-scoped only
+- category backend listing is now user-scoped only
+- budget rule listing in the active application is now user-scoped only
 - family-scoped expense listing is no longer part of the active frontend surface and should not return as a compatibility path
 
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
