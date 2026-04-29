@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
-import { useMonths } from "../hooks";
+import { NavLink, Outlet, Link } from "react-router-dom";
+import { useMonths, useLogout } from "../hooks";
 import { useAuthStore } from "../store";
 
 const MONTH_NAMES = [
@@ -11,7 +11,8 @@ const MONTH_NAMES = [
 export default function MainLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [monthsMenuOpen, setMonthsMenuOpen] = useState(true);
-  const { currentUserId } = useAuthStore();
+  const { currentUserId, user } = useAuthStore();
+  const logout = useLogout();
   const activeUserId = currentUserId ?? undefined;
   const monthsLink = activeUserId ? `/users/${activeUserId}/months` : "/";
   const { data: months = [] } = useMonths({ userId: activeUserId });
@@ -129,7 +130,16 @@ export default function MainLayout() {
             <div className="app-topbar__title">Painel financeiro</div>
             <div className="app-topbar__subtitle">Uma interface mais focada em leitura rápida, prioridade e contexto.</div>
           </div>
-          <div className="app-topbar__badge">Planejamento mensal</div>
+          <div className="app-topbar__actions">
+            {user && (
+              <Link to="/profile" className="app-topbar__user">
+                {user.name}
+              </Link>
+            )}
+            <button type="button" className="app-topbar__badge" onClick={logout}>
+              Sair
+            </button>
+          </div>
         </header>
 
         <main className="app-content">

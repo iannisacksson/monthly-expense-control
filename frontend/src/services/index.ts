@@ -1,3 +1,4 @@
+export { authService } from "./auth.service";
 export { userService } from "./user.service";
 export { monthService } from "./month.service";
 export { monthlyIncomeService } from "./monthly-income.service";

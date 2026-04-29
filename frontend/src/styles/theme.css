@@ -1018,3 +1018,132 @@ textarea {
     padding: 12px;
   }
 }
+
+/* ─── Auth pages ───────────────────────────────────────────── */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 250, 245, 0.88);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.auth-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-card__title {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 32px;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+
+.auth-card__subtitle {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-form__error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(180, 70, 59, 0.08);
+  color: var(--danger);
+  border: 1px solid rgba(180, 70, 59, 0.18);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form__success {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(45, 122, 99, 0.08);
+  color: var(--success);
+  border: 1px solid rgba(45, 122, 99, 0.18);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-card__footer {
+  margin: 0;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.auth-card__link {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.auth-card__link:hover {
+  color: var(--brand-strong);
+}
+
+/* ─── Topbar actions (auth) ────────────────────────────────── */
+
+.app-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-topbar__user {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.app-topbar__user:hover {
+  color: var(--brand-strong);
+}
+
+.app-topbar__badge {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ─── Profile view ─────────────────────────────────────────── */
+
+.profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-view__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-view__field strong {
+  font-size: 17px;
+}
