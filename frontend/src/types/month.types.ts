@@ -1,7 +1,6 @@
 export interface Month {
   id: string;
-  user_id?: string;
-  family_id?: string;
+  user_id: string;
   budget_rule_id?: string | null;
   year: number;
   month: number;
@@ -10,8 +9,7 @@ export interface Month {
 }
 
 export interface CreateMonthDTO {
-  user_id?: string;
-  family_id?: string;
+  user_id: string;
   year: number;
   month: number;
   status: string;

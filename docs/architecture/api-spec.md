@@ -135,6 +135,10 @@ GET /api/v1/months/user/{userId}
 
 There is no active family-scoped month listing route in the target contract.
 
+Behavior note:
+
+- the active month schema path is user-owned and no longer depends on `family_id`
+
 Legacy endpoints such as `GET /api/v1/months/family/{familyId}` must not be used by frontend clients and should be removed during the User + Month cutover.
 
 ## Get Month by ID

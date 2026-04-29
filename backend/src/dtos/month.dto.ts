@@ -1,6 +1,5 @@
 export interface CreateMonthDTO {
-  user_id?: string
-  family_id?: string
+  user_id: string
   year: number
   month: number
   status: string

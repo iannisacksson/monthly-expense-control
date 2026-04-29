@@ -9,11 +9,7 @@ export const Month = sequelize.define("Month", {
   },
   user_id: {
     type: DataTypes.UUID,
-    allowNull: true
-  },
-  family_id: {
-    type: DataTypes.UUID,
-    allowNull: true
+    allowNull: false
   },
   budget_rule_id: {
     type: DataTypes.UUID,
@@ -40,10 +36,6 @@ export const Month = sequelize.define("Month", {
     {
       unique: true,
       fields: ["user_id", "year", "month"]
-    },
-    {
-      unique: true,
-      fields: ["family_id", "year", "month"]
     }
   ]
 })

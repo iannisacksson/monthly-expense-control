@@ -148,7 +148,14 @@ Current compatibility decision for adjacent flows:
 - active create payloads for recurring expenses and installment groups no longer need `family_id`; legacy family fallback is resolved internally from persisted month ownership when required
 - recurring incomes, recurring expenses, and installment groups are now on the physical-removal path for `family_id` in ORM and migrations
 - recurring expense and installment generation now require owner user context derived from `start_month_id` and must not recreate family-scoped persistence
+- months are now on the physical-removal path for `family_id` in ORM and migrations, with user-only uniqueness preserved in the active schema path
 - debt is now archived definitively outside the active product surface and should remain only as persistence data for export/manual migration until eventual table removal
+
+Current test database verification after the latest migrations:
+
+- `months`, `recurring_incomes`, `recurring_expenses`, and `installment_groups` have no rows with missing `user_id`
+- `months` now keeps only user-based indexes in the active schema path
+- `debts` currently has zero rows in the configured local test database, which enables a no-data archival fast path if this state is preserved
 
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
 

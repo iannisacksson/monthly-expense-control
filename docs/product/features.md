@@ -73,7 +73,7 @@ The product no longer depends on family, family members, or shared financial spa
 Current delivery note:
 
 - the target product model is user-centered
-- the codebase still contains legacy compatibility for family-scoped routes, payloads, and persistence fields
+- the codebase still contains legacy compatibility in a few persistence and archival areas, but the active month, recurring, installment, category, budget, and expense flows are already user-scoped
 - legacy family behavior must be treated as transitional compatibility, not as the preferred direction for new work
 
 ---

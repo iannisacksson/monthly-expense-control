@@ -438,11 +438,13 @@ The current Sequelize models and migrations show three different removal states.
 - status: migration file `20260429000029-remove-family-ownership-from-categories-budget-rules-and-expenses.js` removes the legacy `family_id` columns from the active schema path
 - rationale: active routes, DTOs, frontend flows, and ORM associations are already user-scoped
 
-### Not ready for column drop yet
+### Ready for next physical-removal planning step
 
 - `months`
-- rationale: the table still carries legacy `family_id` uniqueness and remains the bridge for ownership derivation during cutover in `20260426000018-refactor-months-to-user-context.js`
-- required before drop: finish data backfill, remove family-based month fallback in services, remove legacy unique/index definitions, then drop `family_id`
+- status: migration file `20260429000031-remove-family-ownership-from-months.js` removes the legacy `family_id` column, removes the family-based uniqueness/indexes, and makes `user_id` non-null in the active schema path
+- rationale: the current test database audit shows no `months` rows missing `user_id`, so the remaining family bridge was schema-only
+
+### Not ready for column drop yet
 
 - `expenses`
 - status: migration file `20260429000029-remove-family-ownership-from-categories-budget-rules-and-expenses.js` removes the legacy `family_id` column and replaces the family-centered index with a `month_id` index
@@ -451,6 +453,8 @@ The current Sequelize models and migrations show three different removal states.
 - `recurring_incomes`, `recurring_expenses`, and `installment_groups`
 - status: migration file `20260429000030-remove-family-ownership-from-recurring-and-installment-aggregates.js` removes the legacy `family_id` columns from the active schema path
 - rationale: active routes, DTOs, frontend flows, and ORM associations now operate on owner user context derived from `user_id` plus `start_month_id`
+- current verification: the configured local test database has no rows with missing `user_id` in these tables
+- remaining hardening step: make `user_id` non-null for tables that still keep it nullable for transitional compatibility
 
 ### Legacy-only, not a User + Month drop candidate
 
@@ -468,3 +472,20 @@ That strategy must define:
 - retention window and operator responsibility
 - one migration or script that extracts legacy rows before table removal
 - the follow-up removal sequence for model, repository, service, controller, route, and final drop-table migration
+
+## Debt Archival Strategy
+
+Use a two-path archival policy.
+
+### Fast path when the table is empty
+
+- run a preflight count on `debts`
+- if the count is zero, record an archival manifest stating that no rows required export
+- then remove debt model, repository, service, controller remnants, and apply a dedicated drop-table migration in a separate change
+
+### Export path when rows exist
+
+- export the full table to CSV or JSON outside the application database
+- include a manifest with export timestamp, row count, column list, and operator identity
+- retain the exported artifact for the agreed retention window
+- only after artifact verification, remove debt code and drop the table in a separate change

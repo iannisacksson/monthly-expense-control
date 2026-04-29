@@ -5,7 +5,6 @@ import Button from "../../../ui/Button/Button";
 import type { Month, CreateMonthDTO } from "../../../../types";
 
 interface MonthFormProps {
-  familyId?: string;
   userId?: string;
   initialData?: Month;
   onSubmit: (data: CreateMonthDTO) => void;
@@ -18,7 +17,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-export default function MonthForm({ familyId, userId, initialData, onSubmit, onCancel, isPending }: MonthFormProps) {
+export default function MonthForm({ userId, initialData, onSubmit, onCancel, isPending }: MonthFormProps) {
   const now = new Date();
   const [year, setYear] = useState(initialData?.year?.toString() ?? now.getFullYear().toString());
   const [month, setMonth] = useState(initialData?.month?.toString() ?? (now.getMonth() + 1).toString());
@@ -26,7 +25,12 @@ export default function MonthForm({ familyId, userId, initialData, onSubmit, onC
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit({ user_id: userId, family_id: familyId, year: Number(year), month: Number(month), status });
+
+    if (!userId) {
+      return;
+    }
+
+    onSubmit({ user_id: userId, year: Number(year), month: Number(month), status });
   };
 
   const monthOptions = MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }));
@@ -62,7 +66,7 @@ export default function MonthForm({ familyId, userId, initialData, onSubmit, onC
         onChange={(e) => setStatus(e.target.value)}
       />
       <div style={{ display: "flex", gap: 8 }}>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending || !userId}>
           {isPending ? "Salvando..." : initialData ? "Salvar" : "Criar"}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isPending}>

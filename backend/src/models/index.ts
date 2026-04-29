@@ -21,10 +21,6 @@ FamilyMember.belongsTo(Family, { foreignKey: "family_id" })
 User.hasMany(FamilyMember, { foreignKey: "user_id" })
 FamilyMember.belongsTo(User, { foreignKey: "user_id" })
 
-// Family -> Month
-Family.hasMany(Month, { foreignKey: "family_id" })
-Month.belongsTo(Family, { foreignKey: "family_id" })
-
 // User -> Month
 User.hasMany(Month, { foreignKey: "user_id" })
 Month.belongsTo(User, { foreignKey: "user_id" })
