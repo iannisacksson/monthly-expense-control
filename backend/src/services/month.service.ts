@@ -1,0 +1,180 @@
+import { MonthRepository } from "../repositories/month.repository"
+import { FamilyRepository } from "../repositories/family.repository"
+import { FamilyMemberRepository } from "../repositories/family-member.repository"
+import { RecurringExpenseService } from "./recurring-expense.service"
+import { RecurringIncomeService } from "./recurring-income.service"
+import { UserRepository } from "../repositories/user.repository"
+import { BudgetRuleRepository } from "../repositories/budget-rule.repository"
+import { CreateMonthDTO, UpdateMonthDTO } from "../dtos/month.dto"
+
+const monthRepository = new MonthRepository()
+const familyRepository = new FamilyRepository()
+const familyMemberRepository = new FamilyMemberRepository()
+const userRepository = new UserRepository()
+const budgetRuleRepository = new BudgetRuleRepository()
+const recurringExpenseService = new RecurringExpenseService()
+const recurringIncomeService = new RecurringIncomeService()
+
+export class MonthService {
+  private async validateBudgetRuleOwnership(monthId: string, budgetRuleId: string | null | undefined) {
+    if (budgetRuleId === undefined) {
+      return
+    }
+
+    if (budgetRuleId === null) {
+      return
+    }
+
+    const month = await monthRepository.findById(monthId)
+    if (!month) {
+      throw new Error("Month not found")
+    }
+
+    const rule = await budgetRuleRepository.findById(budgetRuleId)
+    if (!rule) {
+      throw new Error("Budget rule not found")
+    }
+
+    const monthUserId = month.getDataValue("user_id") as string | null
+    const monthFamilyId = month.getDataValue("family_id") as string | null
+    const ruleUserId = rule.getDataValue("user_id") as string | null
+    const ruleFamilyId = rule.getDataValue("family_id") as string | null
+
+    const sameOwner = (monthUserId && ruleUserId && monthUserId === ruleUserId)
+      || (monthFamilyId && ruleFamilyId && monthFamilyId === ruleFamilyId)
+
+    if (!sameOwner) {
+      throw new Error("Budget rule must belong to the same owner as the month")
+    }
+  }
+
+  private async resolveLegacyFamilyId(userId?: string) {
+    if (!userId) {
+      return undefined
+    }
+
+    const existingMonths = await monthRepository.findByUserId(userId)
+    const existingFamilyId = existingMonths
+      .map((month) => month.getDataValue("family_id") as string | null)
+      .find((familyId): familyId is string => !!familyId)
+
+    if (existingFamilyId) {
+      return existingFamilyId
+    }
+
+    const memberships = await familyMemberRepository.findByUserId(userId)
+    if (memberships.length === 1) {
+      return memberships[0].getDataValue("family_id") as string
+    }
+
+    return undefined
+  }
+
+  async createMonth(data: CreateMonthDTO) {
+    if (data.month < 1 || data.month > 12) {
+      throw new Error("Month must be between 1 and 12")
+    }
+
+    if (data.year < 2000 || data.year > 2100) {
+      throw new Error("Year must be between 2000 and 2100")
+    }
+
+    if (!data.user_id && !data.family_id) {
+      throw new Error("Month must belong to a user or a legacy family context")
+    }
+
+    const resolvedFamilyId = data.family_id ?? await this.resolveLegacyFamilyId(data.user_id)
+
+    if (data.user_id) {
+      const user = await userRepository.findById(data.user_id)
+      if (!user) {
+        throw new Error("User not found")
+      }
+
+      const existing = await monthRepository.findByUserAndPeriod(data.user_id, data.year, data.month)
+      if (existing) {
+        throw new Error("Month already exists for this user")
+      }
+    }
+
+    if (resolvedFamilyId) {
+      const family = await familyRepository.findById(resolvedFamilyId)
+      if (!family) {
+        throw new Error("Family not found")
+      }
+
+      const existing = await monthRepository.findByFamilyAndPeriod(resolvedFamilyId, data.year, data.month)
+      if (existing) {
+        throw new Error("Month already exists for this family")
+      }
+    }
+
+    const month = await monthRepository.create({
+      ...data,
+      family_id: resolvedFamilyId,
+    })
+
+    const monthId = month.getDataValue("id") as string
+    await recurringIncomeService.syncRecurringIncomesForMonth(monthId)
+    await recurringExpenseService.syncRecurringExpensesForMonth(monthId)
+
+    return month
+  }
+
+  async findMonthById(id: string) {
+    const month = await monthRepository.findById(id)
+    if (!month) {
+      throw new Error("Month not found")
+    }
+    return month
+  }
+
+  async listMonthsByFamily(familyId: string) {
+    return monthRepository.findByFamilyId(familyId)
+  }
+
+  async listMonthsByUser(userId: string) {
+    return monthRepository.findByUserId(userId)
+  }
+
+  async updateMonth(id: string, data: UpdateMonthDTO) {
+    if (data.status !== undefined && !["open", "closed"].includes(data.status)) {
+      throw new Error("Status must be open or closed")
+    }
+
+    await this.validateBudgetRuleOwnership(id, data.budget_rule_id)
+
+    const month = await monthRepository.update(id, data)
+    if (!month) {
+      throw new Error("Month not found")
+    }
+    return month
+  }
+
+  async deleteMonth(id: string) {
+    const month = await monthRepository.findById(id)
+    if (!month) {
+      throw new Error("Month not found")
+    }
+
+    throw new Error("Month deletion is not allowed")
+  }
+
+  async finalizeMonth(id: string) {
+    const month = await monthRepository.findById(id)
+    if (!month) {
+      throw new Error("Month not found")
+    }
+
+    if ((month.getDataValue("status") as string) === "closed") {
+      return month
+    }
+
+    const updatedMonth = await monthRepository.update(id, { status: "closed" })
+    if (!updatedMonth) {
+      throw new Error("Month not found")
+    }
+
+    return updatedMonth
+  }
+}

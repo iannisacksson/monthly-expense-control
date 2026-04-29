@@ -1,0 +1,429 @@
+# Database Model
+
+## Purpose
+
+This document defines the relational database model used by the application.
+
+It describes:
+
+- tables
+- columns
+- constraints
+- relationships
+- indexes
+
+This document serves two main purposes:
+
+1. guide developers implementing persistence
+2. provide structured context for AI-assisted development
+
+Because of this, the schema definitions must be:
+
+- explicit
+- consistent
+- aligned with the domain model
+
+---
+
+# Database Technology
+
+The system uses PostgreSQL.
+
+Key characteristics used in this project:
+
+- relational schema
+- foreign keys
+- transactional consistency
+- normalized tables
+- indexed queries
+
+---
+
+# Naming Conventions
+
+Tables use snake_case plural names.
+
+Columns follow snake_case.
+
+Primary key:
+
+id UUID
+
+Standard timestamps:
+
+created_at
+updated_at
+
+---
+
+# Ownership Model
+
+The target ownership model is User + Month.
+
+Financial tables must no longer use family ownership as the primary boundary.
+
+During migration, some tables may temporarily contain both `family_id` and `user_id`, but the target schema is user-owned.
+
+---
+
+# Tables
+
+# users
+
+## Purpose
+
+Stores registered users of the system.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid (pk) |
+| name | text |
+| email | text |
+| password_hash | text |
+| created_at | timestamp |
+| updated_at | timestamp |
+
+## Constraints
+
+PRIMARY KEY (id)  
+UNIQUE (email)
+
+---
+
+# months
+
+## Purpose
+
+Represents a financial period for one user.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid (pk) |
+| user_id | uuid |
+| year | integer |
+| month | integer |
+| status | text |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)  
+UNIQUE (user_id, year, month)
+
+---
+
+# monthly_incomes
+
+## Purpose
+
+Represents income received by a user during a specific month.
+
+Income belongs to User + Month.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| month_id | uuid |
+| recurring_income_id | uuid |
+| gross_income | numeric |
+| income_type | text |
+| notes | text |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)  
+FOREIGN KEY (month_id) REFERENCES months(id)  
+FOREIGN KEY (recurring_income_id) REFERENCES recurring_incomes(id)
+
+---
+
+# recurring_incomes
+
+## Purpose
+
+Stores templates that generate monthly income records such as fixed salary and recurring extra income.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| description | text |
+| gross_income | numeric |
+| income_type | text |
+| kind | text |
+| start_month_id | uuid |
+| occurrences | integer nullable |
+| status | text |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)  
+FOREIGN KEY (start_month_id) REFERENCES months(id)
+
+---
+
+# income_taxes
+
+## Purpose
+
+Represents taxes applied to a monthly income.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| monthly_income_id | uuid |
+| tax_type | text |
+| value | numeric |
+| is_auto | boolean |
+
+## Constraints
+
+FOREIGN KEY (monthly_income_id) REFERENCES monthly_incomes(id)
+
+---
+
+# categories
+
+## Purpose
+
+Top-level expense classification defined per user.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| name | text |
+| type | text |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)
+
+---
+
+# subcategories
+
+## Purpose
+
+Detailed classification inside categories.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| category_id | uuid |
+| name | text |
+
+## Constraints
+
+FOREIGN KEY (category_id) REFERENCES categories(id)
+
+---
+
+# budget_rules
+
+## Purpose
+
+Represents reusable budgeting strategies owned by one user.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| name | text |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)
+
+---
+
+# budget_allocations
+
+## Purpose
+
+Represents category allocations inside a budget rule.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| budget_rule_id | uuid |
+| category_id | uuid |
+| percentage | numeric |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (budget_rule_id) REFERENCES budget_rules(id)  
+FOREIGN KEY (category_id) REFERENCES categories(id)
+
+---
+
+# expenses
+
+## Purpose
+
+Represents financial expenses.
+
+This is the central financial table of the system.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| month_id | uuid |
+| category_id | uuid |
+| subcategory_id | uuid |
+| paid_by | uuid |
+| responsible_user_id | uuid |
+| installment_group_id | uuid |
+| recurring_expense_id | uuid |
+| is_paid | boolean |
+| description | text |
+| value | numeric |
+| expense_date | date nullable |
+| payment_date | date nullable |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)  
+FOREIGN KEY (month_id) REFERENCES months(id)  
+FOREIGN KEY (category_id) REFERENCES categories(id)  
+FOREIGN KEY (subcategory_id) REFERENCES subcategories(id)  
+FOREIGN KEY (responsible_user_id) REFERENCES users(id)  
+FOREIGN KEY (recurring_expense_id) REFERENCES recurring_expenses(id)  
+FOREIGN KEY (installment_group_id) REFERENCES installment_groups(id)
+
+## Indexes
+
+INDEX (user_id, month_id)  
+INDEX (category_id)
+
+## Notes
+
+`month_id` is the authoritative boundary for monthly ownership and reporting.
+
+`payment_date` stores when the expense was actually paid.
+
+`expense_date` is optional metadata and must not be used as the primary rule for deciding which month owns the expense.
+
+---
+
+# installment_groups
+
+## Purpose
+
+Represents purchases made in installments.
+
+The system generates multiple expenses from this record.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| description | text |
+| total_value | numeric |
+| installments | integer |
+| starting_installment_number | integer |
+| category_id | uuid |
+| subcategory_id | uuid |
+| paid_by | uuid |
+| responsible_user_id | uuid |
+| start_month_id | uuid |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)  
+FOREIGN KEY (category_id) REFERENCES categories(id)  
+FOREIGN KEY (subcategory_id) REFERENCES subcategories(id)  
+FOREIGN KEY (start_month_id) REFERENCES months(id)
+
+---
+
+# recurring_expenses
+
+## Purpose
+
+Represents predictable monthly expenses that automatically generate expenses in future months.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| user_id | uuid |
+| description | text |
+| value | numeric |
+| category_id | uuid |
+| subcategory_id | uuid |
+| paid_by | uuid |
+| responsible_user_id | uuid |
+| start_month_id | uuid |
+| occurrences | integer nullable |
+| status | text |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (user_id) REFERENCES users(id)  
+FOREIGN KEY (category_id) REFERENCES categories(id)  
+FOREIGN KEY (subcategory_id) REFERENCES subcategories(id)  
+FOREIGN KEY (start_month_id) REFERENCES months(id)
+
+## Notes
+
+When `occurrences` is null, the recurring definition remains active indefinitely until its status changes.
+
+---
+
+# debts
+
+## Purpose
+
+Legacy table during the migration away from collaborative family finance.
+
+## Decision
+
+Debt must not remain a family-owned primary aggregate in the target product model.
+
+A future redesign may replace this table with a user-owned liability model.
+
+---
+
+# Migration Notes
+
+The safe migration path is additive:
+
+1. add nullable `user_id` to family-owned financial tables in the current schema
+2. backfill `user_id` using an explicit family-to-user ownership mapping
+3. move application reads and writes to user-scoped behavior
+4. remove legacy `family_id` dependencies after cutover validation
+
+Families and family_members may temporarily remain only as migration aids and legacy references, not as target ownership boundaries.

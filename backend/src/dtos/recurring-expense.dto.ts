@@ -1,0 +1,32 @@
+export type RecurringExpenseScope = "single_occurrence" | "future_occurrences" | "whole_series"
+
+export interface CreateRecurringExpenseDTO {
+  user_id?: string
+  family_id?: string
+  description: string
+  value: number
+  category_id: string
+  subcategory_id?: string
+  paid_by?: string
+  responsible_user_id?: string
+  start_month_id: string
+  occurrences?: number
+  status: string
+}
+
+export interface UpdateRecurringExpenseDTO {
+  description?: string
+  value?: number
+  category_id?: string
+  subcategory_id?: string
+  paid_by?: string
+  responsible_user_id?: string
+  occurrences?: number | null
+  status?: string
+  scope?: RecurringExpenseScope
+  effective_month_id?: string
+}
+
+export interface RestoreRecurringExpenseOccurrenceDTO {
+  month_id: string
+}
