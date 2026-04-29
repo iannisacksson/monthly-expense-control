@@ -129,10 +129,6 @@ export class MonthService {
     return month
   }
 
-  async listMonthsByFamily(familyId: string) {
-    return monthRepository.findByFamilyId(familyId)
-  }
-
   async listMonthsByUser(userId: string) {
     return monthRepository.findByUserId(userId)
   }

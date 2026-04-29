@@ -86,9 +86,9 @@ const COLUMN_CONFIG: { type: string; title: string; color: string }[] = [
 ];
 
 export default function MonthDetailPage() {
-  const { familyId, userId, monthId } = useParams<{ familyId?: string; userId?: string; monthId: string }>();
-  const dashboard = useMonthDashboardData({ familyId, userId, monthId: monthId! });
-  const resolvedFamilyId = familyId ?? dashboard.month?.family_id;
+  const { userId, monthId } = useParams<{ userId?: string; monthId: string }>();
+  const dashboard = useMonthDashboardData({ userId, monthId: monthId! });
+  const resolvedFamilyId = dashboard.month?.family_id;
   const resolvedUserId = dashboard.month?.user_id ?? userId;
   const ownerContext = { familyId: resolvedFamilyId, userId: resolvedUserId };
   const { data: installmentGroups = [] } = useInstallmentGroups(ownerContext);
@@ -597,7 +597,7 @@ export default function MonthDetailPage() {
 
   return (
     <div className="page">
-      <Link to={resolvedUserId ? `/users/${resolvedUserId}/months` : `/families/${resolvedFamilyId}/months`} className="page-back-link">
+      <Link to={resolvedUserId ? `/users/${resolvedUserId}/months` : "/"} className="page-back-link">
         ← Voltar para meses
       </Link>
 

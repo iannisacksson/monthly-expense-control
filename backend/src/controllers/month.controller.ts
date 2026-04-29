@@ -21,15 +21,6 @@ export const listMonthsByUser = async (req: Request, res: Response) => {
   }
 }
 
-export const listMonthsByFamily = async (req: Request, res: Response) => {
-  try {
-    const result = await monthService.listMonthsByFamily(req.params.familyId as string)
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getMonthById = async (req: Request, res: Response) => {
   try {
     const result = await monthService.findMonthById(req.params.id as string)

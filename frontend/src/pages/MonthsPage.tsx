@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useMonths, useCreateMonth, useUpdateMonth, useFinalizeMonth, useFamily, useUser } from "../hooks";
+import { useMonths, useCreateMonth, useUpdateMonth, useFinalizeMonth, useUser } from "../hooks";
 import MonthList from "../components/features/months/MonthList/MonthList";
 import MonthForm from "../components/features/months/MonthForm/MonthForm";
 import Button from "../components/ui/Button/Button";
@@ -8,10 +8,9 @@ import type { Month, CreateMonthDTO, UpdateMonthDTO } from "../types";
 
 export default function MonthsPage() {
   const [statusFilter, setStatusFilter] = useState<"open" | "closed" | "all">("open");
-  const { familyId, userId } = useParams<{ familyId?: string; userId?: string }>();
-  const { data: family } = useFamily(familyId ?? "");
+  const { userId } = useParams<{ userId?: string }>();
   const { data: user } = useUser(userId ?? "");
-  const { data: months, isLoading, error } = useMonths({ familyId, userId });
+  const { data: months, isLoading, error } = useMonths({ userId });
   const createMonth = useCreateMonth();
   const updateMonth = useUpdateMonth();
   const finalizeMonth = useFinalizeMonth();
@@ -57,21 +56,12 @@ export default function MonthsPage() {
   };
 
   const handleSelect = (month: Month) => {
-    if (userId) {
-      navigate(`/users/${userId}/months/${month.id}`);
-      return;
-    }
-
-    navigate(`/families/${familyId}/months/${month.id}`);
+    navigate(`/users/${userId}/months/${month.id}`);
   };
 
-  const backLink = userId ? "/" : "/families";
-  const pageTitle = userId ? user?.name ?? "Usuário" : family?.name ?? "Família";
-  const categoriesLink = userId
-    ? `/users/${userId}/categories`
-    : familyId
-      ? `/families/${familyId}/categories`
-      : undefined;
+  const backLink = "/";
+  const pageTitle = user?.name ?? "Usuário";
+  const categoriesLink = userId ? `/users/${userId}/categories` : undefined;
 
   if (isLoading) return <p>Carregando...</p>;
   if (error) return <p>Erro ao carregar meses.</p>;
@@ -87,16 +77,6 @@ export default function MonthsPage() {
           <div className="page-hero__eyebrow">Planejamento mensal</div>
           <h1 className="page-title">Meses de {pageTitle}</h1>
           <p className="page-subtitle">Crie, acompanhe e finalize ciclos mensais com foco em leitura rápida e decisões do período.</p>
-          {familyId && (
-            <div className="page-hero__links">
-              <Link to={`/families/${familyId}/members`}>
-                Gerenciar membros
-              </Link>
-              <Link to={`/families/${familyId}/budgets`}>
-                Gerenciar orçamento
-              </Link>
-            </div>
-          )}
         </div>
         <div className="page-hero__actions">
           <div className="status-pill">Ciclos e fechamento</div>
@@ -124,7 +104,6 @@ export default function MonthsPage() {
             <h2 className="page-section__title">Novo mês</h2>
           </div>
           <MonthForm
-            familyId={familyId}
             userId={userId}
             onSubmit={handleCreate}
             onCancel={() => setShowForm(false)}
@@ -140,7 +119,6 @@ export default function MonthsPage() {
             <h2 className="page-section__title">Editar mês</h2>
           </div>
           <MonthForm
-            familyId={familyId}
             userId={userId}
             initialData={editingMonth}
             onSubmit={handleUpdate}

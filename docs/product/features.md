@@ -70,6 +70,12 @@ The system must support simple but structured monthly personal financial managem
 
 The product no longer depends on family, family members, or shared financial spaces as first-class flows.
 
+Current delivery note:
+
+- the target product model is user-centered
+- the codebase still contains legacy compatibility for family-scoped routes, payloads, and persistence fields
+- legacy family behavior must be treated as transitional compatibility, not as the preferred direction for new work
+
 ---
 
 ## MVP Scope
@@ -127,10 +133,13 @@ Users cannot:
 The system must:
 
 - keep all financial activity scoped to a user and a month
+- expose month navigation through user-scoped routes only
 - support open and closed month states
 - prevent month deletion in both backend and frontend
 - block incompatible financial mutations when the month is closed
 - preserve the monthly structure as the main navigation and reporting model
+
+Legacy family-scoped month routes are out of the active product contract and must not be used for new work.
 
 ### Domain Entities
 

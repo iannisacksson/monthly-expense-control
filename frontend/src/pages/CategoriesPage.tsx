@@ -56,7 +56,7 @@ export default function CategoriesPage() {
     navigate(`/families/${familyId}/categories/${category.id}/subcategories`);
   };
 
-  const backLink = userId ? `/users/${userId}/months` : `/families/${familyId}/months`;
+  const backLink = userId ? `/users/${userId}/months` : "/families";
   const ownerLabel = userId ? user?.name ?? "Usuário" : family?.name ?? "Família";
 
   if (isLoading) return <p>Carregando...</p>;
@@ -65,7 +65,7 @@ export default function CategoriesPage() {
   return (
     <div>
       <Link to={backLink} style={{ color: "#2563eb", marginBottom: 16, display: "inline-block" }}>
-        ← Voltar para meses
+        ← Voltar
       </Link>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>

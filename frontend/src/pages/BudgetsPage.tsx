@@ -95,8 +95,8 @@ export default function BudgetsPage() {
 
   return (
     <div>
-      <Link to={`/families/${familyId}/months`} style={{ color: "#2563eb", marginBottom: 16, display: "inline-block" }}>
-        ← Voltar para meses
+      <Link to="/families" style={{ color: "#2563eb", marginBottom: 16, display: "inline-block" }}>
+        ← Voltar para famílias
       </Link>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>

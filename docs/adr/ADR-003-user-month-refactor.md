@@ -127,6 +127,12 @@ Observed current state:
 - compatibility behavior is still active in both backend and frontend
 - the repository has been consolidated as a monorepo, but the domain migration is not complete
 
+Expected cutover behavior for months:
+
+- month list and month detail navigation must be user-scoped only
+- family-scoped month routes must be removed from backend and frontend
+- remaining family compatibility must not reintroduce month navigation under `/families/:familyId/months`
+
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
 
 ---

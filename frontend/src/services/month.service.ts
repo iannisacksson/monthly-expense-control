@@ -7,11 +7,6 @@ export const monthService = {
     return data;
   },
 
-  async listByFamily(familyId: string): Promise<Month[]> {
-    const { data } = await httpClient.get<Month[]>(`/months/family/${familyId}`);
-    return data;
-  },
-
   async getById(id: string): Promise<Month> {
     const { data } = await httpClient.get<Month>(`/months/${id}`);
     return data;

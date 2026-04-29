@@ -61,6 +61,13 @@ The target ownership boundary of the API is User + Month.
 
 During migration, temporary compatibility endpoints may exist, but new endpoints must prefer user-scoped behavior.
 
+Current implementation note:
+
+- user-scoped routes already exist for core resources such as months, categories, expenses, recurring entities, and budgets
+- family-scoped compatibility routes still exist for part of the backend surface
+- top-level legacy resources such as `families` and `family-members` are still registered during migration
+- API changes must state whether they affect the target user-scoped contract, the temporary family-scoped compatibility surface, or both
+
 ---
 
 # Base URL
@@ -125,6 +132,10 @@ POST /api/v1/months
 ## List Months by User
 
 GET /api/v1/months/user/{userId}
+
+There is no active family-scoped month listing route in the target contract.
+
+Legacy endpoints such as `GET /api/v1/months/family/{familyId}` must not be used by frontend clients and should be removed during the User + Month cutover.
 
 ## Get Month by ID
 

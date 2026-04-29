@@ -29,6 +29,8 @@ docs/product/features.md
 docs/domain/domain-model.md  
 docs/architecture/database-model.md  
 docs/architecture/backend-architecture.md  
+docs/architecture/api-spec.md  
+docs/adr/ADR-003-user-month-refactor.md when the task touches ownership or migration behavior
 
 These documents define:
 
@@ -37,6 +39,31 @@ These documents define:
 - architectural rules
 
 Generated code must always align with them.
+
+AI assistants must also inspect the current implementation before changing behavior, because the codebase still contains transitional compatibility between legacy family flows and the target user-centered model.
+
+If documentation and code disagree, the mismatch must be resolved explicitly instead of ignored.
+
+---
+
+# Documentation Sync Rule
+
+Backend code must only be changed after reviewing the relevant documentation.
+
+Required sequence:
+
+1. read the relevant product, domain, architecture, and API docs
+2. inspect the current code path that owns the behavior
+3. compare intended behavior with implemented behavior
+4. update documentation, code, or both so they stay synchronized
+
+AI tools must not modify backend code based only on partial memory, stale docs, or inferred behavior.
+
+When a mismatch is found:
+
+- update the documentation first or in the same task if the code is the approved source of truth
+- update the code if the documentation is the approved source of truth
+- document explicitly when the change is part of a transitional migration state
 
 ---
 

@@ -20,13 +20,14 @@ AI assistants must follow this workflow when generating frontend code.
 Frontend feature development follows these steps:
 
 1. Understand the feature
-2. Review API specification
-3. Create service layer
-4. Create hooks
-5. Create components
-6. Create pages
-7. Integrate routes
-8. Validate against architecture
+2. Review current documentation set
+3. Review current codebase behavior
+4. Review API specification
+5. Create or update service layer
+6. Create or update hooks
+7. Create or update components and pages
+8. Integrate routes
+9. Validate against architecture and documentation sync rules
 
 Each step references documentation that AI assistants must read.
 
@@ -56,7 +57,48 @@ Read the vision and domain docs and explain the feature to be implemented.
 
 ---
 
-# Step 2 — Review API Specification
+# Step 2 — Review Current Documentation Set
+
+Before changing frontend code, AI assistants must review the current documentation set that defines the intended behavior.
+
+Minimum documentation review:
+
+docs/product/vision.md  
+docs/domain/domain-model.md when business ownership matters  
+docs/architecture/api-spec.md  
+docs/architecture/frontend/architecture.md  
+docs/adr/ADR-003-user-month-refactor.md when the task touches migration behavior
+
+Goal:
+
+- establish intended behavior before editing
+- identify whether the task is target-state work or legacy compatibility work
+- avoid implementing against outdated assumptions
+
+---
+
+# Step 3 — Review Current Codebase Behavior
+
+Before editing frontend code, AI assistants must inspect the current implementation that owns the behavior.
+
+Minimum codebase review:
+
+- route definitions
+- page and layout entry points
+- hooks and services that fetch or mutate data
+- types or store objects that constrain the UI flow
+
+If documentation and implementation disagree, do not proceed as if the mismatch does not exist.
+
+First determine whether:
+
+- documentation must be updated
+- code must be updated
+- both must change together as part of the refactor
+
+---
+
+# Step 4 — Review API Specification
 
 AI assistants must consult:
 
@@ -77,7 +119,7 @@ Identify the API endpoints needed for this feature.
 
 ---
 
-# Step 3 — Generate Service Layer
+# Step 5 — Generate Service Layer
 
 AI assistants must consult:
 
@@ -99,7 +141,7 @@ Services must call the endpoints defined in api-spec.md.
 
 ---
 
-# Step 4 — Generate Hooks
+# Step 6 — Generate Hooks
 
 AI assistants must consult:
 
@@ -125,7 +167,7 @@ useExpenses.ts
 
 ---
 
-# Step 5 — Generate Components
+# Step 7 — Generate Components
 
 AI assistants must consult:
 
@@ -152,7 +194,7 @@ ExpenseList
 
 ---
 
-# Step 6 — Generate Page
+# Step 8 — Generate Page
 
 AI assistants must consult:
 
@@ -178,7 +220,7 @@ Pages should:
 
 ---
 
-# Step 7 — Register Routes
+# Step 9 — Register Routes
 
 AI assistants must register routes using React Router.
 
@@ -201,7 +243,7 @@ When both route models exist, prefer user-scoped routes for new product work.
 
 ---
 
-# Step 8 — Validate the Implementation
+# Step 10 — Validate the Implementation
 
 AI assistants must verify:
 
@@ -226,12 +268,13 @@ Example: Expenses feature.
 Steps:
 
 1. Review product vision and domain context
-2. Review API endpoints
-3. Generate expense.service.ts
-4. Generate useExpenses hook
-5. Generate ExpenseCard component
-6. Generate ExpensesPage
-7. Register route /expenses
+2. Review current route, page, hook, and service implementation
+3. Review API endpoints
+4. Generate expense.service.ts
+5. Generate useExpenses hook
+6. Generate ExpenseCard component
+7. Generate ExpensesPage
+8. Register route /expenses
 
 ---
 
@@ -243,8 +286,28 @@ AI assistants must:
 - consult architecture documents before generating code
 - respect project folder structure
 - ensure TypeScript type safety
+- review the existing frontend flow before editing behavior
+- update documentation before or alongside code when a mismatch is found
 
 AI tools should not skip workflow steps.
+
+---
+
+# Documentation Sync Rule
+
+No frontend behavior should be changed before reviewing the relevant documentation.
+
+Before editing frontend code, AI assistants must:
+
+- review the relevant documentation first
+- review the current code path second
+- compare both sources before implementing changes
+
+If documentation and implementation are out of sync, the task must include at least one of these actions:
+
+- update documentation to reflect the approved current behavior
+- update code to comply with approved documentation
+- update both together when the refactor intentionally changes the contract
 
 ---
 

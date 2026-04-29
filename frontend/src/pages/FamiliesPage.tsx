@@ -44,7 +44,7 @@ export default function FamiliesPage() {
   };
 
   const handleSelect = (family: Family) => {
-    navigate(`/families/${family.id}/months`);
+    navigate(`/families/${family.id}/members`);
   };
 
   if (isLoading) return <p>Carregando...</p>;

@@ -20,13 +20,14 @@ AI assistants must follow this workflow when generating backend code.
 Backend development should follow these steps:
 
 1. Understand the feature
-2. Review domain model
-3. Generate database model
-4. Generate repository
-5. Generate service
-6. Generate controller
-7. Generate routes
-8. Validate against API specification
+2. Review current documentation set
+3. Review current codebase behavior
+4. Review domain model
+5. Review database schema
+6. Generate or update repository
+7. Generate or update service
+8. Generate or update controller and routes
+9. Validate against API specification and documentation sync rules
 
 Each step references specific documentation.
 
@@ -36,21 +37,67 @@ Each step references specific documentation.
 
 Before generating code, AI tools must read:
 
+docs/product/vision.md
+
+Then consult, when relevant:
+
 docs/product/features.md
+docs/adr/ADR-003-user-month-refactor.md
 
 Goal:
 
-Understand what capability the feature provides.
+Understand the product direction, active scope, and whether the task belongs to the target model or a temporary compatibility flow.
 
 Example prompt:
 
 
-Read docs/product/features.md and explain the feature to be implemented.
+Read docs/product/vision.md and identify whether this change belongs to the target product flow or a legacy compatibility flow.
 
 
 ---
 
-# Step 2 — Review Domain Model
+# Step 2 — Review Current Documentation Set
+
+Before changing backend code, AI assistants must review the current documentation set that defines the intended behavior.
+
+Minimum documentation review:
+
+docs/product/vision.md  
+docs/domain/domain-model.md  
+docs/architecture/api-spec.md  
+docs/architecture/dto-spec.md  
+docs/adr/ADR-003-user-month-refactor.md when ownership or migration is involved
+
+Goal:
+
+- establish intended behavior before editing
+- identify whether the task is target-state work or transitional compatibility work
+- detect whether the documentation is already explicit enough for a safe change
+
+---
+
+# Step 3 — Review Current Codebase Behavior
+
+Before editing backend code, AI assistants must inspect the current implementation that owns the behavior.
+
+Minimum codebase review:
+
+- routes or controllers that expose the behavior
+- services that enforce the behavior
+- repositories or models that constrain the behavior
+- related frontend calls when the contract affects the UI
+
+If documentation and implementation disagree, do not silently pick one and proceed.
+
+First determine whether:
+
+- documentation must be updated
+- code must be updated
+- both must change together as part of the refactor
+
+---
+
+# Step 4 — Review Domain Model
 
 AI assistants must consult:
 
@@ -74,7 +121,7 @@ Review the domain model and aggregates before generating business logic.
 
 ---
 
-# Step 3 — Review Database Schema
+# Step 5 — Review Database Schema
 
 AI assistants must consult:
 
@@ -98,7 +145,7 @@ src/models/<entity>.model.ts
 
 ---
 
-# Step 4 — Generate Repository
+# Step 6 — Generate Repository
 
 AI assistants must consult:
 
@@ -122,7 +169,7 @@ src/repositories/<entity>.repository.ts
 
 ---
 
-# Step 5 — Generate Service
+# Step 7 — Generate Service
 
 AI assistants must consult:
 
@@ -154,7 +201,7 @@ src/services/<entity>.service.ts
 
 ---
 
-# Step 6 — Generate Controller
+# Step 8 — Generate Controller
 
 AI assistants must consult:
 
@@ -185,7 +232,7 @@ src/controllers/<entity>.controller.ts
 
 ---
 
-# Step 7 — Generate Routes
+# Step 9 — Generate Routes
 
 AI assistants must consult:
 
@@ -209,7 +256,7 @@ src/routes/<entity>.routes.ts
 
 ---
 
-# Step 8 — Validate the Implementation
+# Step 10 — Validate the Implementation
 
 AI assistants must verify:
 
@@ -223,6 +270,8 @@ Documents to consult:
 docs/architecture/backend-architecture.md  
 docs/domain/validation-rules.md  
 docs/architecture/api-spec.md  
+docs/product/vision.md  
+docs/adr/ADR-003-user-month-refactor.md when relevant
 
 Example prompt:
 
@@ -238,14 +287,14 @@ Example: Implement Expense feature.
 
 Workflow:
 
-1. Read features.md
-2. Review Expense entity in domain-model.md
-3. Generate Sequelize model
-4. Generate ExpenseRepository
-5. Generate ExpenseService
-6. Generate ExpenseController
-7. Generate routes
-8. Validate against api-spec.md
+1. Read product vision and relevant migration docs
+2. Review the current code paths that already implement the behavior
+3. Review Expense entity in domain-model.md
+4. Review database impact when needed
+5. Generate or update ExpenseRepository
+6. Generate or update ExpenseService
+7. Generate or update ExpenseController and routes
+8. Validate against api-spec.md and documentation consistency
 
 ---
 
@@ -256,8 +305,28 @@ When generating backend features, AI assistants must:
 1. follow this workflow
 2. consult the appropriate documentation at each step
 3. ensure generated code respects architecture rules
+4. review the existing codebase before editing behavior
+5. update documentation before or alongside code when a mismatch is found
 
 AI tools should not skip workflow steps.
+
+---
+
+# Documentation Sync Rule
+
+No backend refactor should proceed without documentation review and comparison against the current codebase.
+
+Before changing backend code, AI assistants must:
+
+- review the relevant documentation first
+- inspect the current implementation second
+- compare both sources before editing
+
+If documentation and implementation differ, the task must include one of these outcomes:
+
+- update the documentation to reflect the approved current behavior
+- update the code to match the approved documentation
+- update both in the same task when the refactor intentionally changes the contract
 
 ---
 

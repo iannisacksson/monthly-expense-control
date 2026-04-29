@@ -94,7 +94,6 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div className="action-row">
-                  <Button onClick={() => navigate(`/families/${f.id}/months`)}>Meses</Button>
                   <Button variant="secondary" onClick={() => navigate(`/families/${f.id}/categories`)}>Categorias</Button>
                   <Button variant="secondary" onClick={() => navigate(`/families/${f.id}/members`)}>Membros</Button>
                 </div>

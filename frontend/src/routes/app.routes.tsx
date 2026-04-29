@@ -22,8 +22,6 @@ export const router = createBrowserRouter([
       { path: "users/:userId/categories/:categoryId/subcategories", element: <SubcategoriesPage /> },
       { path: "families", element: <FamiliesPage /> },
       { path: "families/:familyId/members", element: <FamilyMembersPage /> },
-      { path: "families/:familyId/months", element: <MonthsPage /> },
-      { path: "families/:familyId/months/:monthId", element: <MonthDetailPage /> },
       { path: "families/:familyId/budgets", element: <BudgetsPage /> },
       { path: "families/:familyId/categories", element: <CategoriesPage /> },
       { path: "families/:familyId/categories/:categoryId/subcategories", element: <SubcategoriesPage /> },

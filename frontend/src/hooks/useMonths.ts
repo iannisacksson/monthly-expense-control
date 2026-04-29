@@ -4,8 +4,8 @@ import type { CreateMonthDTO, UpdateMonthDTO } from "../types";
 
 const MONTHS_KEY = ["months"] as const;
 
-export function useMonths(params: { familyId?: string; userId?: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useMonths(params: { userId?: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...MONTHS_KEY, ownerKey],
@@ -14,13 +14,9 @@ export function useMonths(params: { familyId?: string; userId?: string }) {
         return monthService.listByUser(params.userId);
       }
 
-      if (params.familyId) {
-        return monthService.listByFamily(params.familyId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: !!params.userId || !!params.familyId,
+    enabled: !!params.userId,
   });
 }
 
