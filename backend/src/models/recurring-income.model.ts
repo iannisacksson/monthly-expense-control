@@ -7,10 +7,6 @@ export const RecurringIncome = sequelize.define("RecurringIncome", {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  family_id: {
-    type: DataTypes.UUID,
-    allowNull: true
-  },
   user_id: {
     type: DataTypes.UUID,
     allowNull: false

@@ -3,7 +3,6 @@ import { RecurringExpense } from "../models/index"
 export class RecurringExpenseRepository {
   async create(data: {
     user_id?: string
-    family_id?: string
     description: string
     value: number
     category_id: string
@@ -19,10 +18,6 @@ export class RecurringExpenseRepository {
 
   async findById(id: string) {
     return RecurringExpense.findByPk(id)
-  }
-
-  async findByFamilyId(familyId: string) {
-    return RecurringExpense.findAll({ where: { family_id: familyId } })
   }
 
   async findByUserId(userId: string) {

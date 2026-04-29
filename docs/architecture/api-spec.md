@@ -280,7 +280,7 @@ Behavior note:
 
 - the active payload is user-scoped and must not require `family_id`
 - the backend must validate that `start_month_id` belongs to the same owner user
-- any temporary legacy `family_id` persistence must be derived internally from the selected start month, not sent by frontend clients
+- recurring income persistence is user-owned in the active schema path
 
 ## List Recurring Incomes by User
 
@@ -458,7 +458,8 @@ POST /api/v1/installment-groups
 Behavior note:
 
 - active create payloads are user-scoped and rely on `start_month_id` plus optional `user_id`
-- any legacy `family_id` fallback must be resolved internally from the selected start month while legacy persisted data still exists
+- the backend must derive the effective owner from `user_id` or the selected `start_month_id`
+- recurring expense persistence is user-owned in the active schema path
 
 ## List Installment Groups by User
 

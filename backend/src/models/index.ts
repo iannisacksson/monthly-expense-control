@@ -41,10 +41,6 @@ MonthlyIncome.belongsTo(User, { foreignKey: "user_id" })
 RecurringIncome.hasMany(MonthlyIncome, { foreignKey: "recurring_income_id" })
 MonthlyIncome.belongsTo(RecurringIncome, { foreignKey: "recurring_income_id" })
 
-// Family -> RecurringIncome
-Family.hasMany(RecurringIncome, { foreignKey: "family_id" })
-RecurringIncome.belongsTo(Family, { foreignKey: "family_id" })
-
 // User -> RecurringIncome
 User.hasMany(RecurringIncome, { foreignKey: "user_id" })
 RecurringIncome.belongsTo(User, { foreignKey: "user_id" })
@@ -85,10 +81,6 @@ Expense.belongsTo(User, { foreignKey: "responsible_user_id", as: "responsibleUse
 InstallmentGroup.hasMany(Expense, { foreignKey: "installment_group_id" })
 Expense.belongsTo(InstallmentGroup, { foreignKey: "installment_group_id" })
 
-// Family -> InstallmentGroup
-Family.hasMany(InstallmentGroup, { foreignKey: "family_id" })
-InstallmentGroup.belongsTo(Family, { foreignKey: "family_id" })
-
 // User -> InstallmentGroup
 User.hasMany(InstallmentGroup, { foreignKey: "user_id" })
 InstallmentGroup.belongsTo(User, { foreignKey: "user_id" })
@@ -96,10 +88,6 @@ InstallmentGroup.belongsTo(User, { foreignKey: "user_id" })
 // RecurringExpense -> Expense
 RecurringExpense.hasMany(Expense, { foreignKey: "recurring_expense_id" })
 Expense.belongsTo(RecurringExpense, { foreignKey: "recurring_expense_id" })
-
-// Family -> RecurringExpense
-Family.hasMany(RecurringExpense, { foreignKey: "family_id" })
-RecurringExpense.belongsTo(Family, { foreignKey: "family_id" })
 
 // User -> RecurringExpense
 User.hasMany(RecurringExpense, { foreignKey: "user_id" })

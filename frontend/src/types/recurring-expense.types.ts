@@ -3,7 +3,6 @@ export type RecurringExpenseScope = "single_occurrence" | "future_occurrences" |
 export interface RecurringExpense {
   user_id?: string;
   id: string;
-  family_id?: string;
   description: string;
   value: number;
   category_id: string;

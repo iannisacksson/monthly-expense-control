@@ -1,7 +1,6 @@
 import { InstallmentGroupRepository } from "../repositories/installment-group.repository"
 import { ExpenseRepository } from "../repositories/expense.repository"
 import { MonthRepository } from "../repositories/month.repository"
-import { FamilyRepository } from "../repositories/family.repository"
 import { CategoryRepository } from "../repositories/category.repository"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
 import { UserRepository } from "../repositories/user.repository"
@@ -10,16 +9,11 @@ import { CreateInstallmentGroupDTO, InstallmentGroupScope, UpdateInstallmentGrou
 const installmentGroupRepository = new InstallmentGroupRepository()
 const expenseRepository = new ExpenseRepository()
 const monthRepository = new MonthRepository()
-const familyRepository = new FamilyRepository()
 const categoryRepository = new CategoryRepository()
 const subcategoryRepository = new SubcategoryRepository()
 const userRepository = new UserRepository()
 
 export class InstallmentGroupService {
-  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
-    return userId ? undefined : familyId ?? undefined
-  }
-
   private async findMonthByIdOrThrow(id: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
@@ -48,19 +42,12 @@ export class InstallmentGroupService {
     return `${year}-${String(monthNumber).padStart(2, "0")}-01`
   }
 
-  private async ensureMonth(params: { userId?: string; familyId?: string; year: number; month: number }) {
-    const legacyFamilyId = this.getLegacyFamilyId(params.userId, params.familyId)
-
-    let targetMonth = params.userId
-      ? await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
-      : legacyFamilyId
-        ? await monthRepository.findByFamilyAndPeriod(legacyFamilyId, params.year, params.month)
-        : null
+  private async ensureMonth(params: { userId: string; year: number; month: number }) {
+    let targetMonth = await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
 
     if (!targetMonth) {
       targetMonth = await monthRepository.create({
         user_id: params.userId,
-        family_id: legacyFamilyId,
         year: params.year,
         month: params.month,
         status: "open"
@@ -107,8 +94,6 @@ export class InstallmentGroupService {
 
   private async createInstallmentExpenseEntry(data: {
     installmentGroupId: string
-    userId?: string
-    familyId?: string
     description: string
     totalValue: number
     installments: number
@@ -143,8 +128,7 @@ export class InstallmentGroupService {
 
   private async generateInstallmentExpenses(data: {
     installmentGroupId: string
-    userId?: string
-    familyId?: string
+    userId: string
     description: string
     totalValue: number
     installments: number
@@ -172,15 +156,12 @@ export class InstallmentGroupService {
 
       const month = await this.ensureMonth({
         userId: data.userId,
-        familyId: data.familyId,
         year: targetYear,
         month: targetMonth,
       })
 
       await this.createInstallmentExpenseEntry({
         installmentGroupId: data.installmentGroupId,
-        userId: data.userId,
-        familyId: data.familyId,
         description: data.description,
         totalValue: data.totalValue,
         installments: data.installments,
@@ -196,7 +177,6 @@ export class InstallmentGroupService {
 
   private async validateCategoryAndSubcategory(params: {
     userId?: string
-    familyId?: string
     categoryId: string
     subcategoryId?: string
   }) {
@@ -237,17 +217,14 @@ export class InstallmentGroupService {
     }
 
     const monthUserId = startMonth.getDataValue("user_id") as string | null
-    const monthFamilyId = startMonth.getDataValue("family_id") as string | null
     const ownerUserId = data.user_id ?? monthUserId ?? undefined
-    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, monthFamilyId)
 
-    if (!ownerUserId && !legacyFamilyId) {
-      throw new Error("Installment group must belong to a user or a legacy family context")
+    if (!ownerUserId) {
+      throw new Error("Installment group must belong to the owner user of the selected month")
     }
 
     await this.validateCategoryAndSubcategory({
       userId: ownerUserId,
-      familyId: legacyFamilyId,
       categoryId: data.category_id,
       subcategoryId: data.subcategory_id,
     })
@@ -259,24 +236,12 @@ export class InstallmentGroupService {
       }
     }
 
-    if (legacyFamilyId) {
-      const family = await familyRepository.findById(legacyFamilyId)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
     if (ownerUserId && monthUserId !== ownerUserId) {
       throw new Error("Start month must belong to the same user as the installment purchase")
     }
 
-    if (legacyFamilyId && monthFamilyId !== legacyFamilyId) {
-      throw new Error("Start month must belong to the same family as the installment purchase")
-    }
-
     const group = await installmentGroupRepository.create({
       user_id: ownerUserId,
-      family_id: legacyFamilyId,
       description: data.description,
       total_value: data.total_value,
       installments: data.installments,
@@ -291,7 +256,6 @@ export class InstallmentGroupService {
     await this.generateInstallmentExpenses({
       installmentGroupId: group.getDataValue("id") as string,
       userId: ownerUserId,
-      familyId: legacyFamilyId,
       description: data.description,
       totalValue: data.total_value,
       installments: data.installments,
@@ -335,8 +299,11 @@ export class InstallmentGroupService {
       ? data.responsible_user_id
       : (existingGroup.getDataValue("responsible_user_id") as string | undefined)
     const nextStartingInstallmentNumber = existingGroup.getDataValue("starting_installment_number") as number
-    const familyId = existingGroup.getDataValue("family_id") as string | undefined
     const userId = existingGroup.getDataValue("user_id") as string | undefined
+
+    if (!userId) {
+      throw new Error("Installment group must belong to a user")
+    }
 
     this.validateBaseFields({
       totalValue: nextTotalValue,
@@ -346,7 +313,6 @@ export class InstallmentGroupService {
 
     await this.validateCategoryAndSubcategory({
       userId,
-      familyId,
       categoryId: nextCategoryId,
       subcategoryId: nextSubcategoryId,
     })
@@ -369,7 +335,6 @@ export class InstallmentGroupService {
     await this.generateInstallmentExpenses({
       installmentGroupId: id,
       userId,
-      familyId,
       description: nextDescription,
       totalValue: nextTotalValue,
       installments: nextInstallments,
@@ -419,7 +384,6 @@ export class InstallmentGroupService {
 
       await this.validateCategoryAndSubcategory({
         userId: existingGroup.getDataValue("user_id") as string | undefined,
-        familyId: existingGroup.getDataValue("family_id") as string | undefined,
         categoryId: nextCategoryId,
         subcategoryId: nextSubcategoryId,
       })
@@ -453,8 +417,11 @@ export class InstallmentGroupService {
     const nextResponsibleUserId = data.responsible_user_id !== undefined
       ? data.responsible_user_id
       : (existingGroup.getDataValue("responsible_user_id") as string | undefined)
-    const familyId = existingGroup.getDataValue("family_id") as string | undefined
     const userId = existingGroup.getDataValue("user_id") as string | undefined
+
+    if (!userId) {
+      throw new Error("Installment group must belong to a user")
+    }
     const currentInstallmentValue = Number(existingGroup.getDataValue("total_value")) / installments
 
     this.validateBaseFields({
@@ -465,7 +432,6 @@ export class InstallmentGroupService {
 
     await this.validateCategoryAndSubcategory({
       userId,
-      familyId,
       categoryId: nextCategoryId,
       subcategoryId: nextSubcategoryId,
     })
@@ -478,7 +444,6 @@ export class InstallmentGroupService {
 
     const newGroup = await installmentGroupRepository.create({
       user_id: userId,
-      family_id: familyId,
       description: nextDescription,
       total_value: nextTotalValue,
       installments: nextInstallments,
@@ -493,7 +458,6 @@ export class InstallmentGroupService {
     await this.generateInstallmentExpenses({
       installmentGroupId: newGroup.getDataValue("id") as string,
       userId,
-      familyId,
       description: nextDescription,
       totalValue: nextTotalValue,
       installments: nextInstallments,
@@ -588,8 +552,6 @@ export class InstallmentGroupService {
 
     return this.createInstallmentExpenseEntry({
       installmentGroupId: id,
-      userId: group.getDataValue("user_id") as string | undefined,
-      familyId: group.getDataValue("family_id") as string | undefined,
       description: group.getDataValue("description") as string,
       totalValue: Number(group.getDataValue("total_value")),
       installments,

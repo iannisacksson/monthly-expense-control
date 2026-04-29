@@ -449,11 +449,22 @@ The current Sequelize models and migrations show three different removal states.
 - rationale: active persistence now derives ownership from `month_id`, while month-level compatibility remains the only remaining bridge for older aggregates
 
 - `recurring_incomes`, `recurring_expenses`, and `installment_groups`
-- rationale: active create/list flows are now user-scoped, but persisted legacy rows still rely on `family_id` compatibility and `20260426000020-refactor-recurring-and-installment-ownership.js` only made the old column nullable
-- required before drop: confirm `user_id` is populated for all legacy rows, remove internal fallback helpers, remove Family ORM associations, then drop `family_id`
+- status: migration file `20260429000030-remove-family-ownership-from-recurring-and-installment-aggregates.js` removes the legacy `family_id` columns from the active schema path
+- rationale: active routes, DTOs, frontend flows, and ORM associations now operate on owner user context derived from `user_id` plus `start_month_id`
 
 ### Legacy-only, not a User + Month drop candidate
 
 - `debts`
 - rationale: the aggregate is intentionally outside the active product direction and still encodes a family relationship rather than month ownership
 - decision: treat the table as definitive archival legacy only, remove it from the HTTP/frontend contract, and only revisit it in a separate archival or redesign step
+
+## Debt Removal Prerequisites
+
+Final removal of `debts` persistence is intentionally blocked until an explicit archival strategy exists.
+
+That strategy must define:
+
+- export format and destination for legacy debt data
+- retention window and operator responsibility
+- one migration or script that extracts legacy rows before table removal
+- the follow-up removal sequence for model, repository, service, controller, route, and final drop-table migration

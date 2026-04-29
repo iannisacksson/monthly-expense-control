@@ -1,7 +1,6 @@
 import { CreateRecurringExpenseDTO, RecurringExpenseScope, UpdateRecurringExpenseDTO } from "../dtos/recurring-expense.dto"
 import { CategoryRepository } from "../repositories/category.repository"
 import { ExpenseRepository } from "../repositories/expense.repository"
-import { FamilyRepository } from "../repositories/family.repository"
 import { MonthRepository } from "../repositories/month.repository"
 import { RecurringExpenseRepository } from "../repositories/recurring-expense.repository"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
@@ -9,17 +8,12 @@ import { UserRepository } from "../repositories/user.repository"
 
 const recurringExpenseRepository = new RecurringExpenseRepository()
 const expenseRepository = new ExpenseRepository()
-const familyRepository = new FamilyRepository()
 const monthRepository = new MonthRepository()
 const categoryRepository = new CategoryRepository()
 const subcategoryRepository = new SubcategoryRepository()
 const userRepository = new UserRepository()
 
 export class RecurringExpenseService {
-  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
-    return userId ? undefined : familyId ?? undefined
-  }
-
   private async findMonthByIdOrThrow(id: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
@@ -65,7 +59,6 @@ export class RecurringExpenseService {
 
   private async validateCategoryAndSubcategory(params: {
     userId?: string
-    familyId?: string
     categoryId: string
     subcategoryId?: string
   }) {
@@ -124,19 +117,12 @@ export class RecurringExpenseService {
     return true
   }
 
-  private async ensureMonth(params: { userId?: string; familyId?: string; year: number; month: number }) {
-    const legacyFamilyId = this.getLegacyFamilyId(params.userId, params.familyId)
-
-    let targetMonth = params.userId
-      ? await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
-      : legacyFamilyId
-        ? await monthRepository.findByFamilyAndPeriod(legacyFamilyId, params.year, params.month)
-        : null
+  private async ensureMonth(params: { userId: string; year: number; month: number }) {
+    let targetMonth = await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
 
     if (!targetMonth) {
       targetMonth = await monthRepository.create({
         user_id: params.userId,
-        family_id: legacyFamilyId,
         year: params.year,
         month: params.month,
         status: "open"
@@ -149,7 +135,6 @@ export class RecurringExpenseService {
   private async createRecurringExpenseEntry(data: {
     recurringExpenseId: string
     userId?: string
-    familyId?: string
     description: string
     value: number
     categoryId: string
@@ -183,7 +168,6 @@ export class RecurringExpenseService {
   private async generateRecurringExpenses(data: {
     recurringExpenseId: string
     userId?: string
-    familyId?: string
     description: string
     value: number
     categoryId: string
@@ -217,8 +201,7 @@ export class RecurringExpenseService {
 
   private async syncRecurringExpenseToOwnerMonths(data: {
     recurringExpenseId: string
-    userId?: string
-    familyId?: string
+    userId: string
     description: string
     value: number
     categoryId: string
@@ -233,13 +216,7 @@ export class RecurringExpenseService {
       throw new Error("Start month not found")
     }
 
-    const legacyFamilyId = this.getLegacyFamilyId(data.userId, data.familyId)
-
-    const ownerMonths = data.userId
-      ? await monthRepository.findByUserId(data.userId)
-      : legacyFamilyId
-        ? await monthRepository.findByFamilyId(legacyFamilyId)
-        : []
+    const ownerMonths = await monthRepository.findByUserId(data.userId)
 
     const eligibleMonthIds = ownerMonths
       .filter((month) => this.isMonthWithinRecurringRange(startMonth, month, data.occurrences))
@@ -248,7 +225,6 @@ export class RecurringExpenseService {
     await this.generateRecurringExpenses({
       recurringExpenseId: data.recurringExpenseId,
       userId: data.userId,
-      familyId: data.familyId,
       description: data.description,
       value: data.value,
       categoryId: data.categoryId,
@@ -266,13 +242,11 @@ export class RecurringExpenseService {
     }
 
     const userId = month.getDataValue("user_id") as string | null
-    const familyId = month.getDataValue("family_id") as string | null
-    const legacyFamilyId = this.getLegacyFamilyId(userId, familyId)
-    const recurringExpenses = userId
-      ? await recurringExpenseRepository.findByUserId(userId)
-      : legacyFamilyId
-        ? await recurringExpenseRepository.findByFamilyId(legacyFamilyId)
-        : []
+    if (!userId) {
+      return
+    }
+
+    const recurringExpenses = await recurringExpenseRepository.findByUserId(userId)
 
     for (const recurringExpense of recurringExpenses) {
       if ((recurringExpense.getDataValue("status") as string) !== "active") {
@@ -287,7 +261,6 @@ export class RecurringExpenseService {
       await this.generateRecurringExpenses({
         recurringExpenseId: recurringExpense.getDataValue("id") as string,
         userId: recurringExpense.getDataValue("user_id") as string | undefined,
-        familyId: recurringExpense.getDataValue("family_id") as string | undefined,
         description: recurringExpense.getDataValue("description") as string,
         value: Number(recurringExpense.getDataValue("value")),
         categoryId: recurringExpense.getDataValue("category_id") as string,
@@ -312,12 +285,10 @@ export class RecurringExpenseService {
     }
 
     const monthUserId = startMonth.getDataValue("user_id") as string | null
-    const monthFamilyId = startMonth.getDataValue("family_id") as string | null
     const ownerUserId = data.user_id ?? monthUserId ?? undefined
-    const legacyFamilyId = this.getLegacyFamilyId(ownerUserId, monthFamilyId)
 
-    if (!ownerUserId && !legacyFamilyId) {
-      throw new Error("Recurring expense must belong to a user or a legacy family context")
+    if (!ownerUserId) {
+      throw new Error("Recurring expense must belong to the owner user of the selected month")
     }
 
     if (ownerUserId) {
@@ -327,31 +298,18 @@ export class RecurringExpenseService {
       }
     }
 
-    if (legacyFamilyId) {
-      const family = await familyRepository.findById(legacyFamilyId)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
     if (ownerUserId && monthUserId !== ownerUserId) {
       throw new Error("Start month must belong to the same user as the recurring expense")
     }
 
-    if (legacyFamilyId && monthFamilyId !== legacyFamilyId) {
-      throw new Error("Start month must belong to the same family as the recurring expense")
-    }
-
     await this.validateCategoryAndSubcategory({
       userId: ownerUserId,
-      familyId: legacyFamilyId,
       categoryId: data.category_id,
       subcategoryId: data.subcategory_id,
     })
 
     const recurringExpense = await recurringExpenseRepository.create({
       user_id: ownerUserId,
-      family_id: legacyFamilyId,
       description: data.description,
       value: data.value,
       category_id: data.category_id,
@@ -367,7 +325,6 @@ export class RecurringExpenseService {
       await this.syncRecurringExpenseToOwnerMonths({
         recurringExpenseId: recurringExpense.getDataValue("id") as string,
         userId: ownerUserId,
-        familyId: legacyFamilyId,
         description: data.description,
         value: data.value,
         categoryId: data.category_id,
@@ -412,8 +369,11 @@ export class RecurringExpenseService {
     const nextResponsibleUserId = data.responsible_user_id !== undefined
       ? data.responsible_user_id
       : (existingRecurringExpense.getDataValue("responsible_user_id") as string | undefined)
-    const familyId = existingRecurringExpense.getDataValue("family_id") as string | undefined
     const userId = existingRecurringExpense.getDataValue("user_id") as string | undefined
+
+    if (!userId) {
+      throw new Error("Recurring expense must belong to a user")
+    }
 
     this.validateBaseFields({
       description: nextDescription,
@@ -423,7 +383,6 @@ export class RecurringExpenseService {
 
     await this.validateCategoryAndSubcategory({
       userId,
-      familyId,
       categoryId: nextCategoryId,
       subcategoryId: nextSubcategoryId,
     })
@@ -449,7 +408,6 @@ export class RecurringExpenseService {
       await this.syncRecurringExpenseToOwnerMonths({
         recurringExpenseId: id,
         userId,
-        familyId,
         description: nextDescription,
         value: nextValue,
         categoryId: nextCategoryId,
@@ -497,7 +455,6 @@ export class RecurringExpenseService {
 
       await this.validateCategoryAndSubcategory({
         userId: existingRecurringExpense.getDataValue("user_id") as string | undefined,
-        familyId: existingRecurringExpense.getDataValue("family_id") as string | undefined,
         categoryId: nextCategoryId,
         subcategoryId: nextSubcategoryId,
       })
@@ -530,8 +487,11 @@ export class RecurringExpenseService {
       ? data.responsible_user_id
       : (existingRecurringExpense.getDataValue("responsible_user_id") as string | undefined)
     const futureOccurrences = data.occurrences ?? (existingOccurrences != null ? existingOccurrences - distance : null)
-    const familyId = existingRecurringExpense.getDataValue("family_id") as string | undefined
     const userId = existingRecurringExpense.getDataValue("user_id") as string | undefined
+
+    if (!userId) {
+      throw new Error("Recurring expense must belong to a user")
+    }
 
     this.validateBaseFields({
       description: nextDescription,
@@ -541,7 +501,6 @@ export class RecurringExpenseService {
 
     await this.validateCategoryAndSubcategory({
       userId,
-      familyId,
       categoryId: nextCategoryId,
       subcategoryId: nextSubcategoryId,
     })
@@ -551,7 +510,6 @@ export class RecurringExpenseService {
 
     const newRecurringExpense = await recurringExpenseRepository.create({
       user_id: userId,
-      family_id: familyId,
       description: nextDescription,
       value: nextValue,
       category_id: nextCategoryId,
@@ -567,7 +525,6 @@ export class RecurringExpenseService {
       await this.syncRecurringExpenseToOwnerMonths({
         recurringExpenseId: newRecurringExpense.getDataValue("id") as string,
         userId,
-        familyId,
         description: nextDescription,
         value: nextValue,
         categoryId: nextCategoryId,
@@ -646,7 +603,6 @@ export class RecurringExpenseService {
     return this.createRecurringExpenseEntry({
       recurringExpenseId: id,
       userId: recurringExpense.getDataValue("user_id") as string | undefined,
-      familyId: recurringExpense.getDataValue("family_id") as string | undefined,
       description: recurringExpense.getDataValue("description") as string,
       value: Number(recurringExpense.getDataValue("value")),
       categoryId: recurringExpense.getDataValue("category_id") as string,

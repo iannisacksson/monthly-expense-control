@@ -177,6 +177,7 @@ The system must:
 - support recurring extra incomes such as freelance work, overtime, profit sharing, bonus, and commission
 - automatically associate recurring income definitions with the owner user of the selected month
 - keep recurring incomes active across future owner months until they are inactivated
+- treat recurring income persistence as user-owned in both active API contract and target schema
 - store gross income and tax deductions
 - allow net income to be derived from gross income minus taxes
 
@@ -473,5 +474,6 @@ During the User + Month refactor:
 - debts between family members are removed from the main UX
 - debt data is now treated as archival-only legacy data for export or manual migration support
 - any future debt redesign must treat debt as a user-owned liability or receivable concept, not as a family-member relationship
+- final deletion of debt persistence depends on a separate archival strategy and must not be coupled to the User + Month cutover itself
 
 This prevents domain ambiguity during the transition away from shared family ownership.

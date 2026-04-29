@@ -3,7 +3,6 @@ import { InstallmentGroup } from "../models/index"
 export class InstallmentGroupRepository {
   async create(data: {
     user_id?: string
-    family_id?: string
     description: string
     total_value: number
     installments: number

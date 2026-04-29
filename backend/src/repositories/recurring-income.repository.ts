@@ -3,7 +3,6 @@ import { RecurringIncome } from "../models/index"
 
 export class RecurringIncomeRepository {
   async create(data: {
-    family_id?: string
     user_id: string
     description: string
     gross_income: number

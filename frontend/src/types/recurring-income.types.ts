@@ -2,7 +2,6 @@ import type { IncomeTaxationDTO, IncomeTaxationMode, IncomeTaxationProfile, MePr
 
 export interface RecurringIncome {
   id: string;
-  family_id?: string;
   user_id: string;
   description: string;
   gross_income: number;

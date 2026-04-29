@@ -11,10 +11,6 @@ export const RecurringExpense = sequelize.define("RecurringExpense", {
     type: DataTypes.UUID,
     allowNull: true
   },
-  family_id: {
-    type: DataTypes.UUID,
-    allowNull: true
-  },
   description: {
     type: DataTypes.TEXT,
     allowNull: false

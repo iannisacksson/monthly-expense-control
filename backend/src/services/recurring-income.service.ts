@@ -1,5 +1,4 @@
 import { CreateRecurringIncomeDTO, UpdateRecurringIncomeDTO } from "../dtos/recurring-income.dto"
-import { FamilyRepository } from "../repositories/family.repository"
 import { IncomeTaxRepository } from "../repositories/income-tax.repository"
 import { MonthRepository } from "../repositories/month.repository"
 import { MonthlyIncomeRepository } from "../repositories/monthly-income.repository"
@@ -11,16 +10,11 @@ import { IncomeTaxationService } from "./income-taxation.service"
 const recurringIncomeRepository = new RecurringIncomeRepository()
 const monthlyIncomeRepository = new MonthlyIncomeRepository()
 const incomeTaxRepository = new IncomeTaxRepository()
-const familyRepository = new FamilyRepository()
 const monthRepository = new MonthRepository()
 const userRepository = new UserRepository()
 const incomeTaxationService = new IncomeTaxationService()
 
 export class RecurringIncomeService {
-  private getLegacyFamilyId(userId?: string | null, familyId?: string | null) {
-    return userId ? undefined : familyId ?? undefined
-  }
-
   private getMonthDistance(startMonth: any, targetMonth: any) {
     const startYear = startMonth.getDataValue("year") as number
     const startMonthNumber = startMonth.getDataValue("month") as number
@@ -92,13 +86,12 @@ export class RecurringIncomeService {
     return startMonth
   }
 
-  private async ensureMonth(params: { userId: string; familyId?: string; year: number; month: number }) {
+  private async ensureMonth(params: { userId: string; year: number; month: number }) {
     let targetMonth = await monthRepository.findByUserAndPeriod(params.userId, params.year, params.month)
 
     if (!targetMonth) {
       targetMonth = await monthRepository.create({
         user_id: params.userId,
-        family_id: params.familyId,
         year: params.year,
         month: params.month,
         status: "open"
@@ -110,7 +103,6 @@ export class RecurringIncomeService {
 
   private async generateMonthlyIncomes(data: {
     recurringIncomeId: string
-    familyId?: string
     userId: string
     description: string
     grossIncome: number
@@ -156,7 +148,6 @@ export class RecurringIncomeService {
 
   private async syncRecurringIncomeToOwnerMonths(data: {
     recurringIncomeId: string
-    familyId?: string
     userId: string
     description: string
     grossIncome: number
@@ -177,7 +168,6 @@ export class RecurringIncomeService {
 
     await this.generateMonthlyIncomes({
       recurringIncomeId: data.recurringIncomeId,
-      familyId: data.familyId,
       userId: data.userId,
       description: data.description,
       grossIncome: data.grossIncome,
@@ -212,7 +202,6 @@ export class RecurringIncomeService {
 
       await this.generateMonthlyIncomes({
         recurringIncomeId: recurringIncome.getDataValue("id") as string,
-        familyId: recurringIncome.getDataValue("family_id") as string | undefined,
         userId,
         description: recurringIncome.getDataValue("description") as string,
         grossIncome: Number(recurringIncome.getDataValue("gross_income")),
@@ -241,23 +230,10 @@ export class RecurringIncomeService {
       startMonthId: data.start_month_id,
     })
 
-    const legacyFamilyId = this.getLegacyFamilyId(
-      data.user_id,
-      startMonth.getDataValue("family_id") as string | null
-    )
-
-    if (legacyFamilyId) {
-      const family = await familyRepository.findById(legacyFamilyId)
-      if (!family) {
-        throw new Error("Family not found")
-      }
-    }
-
     const taxation = incomeTaxationService.normalizeTaxation(data.taxation)
 
     const recurringIncome = await recurringIncomeRepository.create({
       ...data,
-      family_id: legacyFamilyId,
       taxation_mode: taxation.mode,
       taxation_profile: taxation.profile,
       taxation_parameters: taxation.parameters,
@@ -266,7 +242,6 @@ export class RecurringIncomeService {
     if (data.status === "active") {
       await this.syncRecurringIncomeToOwnerMonths({
         recurringIncomeId: recurringIncome.getDataValue("id") as string,
-        familyId: legacyFamilyId,
         userId: data.user_id,
         description: data.description,
         grossIncome: data.gross_income,
@@ -340,7 +315,6 @@ export class RecurringIncomeService {
     if (nextStatus === "active") {
       await this.syncRecurringIncomeToOwnerMonths({
         recurringIncomeId: id,
-        familyId: existingRecurringIncome.getDataValue("family_id") as string,
         userId: existingRecurringIncome.getDataValue("user_id") as string,
         description: nextDescription,
         grossIncome: nextGrossIncome,
