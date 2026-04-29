@@ -10,6 +10,5 @@ export * from "./subcategory.types";
 export * from "./expense.types";
 export * from "./installment-group.types";
 export * from "./recurring-expense.types";
-export * from "./debt.types";
 export * from "./budget.types";
 export * from "./api.types";

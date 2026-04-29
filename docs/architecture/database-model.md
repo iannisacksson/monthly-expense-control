@@ -405,15 +405,15 @@ When `occurrences` is null, the recurring definition remains active indefinitely
 
 # debts
 
-## Purpose
+## Status
 
-Legacy table during the migration away from collaborative family finance.
+The legacy `debts` table has been removed from the active schema path by migration `20260429000033-drop-debts-legacy-table.js`.
 
 ## Decision
 
 Debt must not remain a family-owned primary aggregate in the target product model.
 
-A future redesign may replace this table with a user-owned liability model.
+Any future redesign must introduce a new user-owned liability model instead of restoring the legacy family-based table.
 
 ---
 
@@ -451,20 +451,20 @@ The current Sequelize models and migrations show three different removal states.
 - rationale: active persistence now derives ownership from `month_id`, while month-level compatibility remains the only remaining bridge for older aggregates
 
 - `recurring_incomes`, `recurring_expenses`, and `installment_groups`
-- status: migration file `20260429000030-remove-family-ownership-from-recurring-and-installment-aggregates.js` removes the legacy `family_id` columns from the active schema path
+- status: migration file `20260429000030-remove-family-ownership-from-recurring-and-installment-aggregates.js` removes the legacy `family_id` columns from the active schema path, and `20260429000032-make-recurring-and-installment-user-ownership-required.js` hardens `user_id` to `NOT NULL` for `recurring_expenses` and `installment_groups`
 - rationale: active routes, DTOs, frontend flows, and ORM associations now operate on owner user context derived from `user_id` plus `start_month_id`
 - current verification: the configured local test database has no rows with missing `user_id` in these tables
-- remaining hardening step: make `user_id` non-null for tables that still keep it nullable for transitional compatibility
+- remaining hardening step: review whether `recurring_incomes` and related dependents need any further schema tightening beyond the current ownership contract
 
-### Legacy-only, not a User + Month drop candidate
+### Removed from active schema
 
 - `debts`
-- rationale: the aggregate is intentionally outside the active product direction and still encodes a family relationship rather than month ownership
-- decision: treat the table as definitive archival legacy only, remove it from the HTTP/frontend contract, and only revisit it in a separate archival or redesign step
+- rationale: the aggregate was intentionally outside the active product direction and encoded a family relationship rather than month ownership
+- decision: the legacy backend/frontend slice was removed and the table was dropped only after an empty-table preflight check in a separate archival step
 
 ## Debt Removal Prerequisites
 
-Final removal of `debts` persistence is intentionally blocked until an explicit archival strategy exists.
+Final removal of `debts` persistence required an explicit archival strategy.
 
 That strategy must define:
 
@@ -482,6 +482,12 @@ Use a two-path archival policy.
 - run a preflight count on `debts`
 - if the count is zero, record an archival manifest stating that no rows required export
 - then remove debt model, repository, service, controller remnants, and apply a dedicated drop-table migration in a separate change
+
+Current status:
+
+- the configured local test database satisfied the empty-table fast path
+- the legacy debt code slice was removed
+- the `debts` table was dropped from the active schema path
 
 ### Export path when rows exist
 

@@ -9,7 +9,7 @@ export const InstallmentGroup = sequelize.define("InstallmentGroup", {
   },
   user_id: {
     type: DataTypes.UUID,
-    allowNull: true
+    allowNull: false
   },
   description: {
     type: DataTypes.TEXT,

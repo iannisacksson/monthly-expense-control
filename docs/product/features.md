@@ -472,8 +472,8 @@ Debt is no longer a first-class collaborative feature of the active product dire
 During the User + Month refactor:
 
 - debts between family members are removed from the main UX
-- debt data is now treated as archival-only legacy data for export or manual migration support
+- debt data was treated as archival-only legacy data for export or manual migration support during cutover
 - any future debt redesign must treat debt as a user-owned liability or receivable concept, not as a family-member relationship
-- final deletion of debt persistence depends on a separate archival strategy and must not be coupled to the User + Month cutover itself
+- final deletion of debt persistence belongs to a separate archival slice and is no longer part of the active schema path
 
 This prevents domain ambiguity during the transition away from shared family ownership.

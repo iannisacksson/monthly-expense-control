@@ -209,7 +209,7 @@ Example:
 
 ExpenseService
 MonthlyIncomeService
-DebtService
+BudgetService
 BudgetService
 
 Example pattern:
@@ -303,7 +303,7 @@ Example:
 
 CreateExpenseDTO
 CreateIncomeDTO
-CreateDebtDTO
+CreateBudgetRuleDTO
 
 Example:
 

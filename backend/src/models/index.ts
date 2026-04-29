@@ -10,7 +10,6 @@ import { Subcategory } from "./subcategory.model"
 import { Expense } from "./expense.model"
 import { InstallmentGroup } from "./installment-group.model"
 import { RecurringExpense } from "./recurring-expense.model"
-import { Debt } from "./debt.model"
 import { BudgetRule } from "./budget-rule.model"
 import { BudgetAllocation } from "./budget-allocation.model"
 
@@ -89,22 +88,6 @@ Expense.belongsTo(RecurringExpense, { foreignKey: "recurring_expense_id" })
 User.hasMany(RecurringExpense, { foreignKey: "user_id" })
 RecurringExpense.belongsTo(User, { foreignKey: "user_id" })
 
-// Family -> Debt
-Family.hasMany(Debt, { foreignKey: "family_id" })
-Debt.belongsTo(Family, { foreignKey: "family_id" })
-
-// User -> Debt (creditor)
-User.hasMany(Debt, { foreignKey: "creditor_id", as: "creditorDebts" })
-Debt.belongsTo(User, { foreignKey: "creditor_id", as: "creditor" })
-
-// User -> Debt (debtor)
-User.hasMany(Debt, { foreignKey: "debtor_id", as: "debtorDebts" })
-Debt.belongsTo(User, { foreignKey: "debtor_id", as: "debtor" })
-
-// Expense -> Debt
-Expense.hasMany(Debt, { foreignKey: "expense_id" })
-Debt.belongsTo(Expense, { foreignKey: "expense_id" })
-
 // User -> BudgetRule
 User.hasMany(BudgetRule, { foreignKey: "user_id" })
 BudgetRule.belongsTo(User, { foreignKey: "user_id" })
@@ -134,7 +117,6 @@ export {
   Expense,
   InstallmentGroup,
   RecurringExpense,
-  Debt,
   BudgetRule,
   BudgetAllocation
 }
