@@ -136,8 +136,8 @@ Expected cutover behavior for months:
 Current compatibility decision for adjacent flows:
 
 - budget management is already being cut over to user-scoped frontend routes and must be reachable from month detail under `/users/:userId/budgets`
-- family-scoped category screens may remain temporarily only while the legacy `families` area still exists
-- family-scoped expense listing is no longer part of the active frontend surface and should be removed before broader family compatibility cleanup
+- category and subcategory frontend routes are now user-scoped only
+- family-scoped expense listing is no longer part of the active frontend surface and should not return as a compatibility path
 
 This ADR remains the target architectural direction and must be read together with the current transitional reality.
 
@@ -165,6 +165,7 @@ These parts must be adapted, not just removed:
 - Category ownership changes from `family_id` to `user_id`
 - BudgetRule ownership changes from `family_id` to `user_id`
 - Expense validation changes from `family_id + month_id` to `user_id + month_id`
+- Expense category validation must follow the same owner as the selected month, preferring `user_id` and using `family_id` only for legacy fallback months
 - RecurringExpense generation must create month records by `user_id`
 - InstallmentGroup generation must create month records by `user_id`
 - dashboard aggregation queries must filter by `user_id + month_id`

@@ -265,8 +265,8 @@ The system must:
 
 Legacy note:
 
-- family-scoped category and subcategory screens may remain temporarily for compatibility while the `families` area still exists
-- those legacy screens must not become the reference flow for month navigation or new frontend work
+- category and subcategory management must be exposed through user-scoped frontend routes only
+- any remaining family-scoped category compatibility must stay outside the active frontend surface
 
 ### Domain Entities
 

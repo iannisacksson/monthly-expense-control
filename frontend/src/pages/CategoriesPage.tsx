@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useFamily, useUser } from "../hooks";
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useUser } from "../hooks";
 import CategoryList from "../components/features/categories/CategoryList/CategoryList";
 import CategoryForm from "../components/features/categories/CategoryForm/CategoryForm";
 import Button from "../components/ui/Button/Button";
 import type { Category, CreateCategoryDTO, UpdateCategoryDTO } from "../types";
 
 export default function CategoriesPage() {
-  const { familyId, userId } = useParams<{ familyId?: string; userId?: string }>();
-  const { data: family } = useFamily(familyId ?? "");
+  const { userId } = useParams<{ userId?: string }>();
   const { data: user } = useUser(userId ?? "");
-  const { data: categories, isLoading, error } = useCategories({ familyId, userId });
+  const { data: categories, isLoading, error } = useCategories({ userId });
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
@@ -48,16 +47,11 @@ export default function CategoriesPage() {
   };
 
   const handleSelect = (category: Category) => {
-    if (userId) {
-      navigate(`/users/${userId}/categories/${category.id}/subcategories`);
-      return;
-    }
-
-    navigate(`/families/${familyId}/categories/${category.id}/subcategories`);
+    navigate(`/users/${userId}/categories/${category.id}/subcategories`);
   };
 
-  const backLink = userId ? `/users/${userId}/months` : "/families";
-  const ownerLabel = userId ? user?.name ?? "Usuário" : family?.name ?? "Família";
+  const backLink = userId ? `/users/${userId}/months` : "/";
+  const ownerLabel = user?.name ?? "Usuário";
 
   if (isLoading) return <p>Carregando...</p>;
   if (error) return <p>Erro ao carregar categorias.</p>;
@@ -85,7 +79,6 @@ export default function CategoriesPage() {
         <div style={{ marginBottom: 24 }}>
           <h2>Nova Categoria</h2>
           <CategoryForm
-            familyId={familyId}
             userId={userId}
             onSubmit={handleCreate}
             onCancel={() => setShowForm(false)}
@@ -98,7 +91,6 @@ export default function CategoriesPage() {
         <div style={{ marginBottom: 24 }}>
           <h2>Editar Categoria</h2>
           <CategoryForm
-            familyId={familyId}
             userId={userId}
             initialData={editingCategory}
             onSubmit={handleUpdate}

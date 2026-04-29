@@ -7,7 +7,7 @@ import Button from "../components/ui/Button/Button";
 import type { Subcategory, CreateSubcategoryDTO, UpdateSubcategoryDTO } from "../types";
 
 export default function SubcategoriesPage() {
-  const { familyId, userId, categoryId } = useParams<{ familyId?: string; userId?: string; categoryId: string }>();
+  const { userId, categoryId } = useParams<{ userId?: string; categoryId: string }>();
   const { data: category } = useCategory(categoryId!);
   const { data: subcategories, isLoading, error } = useSubcategories(categoryId!);
   const createSubcategory = useCreateSubcategory();
@@ -43,9 +43,7 @@ export default function SubcategoriesPage() {
   if (isLoading) return <p>Carregando...</p>;
   if (error) return <p>Erro ao carregar subcategorias.</p>;
 
-  const backLink = userId
-    ? `/users/${userId}/categories`
-    : `/families/${familyId}/categories`;
+  const backLink = userId ? `/users/${userId}/categories` : "/";
 
   return (
     <div>

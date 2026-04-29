@@ -5,7 +5,6 @@ import Button from "../../../ui/Button/Button";
 import type { Category, CreateCategoryDTO } from "../../../../types";
 
 interface CategoryFormProps {
-  familyId?: string;
   userId?: string;
   initialData?: Category;
   onSubmit: (data: CreateCategoryDTO) => void;
@@ -13,13 +12,13 @@ interface CategoryFormProps {
   isPending?: boolean;
 }
 
-export default function CategoryForm({ familyId, userId, initialData, onSubmit, onCancel, isPending }: CategoryFormProps) {
+export default function CategoryForm({ userId, initialData, onSubmit, onCancel, isPending }: CategoryFormProps) {
   const [name, setName] = useState(initialData?.name ?? "");
   const [type, setType] = useState(initialData?.type ?? "essential");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit({ family_id: familyId, user_id: userId, name, type });
+    onSubmit({ user_id: userId, name, type });
   };
 
   const typeOptions = [

@@ -194,8 +194,8 @@ GET /api/v1/categories/user/{userId}
 
 Legacy compatibility note:
 
-- `GET /api/v1/categories/family/{familyId}` may still exist while family management screens remain in the application
-- that family-scoped endpoint is transitional and must not be used by user-month flows
+- `GET /api/v1/categories/family/{familyId}` may still exist temporarily as backend compatibility
+- that family-scoped endpoint is transitional and must not be used by active frontend routes or user-month flows
 
 ## Get Category by ID
 
@@ -340,6 +340,11 @@ POST /api/v1/expenses
   "value": 120,
   "expense_date": "2026-03-10"
 }
+
+Behavior note:
+
+- the backend must validate expense ownership through the selected month and category owner, using `user_id + month_id + category` as the primary invariant
+- `family_id` may be accepted only as a legacy fallback when the selected month still belongs exclusively to a legacy family context
 
 ## List Expenses by User and Month
 
