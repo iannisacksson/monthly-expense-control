@@ -4,8 +4,8 @@ import type { CreateCategoryDTO, UpdateCategoryDTO } from "../types";
 
 const CATEGORIES_KEY = ["categories"] as const;
 
-export function useCategories(params: { familyId?: string; userId?: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useCategories(params: { userId?: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...CATEGORIES_KEY, ownerKey],
@@ -14,13 +14,9 @@ export function useCategories(params: { familyId?: string; userId?: string }) {
         return categoryService.listByUser(params.userId);
       }
 
-      if (params.familyId) {
-        return categoryService.listByFamily(params.familyId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: !!params.userId || !!params.familyId,
+    enabled: !!params.userId,
   });
 }
 

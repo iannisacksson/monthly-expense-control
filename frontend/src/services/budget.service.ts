@@ -15,11 +15,6 @@ export const budgetService = {
     return data;
   },
 
-  async listRulesByFamily(familyId: string): Promise<BudgetRule[]> {
-    const { data } = await httpClient.get<BudgetRule[]>(`/budgets/rules/family/${familyId}`);
-    return data;
-  },
-
   async getRuleById(id: string): Promise<BudgetRule> {
     const { data } = await httpClient.get<BudgetRule>(`/budgets/rules/${id}`);
     return data;

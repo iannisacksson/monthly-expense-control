@@ -10,8 +10,8 @@ import type {
 const BUDGET_RULES_KEY = ["budget-rules"] as const;
 const BUDGET_ALLOCATIONS_KEY = ["budget-allocations"] as const;
 
-export function useBudgetRules(params: { familyId?: string; userId?: string }) {
-  const ownerKey = params.userId ? `user:${params.userId}` : params.familyId ? `family:${params.familyId}` : "none";
+export function useBudgetRules(params: { userId?: string }) {
+  const ownerKey = params.userId ? `user:${params.userId}` : "none";
 
   return useQuery({
     queryKey: [...BUDGET_RULES_KEY, ownerKey],
@@ -20,13 +20,9 @@ export function useBudgetRules(params: { familyId?: string; userId?: string }) {
         return budgetService.listRulesByUser(params.userId);
       }
 
-      if (params.familyId) {
-        return budgetService.listRulesByFamily(params.familyId);
-      }
-
       return Promise.resolve([]);
     },
-    enabled: !!params.userId || !!params.familyId,
+    enabled: !!params.userId,
   });
 }
 

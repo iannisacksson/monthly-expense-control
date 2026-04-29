@@ -10,7 +10,6 @@ import {
   useUpdateBudgetAllocation,
   useDeleteBudgetAllocation,
   useCategories,
-  useFamily,
   useUser,
 } from "../hooks";
 import BudgetRuleForm from "../components/features/budgets/BudgetRuleForm/BudgetRuleForm";
@@ -28,11 +27,10 @@ import type {
 } from "../types";
 
 export default function BudgetsPage() {
-  const { familyId, userId } = useParams<{ familyId?: string; userId?: string }>();
-  const { data: family } = useFamily(familyId ?? "");
+  const { userId } = useParams<{ userId?: string }>();
   const { data: user } = useUser(userId ?? "");
-  const { data: categories } = useCategories({ familyId, userId });
-  const { data: rules, isLoading, error } = useBudgetRules({ familyId, userId });
+  const { data: categories } = useCategories({ userId });
+  const { data: rules, isLoading, error } = useBudgetRules({ userId });
 
   const [selectedRule, setSelectedRule] = useState<BudgetRule | undefined>();
   const { data: allocations } = useBudgetAllocations(selectedRule?.id ?? "");
@@ -92,8 +90,8 @@ export default function BudgetsPage() {
     }
   };
 
-  const backLink = userId ? `/users/${userId}/months` : "/families";
-  const titleLabel = userId ? user?.name ?? "Usuário" : family?.name ?? "Família";
+  const backLink = userId ? `/users/${userId}/months` : "/";
+  const titleLabel = user?.name ?? "Usuário";
 
   if (isLoading) return <p>Carregando...</p>;
   if (error) return <p>Erro ao carregar regras de orçamento.</p>;
@@ -114,14 +112,14 @@ export default function BudgetsPage() {
       {showRuleForm && (
         <div style={{ marginBottom: 24 }}>
           <h2>Nova Regra</h2>
-          <BudgetRuleForm familyId={familyId} userId={userId} onSubmit={handleCreateRule} onCancel={() => setShowRuleForm(false)} isPending={createRule.isPending} />
+          <BudgetRuleForm userId={userId} onSubmit={handleCreateRule} onCancel={() => setShowRuleForm(false)} isPending={createRule.isPending} />
         </div>
       )}
 
       {editingRule && (
         <div style={{ marginBottom: 24 }}>
           <h2>Editar Regra</h2>
-          <BudgetRuleForm familyId={familyId} userId={userId} initialData={editingRule} onSubmit={handleUpdateRule} onCancel={() => setEditingRule(undefined)} isPending={updateRule.isPending} />
+          <BudgetRuleForm userId={userId} initialData={editingRule} onSubmit={handleUpdateRule} onCancel={() => setEditingRule(undefined)} isPending={updateRule.isPending} />
         </div>
       )}
 

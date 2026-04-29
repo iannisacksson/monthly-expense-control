@@ -4,7 +4,6 @@ import Button from "../../../ui/Button/Button";
 import type { BudgetRule, CreateBudgetRuleDTO } from "../../../../types";
 
 interface BudgetRuleFormProps {
-  familyId?: string;
   userId?: string;
   initialData?: BudgetRule;
   onSubmit: (data: CreateBudgetRuleDTO) => void;
@@ -12,12 +11,12 @@ interface BudgetRuleFormProps {
   isPending?: boolean;
 }
 
-export default function BudgetRuleForm({ familyId, userId, initialData, onSubmit, onCancel, isPending }: BudgetRuleFormProps) {
+export default function BudgetRuleForm({ userId, initialData, onSubmit, onCancel, isPending }: BudgetRuleFormProps) {
   const [name, setName] = useState(initialData?.name ?? "");
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    onSubmit({ family_id: familyId, user_id: userId, name });
+    onSubmit({ user_id: userId, name });
   };
 
   return (

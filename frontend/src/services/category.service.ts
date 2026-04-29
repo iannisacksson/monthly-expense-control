@@ -7,11 +7,6 @@ export const categoryService = {
     return data;
   },
 
-  async listByFamily(familyId: string): Promise<Category[]> {
-    const { data } = await httpClient.get<Category[]>(`/categories/family/${familyId}`);
-    return data;
-  },
-
   async getById(id: string): Promise<Category> {
     const { data } = await httpClient.get<Category>(`/categories/${id}`);
     return data;
