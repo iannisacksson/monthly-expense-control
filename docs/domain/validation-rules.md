@@ -34,6 +34,34 @@ Service validation ensures business rules are respected.
 
 ---
 
+# Ownership Validation Rules
+
+Every resource belongs to a user. Services must verify ownership on every read, update, and delete operation.
+
+## Rule
+
+The `user_id` of the resource being accessed must match the `id` of the authenticated user (`req.user.id` from the verified JWT token).
+
+If ownership does not match, the service throws `ForbiddenError`, and the controller returns `HTTP 403 Forbidden`.
+
+## Resources with direct `user_id`
+
+months, expenses, categories, monthly_incomes, recurring_incomes, recurring_expenses, installment_groups, budget_rules
+
+Ownership check: `resource.user_id !== requestingUserId → ForbiddenError`
+
+## Resources without direct `user_id` (traversal required)
+
+subcategories (via category), income_taxes (via monthly_income), budget_allocations (via budget_rule)
+
+Ownership check: traverse to parent resource, then `parent.user_id !== requestingUserId → ForbiddenError`
+
+## Create operations
+
+The `user_id` stored in created resources always comes from the token (`requestingUserId`). Any `user_id` present in the request body is ignored.
+
+---
+
 # User Validation Rules
 
 ## name

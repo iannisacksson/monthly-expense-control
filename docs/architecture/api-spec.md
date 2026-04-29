@@ -69,7 +69,26 @@ The token must be sent in the `Authorization` header:
 
 Authorization: Bearer <token>
 
+The `authMiddleware` is applied globally in `routes/index.ts` to all resource routes after the public `/auth` and `/health` routes.
+
 The authenticated user identity is always sourced from the token. Clients must not send `user_id` in request bodies for identity resolution.
+
+## Cross-User Access Protection
+
+Every resource endpoint enforces ownership.
+
+If a request targets a resource that belongs to a different user, the server returns:
+
+```
+HTTP 403 Forbidden
+{ "error": "Forbidden" }
+```
+
+This is implemented at the service layer via `ForbiddenError` (`src/utils/errors.ts`). Services receive `requestingUserId` from the controller (always `req.user.id`) and compare it against the resource owner before any mutation or read.
+
+Resources with a direct `user_id` column are checked directly.
+
+Resources without a direct `user_id` (e.g. subcategories, income taxes, budget allocations) traverse to their parent resource to resolve the owner.
 
 Current implementation note:
 

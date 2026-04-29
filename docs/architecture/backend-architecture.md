@@ -69,9 +69,48 @@ Authorization: Bearer <token>
 
 Verifies the JWT. Populates `req.user`. Returns 401 if the token is missing, invalid, or expired.
 
-Protected routes must apply `authMiddleware` before their handler.
+The middleware is applied **globally** in `src/routes/index.ts` immediately after the public `/auth` and `/health` routes, protecting all resource routes without requiring per-route decoration.
 
-Public routes (register, login, health) do not apply `authMiddleware`.
+Public routes (register, login, health) are registered before the global `router.use(authMiddleware)` call.
+
+## Ownership Enforcement
+
+All resource services enforce that the requesting user owns the resource.
+
+The class `ForbiddenError` (`src/utils/errors.ts`) is thrown by the service when ownership does not match:
+
+```ts
+export class ForbiddenError extends Error {
+  readonly statusCode = 403
+  constructor(message = "Forbidden") {
+    super(message)
+    this.name = "ForbiddenError"
+  }
+}
+```
+
+Controllers catch `ForbiddenError` and return `HTTP 403`:
+
+```ts
+if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+```
+
+Two ownership patterns exist:
+
+**Direct** — resources with a `user_id` column (months, expenses, categories, monthly incomes, recurring incomes, recurring expenses, installment groups, budget rules):
+
+```ts
+if (resource.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+```
+
+**Traversal** — resources without a direct `user_id` (subcategories, income taxes, budget allocations):
+
+```ts
+const parent = await parentRepository.findById(resource.parent_id)
+if (parent.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+```
+
+All service methods that operate on a single resource accept `requestingUserId: string` as a parameter. Controllers always pass `req.user!.id`.
 
 ## Environment variables
 
