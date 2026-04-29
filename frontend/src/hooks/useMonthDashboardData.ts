@@ -5,7 +5,7 @@ import {
   useCategories,
   useExpenses,
   useBudgetRules,
-  useUsers,
+  useUser,
 } from "./index";
 import { incomeTaxService, subcategoryService } from "../services";
 import type { IncomeTax, Subcategory, Expense } from "../types";
@@ -16,7 +16,6 @@ export type MonthExpenseListItem = Expense & {
   categoryName: string;
   subcategoryName?: string;
   categoryType: string;
-  paidByName?: string;
 };
 
 export function useMonthDashboardData(params: { userId?: string; monthId: string }) {
@@ -26,7 +25,7 @@ export function useMonthDashboardData(params: { userId?: string; monthId: string
   const { data: categories } = useCategories({ userId: resolvedUserId });
   const { data: expenses, isLoading: loadingExpenses } = useExpenses({ userId: resolvedUserId, monthId: params.monthId });
   const { data: budgetRules } = useBudgetRules({ userId: resolvedUserId });
-  const { data: users } = useUsers();
+  const { data: user } = useUser(params.userId ?? "");
 
   // Load taxes per income
   const incomeIds = incomes?.map((i) => i.id) ?? [];
@@ -66,11 +65,6 @@ export function useMonthDashboardData(params: { userId?: string; monthId: string
     subcategoryNameMap[subcategory.id] = subcategory.name;
   });
 
-  const userNameMap: Record<string, string> = {};
-  (users ?? []).forEach((user) => {
-    userNameMap[user.id] = user.name;
-  });
-
   const expensesByType: Record<string, MonthExpenseListItem[]> = {};
   TYPE_ORDER.forEach((t) => { expensesByType[t] = []; });
   (expenses ?? []).forEach((e) => {
@@ -81,16 +75,11 @@ export function useMonthDashboardData(params: { userId?: string; monthId: string
       categoryType: type,
       categoryName: categoryNameMap[e.category_id] ?? "Categoria não encontrada",
       subcategoryName: e.subcategory_id ? subcategoryNameMap[e.subcategory_id] : undefined,
-      paidByName: e.paid_by ? userNameMap[e.paid_by] ?? e.paid_by : undefined,
     });
   });
 
   const totalExpenses = (expenses ?? []).reduce((s, e) => s + Number(e.value), 0);
   const balance = netIncome - totalExpenses;
-
-  const memberOptions = resolvedUserId
-    ? [{ value: resolvedUserId, label: userNameMap[resolvedUserId] ?? resolvedUserId }]
-    : [];
 
   const loadingTaxes = taxQueries.some((query) => query.isLoading);
   const loadingSubcategories = subQueries.some((query) => query.isLoading);
@@ -98,8 +87,7 @@ export function useMonthDashboardData(params: { userId?: string; monthId: string
 
   return {
     month,
-    currentUserName: resolvedUserId ? userNameMap[resolvedUserId] ?? resolvedUserId : undefined,
-    memberOptions,
+    currentUserName: user?.name,
     incomes: incomes ?? [],
     allTaxes,
     categories: categories ?? [],

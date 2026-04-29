@@ -78,10 +78,6 @@ export class UserService {
     return userRepository.findByEmail(email)
   }
 
-  async listUsers() {
-    return userRepository.findAll()
-  }
-
   async updateUser(id: string, data: UpdateUserDTO) {
     if (data.name !== undefined && (data.name.length < 2 || data.name.length > 100)) {
       throw new Error("Name must be between 2 and 100 characters")

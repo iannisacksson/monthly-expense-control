@@ -45,7 +45,6 @@ import InstallmentPurchaseForm from "../components/features/installment-groups/I
 import RecurringExpenseForm from "../components/features/recurring-expenses/RecurringExpenseForm/RecurringExpenseForm";
 import Modal from "../components/ui/Modal/Modal";
 import Button from "../components/ui/Button/Button";
-import Select from "../components/ui/Select/Select";
 import { formatCurrencyBRL } from "../utils/currency";
 import type {
   MonthlyIncome,
@@ -1096,7 +1095,6 @@ export default function MonthDetailPage() {
           monthId={monthId!}
           categories={expenseModal.editing ? dashboard.categories : formCategories}
           subcategories={dashboard.allSubcategories}
-          memberOptions={dashboard.memberOptions}
           initialData={expenseModal.editing}
           categoryId={expenseModal.editing ? expenseModal.editing.category_id : formCategories[0]?.id}
           hideCategoryField={!expenseModal.editing && Boolean(expenseModal.prefilterType)}
@@ -1126,17 +1124,6 @@ export default function MonthDetailPage() {
             )}
           </div>
 
-          {dashboard.memberOptions.length > 0 && (
-            <Select
-              id="expense-payment-paid-by"
-              label="Quem pagou"
-              options={dashboard.memberOptions}
-              placeholder="Selecione (opcional)"
-              value={expensePaymentPayer}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setExpensePaymentPayer(event.target.value)}
-            />
-          )}
-
           <div className="action-row">
             <Button type="button" onClick={handleConfirmExpensePaid} disabled={updateExpense.isPending}>
               {updateExpense.isPending ? "Salvando..." : "Confirmar pagamento"}
@@ -1163,7 +1150,6 @@ export default function MonthDetailPage() {
           monthId={monthId!}
           categories={dashboard.categories}
           subcategories={dashboard.allSubcategories}
-          memberOptions={dashboard.memberOptions}
           initialData={installmentModal.editing}
           onSubmit={installmentModal.editing ? handleUpdateInstallmentGroup : handleCreateInstallmentGroup}
           onCancel={() => setInstallmentModal({ open: false })}
@@ -1181,7 +1167,6 @@ export default function MonthDetailPage() {
           monthId={monthId!}
           categories={dashboard.categories}
           subcategories={dashboard.allSubcategories}
-          memberOptions={dashboard.memberOptions}
           initialData={recurringModal.editing}
           onSubmit={recurringModal.editing ? handleUpdateRecurringExpense : handleCreateRecurringExpense}
           onCancel={() => setRecurringModal({ open: false })}

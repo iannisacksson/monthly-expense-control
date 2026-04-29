@@ -10,7 +10,6 @@ interface ExpenseFormProps {
   monthId: string;
   categories: Category[];
   subcategories: Subcategory[];
-  memberOptions: { value: string; label: string }[];
   initialData?: Expense;
   onSubmit: (data: CreateExpenseDTO) => void;
   onCancel: () => void;
@@ -26,7 +25,6 @@ export default function ExpenseForm({
   monthId,
   categories,
   subcategories,
-  memberOptions,
   initialData,
   onSubmit,
   onCancel,
@@ -42,7 +40,6 @@ export default function ExpenseForm({
   const [description, setDescription] = useState(initialData?.description ?? "");
   const [valueInput, setValueInput] = useState(toCurrencyInputValue(initialData?.value));
   const [paymentDate, setPaymentDate] = useState(initialData?.payment_date?.split("T")[0] ?? new Date().toISOString().split("T")[0]);
-  const [paidBy, setPaidBy] = useState(initialData?.paid_by ?? "");
 
   const filteredSubs = useMemo(
     () => subcategories.filter((subcategory) => subcategory.category_id === categoryId),
@@ -76,7 +73,6 @@ export default function ExpenseForm({
       description,
       value: numericValue,
       payment_date: shouldShowPaymentFields ? paymentDate : undefined,
-      paid_by: hidePaymentFields ? undefined : (paidBy || undefined),
     });
   };
 
@@ -142,16 +138,6 @@ export default function ExpenseForm({
           value={paymentDate}
           onChange={(e) => setPaymentDate(e.target.value)}
           required
-        />
-      )}
-      {shouldShowPaymentFields && memberOptions.length > 0 && (
-        <Select
-          id="expense-paid-by"
-          label="Pago por"
-          options={memberOptions}
-          placeholder="Selecione (opcional)"
-          value={paidBy}
-          onChange={(e) => setPaidBy(e.target.value)}
         />
       )}
       <div style={{ display: "flex", gap: 8 }}>

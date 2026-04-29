@@ -1,5 +1,5 @@
 export { useMe, useLogin, useRegister, useLogout, useUpdateMe, useDeleteMe } from "./useAuth";
-export { useUsers, useUser, useCreateUser, useUpdateUser, useDeleteUser } from "./useUsers";
+export { useUser, useCreateUser, useUpdateUser, useDeleteUser } from "./useUsers";
 export { useMonths, useMonth, useCreateMonth, useUpdateMonth, useFinalizeMonth } from "./useMonths";
 export { useMonthlyIncomes, useMonthlyIncome, useCreateMonthlyIncome, useUpdateMonthlyIncome, useDeleteMonthlyIncome } from "./useMonthlyIncomes";
 export { useRecurringIncomes, useRecurringIncome, useRecurringIncomeMonthlyIncomes, useCreateRecurringIncome, useUpdateRecurringIncome, useDeleteRecurringIncome } from "./useRecurringIncomes";

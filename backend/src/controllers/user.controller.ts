@@ -12,15 +12,6 @@ export const createUser = async (req: Request, res: Response) => {
   }
 }
 
-export const listUsers = async (_req: Request, res: Response) => {
-  try {
-    const result = await userService.listUsers()
-    return res.json(result)
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message })
-  }
-}
-
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const result = await userService.findUserById(req.params.id as string)

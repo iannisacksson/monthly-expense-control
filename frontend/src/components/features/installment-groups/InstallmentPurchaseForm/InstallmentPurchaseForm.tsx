@@ -10,7 +10,6 @@ interface InstallmentPurchaseFormProps {
   monthId: string;
   categories: Category[];
   subcategories: Subcategory[];
-  memberOptions: { value: string; label: string }[];
   initialData?: InstallmentGroup;
   onSubmit: (data: CreateInstallmentGroupDTO) => void;
   onCancel: () => void;
@@ -22,7 +21,6 @@ export default function InstallmentPurchaseForm({
   monthId,
   categories,
   subcategories,
-  memberOptions,
   initialData,
   onSubmit,
   onCancel,
@@ -34,8 +32,6 @@ export default function InstallmentPurchaseForm({
   const [totalValueInput, setTotalValueInput] = useState(toCurrencyInputValue(initialData?.total_value));
   const [installments, setInstallments] = useState(initialData?.installments?.toString() ?? "12");
   const [startingInstallmentNumber, setStartingInstallmentNumber] = useState(initialData?.starting_installment_number?.toString() ?? "1");
-  const [paidBy, setPaidBy] = useState(initialData?.paid_by ?? "");
-  const [responsibleUserId, setResponsibleUserId] = useState(initialData?.responsible_user_id ?? "");
 
   const filteredSubcategories = useMemo(
     () => subcategories.filter((subcategory) => subcategory.category_id === categoryId),
@@ -72,8 +68,6 @@ export default function InstallmentPurchaseForm({
       starting_installment_number: Number(startingInstallmentNumber),
       category_id: categoryId,
       subcategory_id: subcategoryId || undefined,
-      paid_by: paidBy || undefined,
-      responsible_user_id: responsibleUserId || undefined,
       start_month_id: initialData?.start_month_id ?? monthId,
     });
   };
@@ -139,26 +133,6 @@ export default function InstallmentPurchaseForm({
         onChange={(event) => setSubcategoryId(event.target.value)}
         disabled={!categoryId || subcategoryOptions.length === 0}
       />
-      {memberOptions.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-          <Select
-            id="installment-paid-by"
-            label="Pago por"
-            options={memberOptions}
-            placeholder="Selecione (opcional)"
-            value={paidBy}
-            onChange={(event) => setPaidBy(event.target.value)}
-          />
-          <Select
-            id="installment-responsible-user"
-            label="Responsável"
-            options={memberOptions}
-            placeholder="Selecione (opcional)"
-            value={responsibleUserId}
-            onChange={(event) => setResponsibleUserId(event.target.value)}
-          />
-        </div>
-      )}
       <div style={{ display: "flex", gap: 8 }}>
         <Button type="submit" disabled={isPending}>
           {isPending ? "Salvando..." : initialData ? "Salvar parcelamento" : "Criar parcelamento"}

@@ -4,13 +4,6 @@ import type { CreateUserDTO, UpdateUserDTO } from "../types";
 
 const USERS_KEY = ["users"] as const;
 
-export function useUsers() {
-  return useQuery({
-    queryKey: USERS_KEY,
-    queryFn: userService.list,
-  });
-}
-
 export function useUser(id: string) {
   return useQuery({
     queryKey: [...USERS_KEY, id],

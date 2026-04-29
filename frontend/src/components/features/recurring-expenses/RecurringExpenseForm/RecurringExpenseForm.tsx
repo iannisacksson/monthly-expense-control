@@ -15,7 +15,6 @@ interface RecurringExpenseFormProps {
   monthId: string;
   categories: Category[];
   subcategories: Subcategory[];
-  memberOptions: { value: string; label: string }[];
   initialData?: RecurringExpense;
   onSubmit: (data: CreateRecurringExpenseDTO) => void;
   onCancel: () => void;
@@ -32,7 +31,6 @@ export default function RecurringExpenseForm({
   monthId,
   categories,
   subcategories,
-  memberOptions,
   initialData,
   onSubmit,
   onCancel,
@@ -43,8 +41,6 @@ export default function RecurringExpenseForm({
   const [description, setDescription] = useState(initialData?.description ?? "");
   const [valueInput, setValueInput] = useState(toCurrencyInputValue(initialData?.value));
   const [status, setStatus] = useState(initialData?.status ?? "active");
-  const [paidBy, setPaidBy] = useState(initialData?.paid_by ?? "");
-  const [responsibleUserId, setResponsibleUserId] = useState(initialData?.responsible_user_id ?? "");
 
   const filteredSubcategories = useMemo(
     () => subcategories.filter((subcategory) => subcategory.category_id === categoryId),
@@ -69,8 +65,6 @@ export default function RecurringExpenseForm({
       value: parseCurrencyInputToNumber(valueInput),
       category_id: categoryId,
       subcategory_id: subcategoryId || undefined,
-      paid_by: paidBy || undefined,
-      responsible_user_id: responsibleUserId || undefined,
       start_month_id: initialData?.start_month_id ?? monthId,
       status,
     });
@@ -121,26 +115,6 @@ export default function RecurringExpenseForm({
         onChange={(event) => setSubcategoryId(event.target.value)}
         disabled={!categoryId || subcategoryOptions.length === 0}
       />
-      {memberOptions.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-          <Select
-            id="recurring-paid-by"
-            label="Pago por"
-            options={memberOptions}
-            placeholder="Selecione (opcional)"
-            value={paidBy}
-            onChange={(event) => setPaidBy(event.target.value)}
-          />
-          <Select
-            id="recurring-responsible-user"
-            label="Responsável"
-            options={memberOptions}
-            placeholder="Selecione (opcional)"
-            value={responsibleUserId}
-            onChange={(event) => setResponsibleUserId(event.target.value)}
-          />
-        </div>
-      )}
       <div style={{ border: "1px solid #d1fae5", background: "#ecfdf5", borderRadius: 8, padding: 12, fontSize: 13, color: "#065f46" }}>
         {status === "active"
           ? `Ao salvar, a despesa continuará aparecendo nos próximos meses enquanto estiver ativa. Valor atual: ${formatCurrencyBRL(parseCurrencyInputToNumber(valueInput))}.`
