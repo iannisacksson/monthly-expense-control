@@ -1,7 +1,5 @@
 import { Router } from "express"
 import userRoutes from "./user.routes"
-import familyRoutes from "./family.routes"
-import familyMemberRoutes from "./family-member.routes"
 import monthRoutes from "./month.routes"
 import monthlyIncomeRoutes from "./monthly-income.routes"
 import recurringIncomeRoutes from "./recurring-income.routes"
@@ -20,8 +18,6 @@ router.get("/health", (req, res) => {
 })
 
 router.use("/users", userRoutes)
-router.use("/families", familyRoutes)
-router.use("/family-members", familyMemberRoutes)
 router.use("/months", monthRoutes)
 router.use("/monthly-incomes", monthlyIncomeRoutes)
 router.use("/recurring-incomes", recurringIncomeRoutes)

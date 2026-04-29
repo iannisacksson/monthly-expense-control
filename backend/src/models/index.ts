@@ -1,6 +1,4 @@
 import { User } from "./user.model"
-import { Family } from "./family.model"
-import { FamilyMember } from "./family-member.model"
 import { Month } from "./month.model"
 import { MonthlyIncome } from "./monthly-income.model"
 import { RecurringIncome } from "./recurring-income.model"
@@ -12,13 +10,6 @@ import { InstallmentGroup } from "./installment-group.model"
 import { RecurringExpense } from "./recurring-expense.model"
 import { BudgetRule } from "./budget-rule.model"
 import { BudgetAllocation } from "./budget-allocation.model"
-
-// Family <-> User (many-to-many through FamilyMember)
-Family.hasMany(FamilyMember, { foreignKey: "family_id" })
-FamilyMember.belongsTo(Family, { foreignKey: "family_id" })
-
-User.hasMany(FamilyMember, { foreignKey: "user_id" })
-FamilyMember.belongsTo(User, { foreignKey: "user_id" })
 
 // User -> Month
 User.hasMany(Month, { foreignKey: "user_id" })
@@ -106,8 +97,6 @@ BudgetAllocation.belongsTo(Category, { foreignKey: "category_id" })
 
 export {
   User,
-  Family,
-  FamilyMember,
   Month,
   MonthlyIncome,
   RecurringIncome,

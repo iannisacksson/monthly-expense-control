@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useFamilies, useUsers } from "../hooks";
+import { useUsers } from "../hooks";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store";
 import Card from "../components/ui/Card/Card";
@@ -7,7 +7,6 @@ import Button from "../components/ui/Button/Button";
 
 export default function DashboardPage() {
   const { data: users, isLoading: loadingUsers } = useUsers();
-  const { data: families, isLoading } = useFamilies();
   const { currentUserId, setCurrentUserId } = useAuthStore();
   const navigate = useNavigate();
 
@@ -60,41 +59,6 @@ export default function DashboardPage() {
                   }}>
                     Meses
                   </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="page-section">
-        <div className="page-section__header">
-          <div>
-            <div className="section-label">Compatibilidade</div>
-            <h2 className="page-section__title">Famílias legadas</h2>
-            <p className="page-section__subtitle">Mantidas para transição, mas já separadas visualmente do fluxo principal.</p>
-          </div>
-        </div>
-        {isLoading && <p>Carregando...</p>}
-        {!isLoading && (!families || families.length === 0) && (
-          <div className="surface-card">
-            <p className="muted-text">Nenhuma família cadastrada.</p>
-            <Button onClick={() => navigate("/families")}>Criar Família</Button>
-          </div>
-        )}
-        {families && families.length > 0 && (
-          <div className="grid-cards">
-            {families.map((f) => (
-              <Card key={f.id} className="dashboard-card">
-                <div>
-                  <div className="section-label">Modo legado</div>
-                  <div className="dashboard-card__title">{f.name}</div>
-                  <p className="dashboard-card__meta">
-                  Criada em {new Date(f.created_at).toLocaleDateString("pt-BR")}
-                  </p>
-                </div>
-                <div className="action-row">
-                  <Button variant="secondary" onClick={() => navigate(`/families/${f.id}/members`)}>Membros</Button>
                 </div>
               </Card>
             ))}

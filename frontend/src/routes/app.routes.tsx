@@ -1,8 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import DashboardPage from "../pages/DashboardPage";
-import FamiliesPage from "../pages/FamiliesPage";
-import FamilyMembersPage from "../pages/FamilyMembersPage";
 import MonthsPage from "../pages/MonthsPage";
 import MonthDetailPage from "../pages/MonthDetailPage";
 import CategoriesPage from "../pages/CategoriesPage";
@@ -21,8 +19,6 @@ export const router = createBrowserRouter([
       { path: "users/:userId/budgets", element: <BudgetsPage /> },
       { path: "users/:userId/categories", element: <CategoriesPage /> },
       { path: "users/:userId/categories/:categoryId/subcategories", element: <SubcategoriesPage /> },
-      { path: "families", element: <FamiliesPage /> },
-      { path: "families/:familyId/members", element: <FamilyMembersPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

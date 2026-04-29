@@ -1,6 +1,4 @@
 export * from "./user.types";
-export * from "./family.types";
-export * from "./family-member.types";
 export * from "./month.types";
 export * from "./monthly-income.types";
 export * from "./recurring-income.types";

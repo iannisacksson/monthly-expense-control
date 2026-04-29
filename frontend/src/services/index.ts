@@ -1,6 +1,4 @@
 export { userService } from "./user.service";
-export { familyService } from "./family.service";
-export { familyMemberService } from "./family-member.service";
 export { monthService } from "./month.service";
 export { monthlyIncomeService } from "./monthly-income.service";
 export { recurringIncomeService } from "./recurring-income.service";

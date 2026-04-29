@@ -23,7 +23,6 @@ export default function MainLayout() {
   const navItems = [
     { to: "/", label: "Dashboard", hint: "Visão geral" },
     { to: monthsLink, label: "Meus meses", hint: currentUserId ? "Fluxo principal" : "Escolha um usuário" },
-    { to: "/families", label: "Famílias", hint: "Compatibilidade legada" },
   ];
 
   return (
