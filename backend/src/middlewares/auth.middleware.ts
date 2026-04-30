@@ -1,27 +1,23 @@
 import { Request, Response, NextFunction } from "express"
-import jwt from "jsonwebtoken"
+import { AuthService } from "../services/auth.service"
+import { ACCESS_TOKEN_COOKIE_NAME } from "../config/auth.config"
+import { extractRequestContext } from "../utils/request-context"
 
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET
-  if (!secret) throw new Error("JWT_SECRET is not configured")
-  return secret
-}
+const authService = new AuthService()
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization
+export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const accessToken = req.cookies?.[ACCESS_TOKEN_COOKIE_NAME]
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Missing or invalid authorization header" })
+  if (!accessToken) {
+    res.status(401).json({ error: "Missing authentication cookie" })
     return
   }
 
-  const token = authHeader.slice(7)
-
   try {
-    const payload = jwt.verify(token, getJwtSecret()) as { id: string; email: string }
-    req.user = { id: payload.id, email: payload.email }
+    const payload = await authService.authenticateAccessToken(accessToken, extractRequestContext(req))
+    req.user = { id: payload.id, email: payload.email, sessionId: payload.sessionId }
     next()
-  } catch {
-    res.status(401).json({ error: "Invalid or expired token" })
+  } catch (error) {
+    res.status(401).json({ error: error instanceof Error ? error.message : "Invalid or expired token" })
   }
 }

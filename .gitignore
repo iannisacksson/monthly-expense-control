@@ -26,3 +26,4 @@ lerna-debug.log*
 
 .vscode/*
 !.vscode/extensions.json
+next-steps.md

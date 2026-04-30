@@ -10,6 +10,8 @@ import { InstallmentGroup } from "./installment-group.model"
 import { RecurringExpense } from "./recurring-expense.model"
 import { BudgetRule } from "./budget-rule.model"
 import { BudgetAllocation } from "./budget-allocation.model"
+import { AuthSession } from "./auth-session.model"
+import { AuthAuditLog } from "./auth-audit-log.model"
 
 // User -> Month
 User.hasMany(Month, { foreignKey: "user_id" })
@@ -95,6 +97,18 @@ BudgetAllocation.belongsTo(BudgetRule, { foreignKey: "budget_rule_id" })
 Category.hasMany(BudgetAllocation, { foreignKey: "category_id" })
 BudgetAllocation.belongsTo(Category, { foreignKey: "category_id" })
 
+// User -> AuthSession
+User.hasMany(AuthSession, { foreignKey: "user_id" })
+AuthSession.belongsTo(User, { foreignKey: "user_id" })
+
+// User -> AuthAuditLog
+User.hasMany(AuthAuditLog, { foreignKey: "user_id" })
+AuthAuditLog.belongsTo(User, { foreignKey: "user_id" })
+
+// AuthSession -> AuthAuditLog
+AuthSession.hasMany(AuthAuditLog, { foreignKey: "session_id" })
+AuthAuditLog.belongsTo(AuthSession, { foreignKey: "session_id" })
+
 export {
   User,
   Month,
@@ -107,5 +121,7 @@ export {
   InstallmentGroup,
   RecurringExpense,
   BudgetRule,
-  BudgetAllocation
+  BudgetAllocation,
+  AuthSession,
+  AuthAuditLog
 }
