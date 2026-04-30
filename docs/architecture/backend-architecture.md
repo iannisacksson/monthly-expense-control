@@ -37,41 +37,93 @@ Language: TypeScript
 Framework: Express
 ORM: Sequelize
 Database: PostgreSQL
-Authentication: JWT Bearer Token (jsonwebtoken)
+Authentication: short-lived JWT access token in HttpOnly cookie + rotating refresh session
 Password hashing: bcrypt (12 rounds)
 Environment config: dotenv
+Security middleware: cookie-parser, helmet, express-rate-limit, cors
 
 
 ---
 
 # Authentication Architecture
 
-The backend uses stateless JWT Bearer Token authentication.
+The backend uses cookie-based authentication with server-tracked sessions.
 
-## Token lifecycle
+## Session lifecycle
 
 1. User registers via `POST /api/v1/auth/register`.
 2. User logs in via `POST /api/v1/auth/login`.
-3. The server signs a JWT with payload `{ id, email }` using `JWT_SECRET`.
-4. The client stores the token and sends it on every subsequent request as:
+3. The backend validates credentials, creates an `auth_sessions` record, hashes and stores the refresh token, and signs a short-lived JWT access token with payload `{ id, email, sessionId }`.
+4. The backend returns the authenticated user in the response body and sets two HttpOnly cookies:
 
-```
-Authorization: Bearer <token>
+```text
+fc_access_token   -> short-lived JWT access token
+fc_refresh_token  -> rotating opaque refresh token
 ```
 
-5. Protected routes validate the token through `authMiddleware`.
-6. `req.user` is populated with `{ id, email }` from the verified token payload.
-7. Controllers and services use `req.user.id` to resolve the authenticated user. User identity is never trusted from request bodies.
+5. The frontend sends requests with `withCredentials: true`; it does not store tokens in localStorage.
+6. Protected routes validate the access token through `authMiddleware` and confirm that the referenced session still exists and is not revoked.
+7. When the access token expires, the client refreshes the session through `POST /api/v1/auth/refresh`, which rotates the refresh token and issues a new access token cookie.
+8. `req.user` is populated with `{ id, email, sessionId }` from the verified access token.
+9. Controllers and services use `req.user.id` to resolve the authenticated user. User identity is never trusted from request bodies.
+
+## Session persistence
+
+Authenticated sessions are persisted in `auth_sessions`.
+
+Each session stores:
+
+- `user_id`
+- `refresh_token_hash`
+- `refresh_expires_at`
+- `revoked_at`
+- request metadata such as IP and user agent
+
+This enables:
+
+- rotating refresh tokens
+- multi-session support per user
+- immediate revocation on logout
+- server-side invalidation for expired or revoked sessions
+
+## Audit trail
+
+Authentication events are stored in `auth_audit_logs`.
+
+Current events include:
+
+- `login_succeeded`
+- `login_failed`
+- `refresh_succeeded`
+- `refresh_failed`
+- `logout_succeeded`
+- `session_invalid`
+
+These records capture the user, session, email when available, IP address, user agent, and optional metadata.
 
 ## Middleware
 
 `src/middlewares/auth.middleware.ts`
 
-Verifies the JWT. Populates `req.user`. Returns 401 if the token is missing, invalid, or expired.
+Reads the access token from the HttpOnly cookie, verifies the JWT, confirms the referenced session is active, and populates `req.user`. Returns 401 if the cookie is missing, the token is invalid, or the session is expired/revoked.
 
 The middleware is applied **globally** in `src/routes/index.ts` immediately after the public `/auth` and `/health` routes, protecting all resource routes without requiring per-route decoration.
 
-Public routes (register, login, health) are registered before the global `router.use(authMiddleware)` call.
+Public routes (`register`, `login`, `refresh`, `logout`, `health`) are registered before the global `router.use(authMiddleware)` call.
+
+## Security controls
+
+The backend currently applies these HTTP security measures:
+
+- `cors` with credentials support and environment-aware origin policy
+- `helmet` for baseline security headers
+- `express-rate-limit` on login and refresh endpoints
+- `cookie-parser` for HttpOnly cookie handling
+
+Current environment policy:
+
+- development: allow any origin dynamically while supporting credentialed requests
+- production: allow only origins listed in environment configuration
 
 ## Ownership Enforcement
 
@@ -116,8 +168,17 @@ All service methods that operate on a single resource accept `requestingUserId: 
 
 | variable | purpose |
 |----------|---------|
-| JWT_SECRET | signing secret (required, no default) |
-| JWT_EXPIRES_IN | token lifespan (optional, defaults to 7d) |
+| ACCESS_TOKEN_SECRET | signing secret for the access JWT (required; `JWT_SECRET` remains legacy fallback only) |
+| ACCESS_TOKEN_TTL_MINUTES | access token lifetime in minutes (optional, defaults to 15) |
+| REFRESH_TOKEN_TTL_DAYS | refresh session lifetime in days (optional, defaults to 30) |
+| ACCESS_TOKEN_COOKIE_NAME | access token cookie name (optional, defaults to `fc_access_token`) |
+| REFRESH_TOKEN_COOKIE_NAME | refresh token cookie name (optional, defaults to `fc_refresh_token`) |
+| COOKIE_DOMAIN | optional cookie domain for deployed environments |
+| FRONTEND_ORIGIN | single allowed frontend origin; usable as production allowlist input |
+| CORS_ALLOWED_ORIGINS | comma-separated allowed origins for production |
+| TRUST_PROXY | reverse proxy setting for Express/rate limiting |
+| AUTH_LOGIN_RATE_LIMIT_MAX | max login attempts per rate-limit window (optional, defaults to 5) |
+| AUTH_REFRESH_RATE_LIMIT_MAX | max refresh attempts per rate-limit window (optional, defaults to 20) |
 
 ---
 
@@ -204,7 +265,8 @@ src/
 │ └ expense.repository.ts
 │
 ├ models
-│ └ expense.model.ts
+│ ├ expense.model.ts
+│ └ auth-session.model.ts
 │
 ├ routes
 │ └ expense.routes.ts
@@ -213,14 +275,21 @@ src/
 │ └ create-expense.dto.ts
 │
 ├ middlewares
+│ ├ auth.middleware.ts
+│ └ rate-limit.middleware.ts
 │
 ├ config
+│ ├ auth.config.ts
+│ └ security.config.ts
 │
 ├ database
 │ ├ connection.ts
 │ └ migrations
+│    └ 20260430000034-create-auth-sessions.js
 │
 └ utils
+  ├ auth-cookies.ts
+  └ request-context.ts
 
 
 ---

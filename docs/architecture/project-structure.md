@@ -64,6 +64,8 @@ backend/
 │ ├ app.ts
 │ ├ server.ts
 │ ├ config/
+│ │ ├ auth.config.ts
+│ │ └ security.config.ts
 │ ├ controllers/
 │ ├ database/
 │ ├ dtos/
@@ -72,6 +74,7 @@ backend/
 │ ├ repositories/
 │ ├ routes/
 │ ├ services/
+│ ├ types/
 │ └ utils/
 └ dist/
 ```
@@ -118,6 +121,8 @@ Responsibilities:
 - interact with Sequelize models
 - isolate persistence concerns from services
 
+Security-related persistence such as authenticated sessions and auth audit logs also belongs here.
+
 ### models
 
 Location: `backend/src/models`
@@ -125,6 +130,8 @@ Location: `backend/src/models`
 Purpose: define Sequelize models representing database tables only.
 
 Models must follow `docs/architecture/database-model.md` and must not contain business logic.
+
+Examples now include domain tables plus security tables such as `auth_sessions` and `auth_audit_logs`.
 
 ### routes
 
@@ -150,17 +157,23 @@ Location: `backend/src/config`
 
 Purpose: application and infrastructure configuration.
 
+Examples include auth cookie/session configuration and HTTP security configuration.
+
 ### middlewares
 
 Location: `backend/src/middlewares`
 
 Purpose: Express middleware functions.
 
+Examples include authentication, rate limiting, and other HTTP boundary protections.
+
 ### utils
 
 Location: `backend/src/utils`
 
 Purpose: small shared utilities that do not belong to a domain service.
+
+Examples include request metadata extraction and auth cookie helpers.
 
 ---
 

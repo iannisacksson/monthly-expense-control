@@ -63,15 +63,24 @@ During migration, temporary compatibility endpoints may exist, but new endpoints
 
 Authentication:
 
-All endpoints except `/auth/register`, `/auth/login`, and `/health` require a valid JWT Bearer token.
+All endpoints except `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`, and `/health` require a valid authenticated session.
 
-The token must be sent in the `Authorization` header:
+Authenticated browser requests rely on HttpOnly cookies set by the backend.
 
-Authorization: Bearer <token>
+The frontend must call the API with credentials enabled.
+
+The active authentication cookies are:
+
+```text
+fc_access_token   -> short-lived access token cookie
+fc_refresh_token  -> rotating refresh token cookie
+```
+
+The API no longer accepts `Authorization: Bearer <token>` as the primary authentication contract.
 
 The `authMiddleware` is applied globally in `routes/index.ts` to all resource routes after the public `/auth` and `/health` routes.
 
-The authenticated user identity is always sourced from the token. Clients must not send `user_id` in request bodies for identity resolution.
+The authenticated user identity is always sourced from the verified access cookie and server-side session. Clients must not send `user_id` in request bodies for identity resolution.
 
 ## Cross-User Access Protection
 
@@ -118,7 +127,7 @@ GET /api/v1/health
 
 # Resource: Auth
 
-Public endpoints for registration and login. No token required.
+Authentication uses secure cookies plus explicit refresh/logout endpoints. Registration and login are public. Refresh and logout are auth-adjacent endpoints that use cookies rather than JSON tokens in the request body.
 
 ## Register
 
@@ -155,7 +164,6 @@ POST /api/v1/auth/login
 ### Response (200)
 
 {
-  "token": "<jwt>",
   "user": {
     "id": "uuid",
     "name": "Maria Silva",
@@ -163,11 +171,54 @@ POST /api/v1/auth/login
   }
 }
 
+Response headers also set:
+
+- `Set-Cookie: fc_access_token=...; HttpOnly; Secure?; SameSite=Lax`
+- `Set-Cookie: fc_refresh_token=...; HttpOnly; Secure?; SameSite=Lax`
+
+Rate limit note:
+
+- login attempts are rate limited per client IP
+
+## Refresh Session
+
+POST /api/v1/auth/refresh
+
+Requires: valid `fc_refresh_token` cookie
+
+### Response (200)
+
+{
+  "user": {
+    "id": "uuid",
+    "name": "Maria Silva",
+    "email": "maria@example.com"
+  }
+}
+
+Response headers rotate both auth cookies.
+
+Rate limit note:
+
+- refresh attempts are rate limited per client IP
+
+## Logout
+
+POST /api/v1/auth/logout
+
+The backend clears auth cookies. When a valid refresh cookie is present, the current session is revoked server-side.
+
+### Response (200)
+
+{
+  "success": true
+}
+
 ## Get Authenticated Profile
 
 GET /api/v1/auth/me
 
-Requires: Authorization: Bearer <token>
+Requires: valid `fc_access_token` cookie
 
 ### Response (200)
 
@@ -185,7 +236,7 @@ Note: `password_hash` is never returned in any response.
 
 PUT /api/v1/auth/me
 
-Requires: Authorization: Bearer <token>
+Requires: valid `fc_access_token` cookie
 
 ### Request (all fields optional)
 
@@ -203,13 +254,17 @@ Full updated user object (without password_hash).
 
 DELETE /api/v1/auth/me
 
-Requires: Authorization: Bearer <token>
+Requires: valid `fc_access_token` cookie
 
 ### Response (200)
 
 {
   "success": true
 }
+
+Implementation note:
+
+- deleting the authenticated account revokes all active sessions for that user before removing the account
 
 ---
 

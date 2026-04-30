@@ -38,6 +38,56 @@ user.dto.ts
 expense.dto.ts
 monthly-income.dto.ts
 
+---
+
+# Auth DTOs
+
+## RegisterDTO
+
+
+name: string
+email: string
+password: string
+
+
+## LoginDTO
+
+
+email: string
+password: string
+
+
+## LoginResponseDTO
+
+
+user: {
+	id: string
+	name: string
+	email: string
+}
+
+
+## RefreshResponseDTO
+
+
+user: {
+	id: string
+	name: string
+	email: string
+}
+
+
+## LogoutResponseDTO
+
+
+success: boolean
+
+
+Auth token transport note:
+
+- authentication tokens are set by the backend via HttpOnly cookies
+- token values are not returned in JSON response bodies
+
 
 ---
 

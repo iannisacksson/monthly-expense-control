@@ -2,11 +2,15 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-005
 
 ## Date
 
 2025-04
+
+## Superseded Date
+
+2026-04-30
 
 ---
 
