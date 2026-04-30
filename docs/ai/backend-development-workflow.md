@@ -28,6 +28,8 @@ Backend development should follow these steps:
 7. Generate or update service
 8. Generate or update controller and routes
 9. Validate against API specification and documentation sync rules
+10. Add or update automated tests
+11. Run backend quality gates
 
 Each step references specific documentation.
 
@@ -281,6 +283,39 @@ Review the generated code and ensure it follows the architecture and validation 
 
 ---
 
+# Step 11 — Add or Update Automated Tests
+
+Automated backend tests are mandatory for:
+
+- every new backend feature
+- every backend bug fix
+- every backend behavior-changing refactor
+
+AI assistants must add or update tests that exercise the affected behavior using the real backend contract whenever practical.
+
+Minimum expectation:
+
+- prefer integration coverage for critical HTTP and domain flows
+- do not rely on mock-only tests when real repository and database behavior is part of the risk
+- keep test setup reproducible and documented
+
+If a backend change does not update tests for the affected behavior, the task is incomplete.
+
+---
+
+# Step 12 — Run Backend Quality Gates
+
+Before considering a backend task complete, AI assistants must run the available quality gates for the affected scope.
+
+Current minimum backend gates:
+
+- backend build
+- backend automated tests
+
+If documentation, setup, or CI changes are included, the related docs must be updated in the same task.
+
+---
+
 # Example Workflow for a New Resource
 
 Example: Implement Expense feature.
@@ -295,6 +330,8 @@ Workflow:
 6. Generate or update ExpenseService
 7. Generate or update ExpenseController and routes
 8. Validate against api-spec.md and documentation consistency
+9. Add or update automated tests
+10. Run backend quality gates
 
 ---
 
@@ -307,6 +344,7 @@ When generating backend features, AI assistants must:
 3. ensure generated code respects architecture rules
 4. review the existing codebase before editing behavior
 5. update documentation before or alongside code when a mismatch is found
+6. add or update automated tests for every backend feature, bug fix, or behavior-changing refactor
 
 AI tools should not skip workflow steps.
 

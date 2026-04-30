@@ -6,6 +6,8 @@ dist-ssr/
 **/dist-ssr/
 
 .env
+.env.test
+**/.env.test
 *.local
 
 logs

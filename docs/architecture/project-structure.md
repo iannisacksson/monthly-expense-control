@@ -49,6 +49,13 @@ Current root scripts live in the root `package.json` and include:
 - `npm run build:backend`
 - `npm run build:frontend`
 - `npm run lint:frontend`
+- `npm run test:backend`
+- `npm run verify:backend`
+
+Repository automation now also includes:
+
+- `.github/workflows/backend-quality.yml` for backend CI
+- `docker-compose.test.yml` for local PostgreSQL test setup
 
 ---
 
@@ -59,7 +66,11 @@ The backend application lives in `backend/`.
 ```text
 backend/
 ├ package.json
+├ README.md
+├ .env.test.example
+├ Dockerfile
 ├ tsconfig.json
+├ tests/
 ├ src/
 │ ├ app.ts
 │ ├ server.ts
@@ -151,6 +162,8 @@ Location: `backend/src/database`
 
 Purpose: database connection, migrations, and persistence bootstrap.
 
+For test execution, migrations are applied to a dedicated PostgreSQL test database before running the backend integration suite.
+
 ### config
 
 Location: `backend/src/config`
@@ -174,6 +187,18 @@ Location: `backend/src/utils`
 Purpose: small shared utilities that do not belong to a domain service.
 
 Examples include request metadata extraction and auth cookie helpers.
+
+### tests
+
+Location: `backend/tests`
+
+Purpose: backend automated quality gate.
+
+Responsibilities:
+
+- integration tests for critical HTTP and domain flows
+- shared setup for the PostgreSQL test database
+- reusable helpers for authenticated request flows
 
 ---
 

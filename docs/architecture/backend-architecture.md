@@ -11,6 +11,7 @@ It describes:
 - folder structure
 - code responsibilities
 - backend design patterns
+- backend quality gates
 
 This document serves two main purposes:
 
@@ -41,6 +42,7 @@ Authentication: short-lived JWT access token in HttpOnly cookie + rotating refre
 Password hashing: bcrypt (12 rounds)
 Environment config: dotenv
 Security middleware: cookie-parser, helmet, express-rate-limit, cors
+Backend automated testing: Vitest + Supertest + PostgreSQL test database
 
 
 ---
@@ -200,6 +202,29 @@ Responsibilities are strictly separated.
 
 ---
 
+# Backend Quality Gates
+
+Backend changes must satisfy an executable quality gate.
+
+Current baseline:
+
+- backend build must pass
+- backend automated tests must pass
+- critical HTTP and domain flows are covered through integration tests
+- CI must run backend build plus backend tests against PostgreSQL
+
+Mandatory rule:
+
+- every new backend feature
+- every backend bug fix
+- every backend behavior-changing refactor
+
+must add or update automated backend tests for the affected behavior.
+
+Changes without automated coverage for the affected backend behavior are incomplete.
+
+---
+
 # Request Flow
 
 Typical request lifecycle:
@@ -248,6 +273,7 @@ dtos
 middlewares
 config
 database
+tests
 utils
 
 
