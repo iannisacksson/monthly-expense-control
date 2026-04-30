@@ -16,6 +16,11 @@ export const authService = {
     return data;
   },
 
+  async logout(): Promise<ApiSuccessResponse> {
+    const { data } = await httpClient.post<ApiSuccessResponse>("/auth/logout");
+    return data;
+  },
+
   async getMe(): Promise<User> {
     const { data } = await httpClient.get<User>("/auth/me");
     return data;

@@ -1,27 +1,37 @@
 import axios from "axios";
+import { useAuthStore } from "../store";
 
 const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-httpClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 httpClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+    const originalRequest = error.config as typeof error.config & { _retry?: boolean };
+    const requestUrl = originalRequest?.url ?? "";
+    const isAuthBoundaryRequest = requestUrl.includes("/auth/login")
+      || requestUrl.includes("/auth/register")
+      || requestUrl.includes("/auth/refresh");
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthBoundaryRequest) {
+      originalRequest._retry = true;
+
+      return httpClient.post("/auth/refresh")
+        .then(() => httpClient(originalRequest))
+        .catch((refreshError) => {
+          useAuthStore.getState().clearSession();
+          if (window.location.pathname !== "/login") {
+            window.location.href = "/login";
+          }
+          return Promise.reject(refreshError);
+        });
     }
+
     return Promise.reject(error);
   }
 );

@@ -1,10 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services";
 import { useAuthStore } from "../store";
 import type { LoginDTO, RegisterDTO, UpdateProfileDTO } from "../types";
 
 const ME_KEY = ["auth", "me"] as const;
+
+export function useBootstrapAuth() {
+  const finishHydration = useAuthStore((state) => state.finishHydration);
+  const query = useQuery({
+    queryKey: ME_KEY,
+    queryFn: authService.getMe,
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      finishHydration({ id: query.data.id, name: query.data.name, email: query.data.email });
+      return;
+    }
+
+    if (query.isError) {
+      finishHydration(null);
+    }
+  }, [finishHydration, query.data, query.isError, query.isSuccess]);
+
+  return query;
+}
 
 export function useMe() {
   const { isAuthenticated } = useAuthStore();
@@ -17,13 +42,13 @@ export function useMe() {
 }
 
 export function useLogin() {
-  const { login } = useAuthStore();
+  const { setSession } = useAuthStore();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: LoginDTO) => authService.login(dto),
     onSuccess: (data) => {
-      login(data.token, data.user);
-      queryClient.invalidateQueries({ queryKey: ME_KEY });
+      setSession(data.user);
+      queryClient.setQueryData(ME_KEY, data.user);
     },
   });
 }
@@ -35,13 +60,20 @@ export function useRegister() {
 }
 
 export function useLogout() {
-  const { logout } = useAuthStore();
+  const { clearSession } = useAuthStore();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const mutation = useMutation({
+    mutationFn: () => authService.logout(),
+    onSettled: () => {
+      clearSession();
+      queryClient.clear();
+      navigate("/login");
+    },
+  });
+
   return () => {
-    logout();
-    queryClient.clear();
-    navigate("/login");
+    mutation.mutate();
   };
 }
 
@@ -58,13 +90,13 @@ export function useUpdateMe() {
 }
 
 export function useDeleteMe() {
-  const { logout } = useAuthStore();
+  const { clearSession } = useAuthStore();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   return useMutation({
     mutationFn: () => authService.deleteMe(),
     onSuccess: () => {
-      logout();
+      clearSession();
       queryClient.clear();
       navigate("/login");
     },
