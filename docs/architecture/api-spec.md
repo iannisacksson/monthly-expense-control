@@ -113,15 +113,91 @@ Current implementation note:
 
 ---
 
-# Health Check Endpoint
+# Operational Endpoints
+
+The operational surface is public and intended for runtime verification and metrics scraping.
+
+## Aggregate Health
 
 GET /api/v1/health
 
-### Response
+### Response (200)
 
 {
-  "status": "ok"
+  "status": "ok",
+  "timestamp": "2026-04-30T00:00:00.000Z",
+  "uptimeSeconds": 123.45,
+  "checks": {
+    "database": {
+      "status": "ok",
+      "latencyMs": 4.21
+    }
+  }
 }
+
+### Response (503)
+
+{
+  "status": "degraded",
+  "timestamp": "2026-04-30T00:00:00.000Z",
+  "uptimeSeconds": 123.45,
+  "checks": {
+    "database": {
+      "status": "error",
+      "error": "Database readiness check failed"
+    }
+  }
+}
+
+## Liveness
+
+GET /api/v1/live
+
+### Response (200)
+
+{
+  "status": "ok",
+  "uptimeSeconds": 123.45,
+  "timestamp": "2026-04-30T00:00:00.000Z"
+}
+
+## Readiness
+
+GET /api/v1/ready
+
+### Response (200)
+
+{
+  "status": "ok",
+  "timestamp": "2026-04-30T00:00:00.000Z",
+  "checks": {
+    "database": {
+      "status": "ok",
+      "latencyMs": 4.21
+    }
+  }
+}
+
+### Response (503)
+
+{
+  "status": "degraded",
+  "timestamp": "2026-04-30T00:00:00.000Z",
+  "checks": {
+    "database": {
+      "status": "error",
+      "error": "Database readiness check failed"
+    }
+  }
+}
+
+## Metrics
+
+GET /api/v1/metrics
+
+### Response (200)
+
+Prometheus/OpenMetrics text exposition format.
 
 ---
 

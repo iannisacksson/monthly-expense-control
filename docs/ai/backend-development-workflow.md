@@ -314,6 +314,8 @@ Current minimum backend gates:
 
 If documentation, setup, or CI changes are included, the related docs must be updated in the same task.
 
+If the backend change affects logging, metrics, health checks, readiness, or other operational behavior, update the operational docs and README in the same task.
+
 ---
 
 # Example Workflow for a New Resource
@@ -358,6 +360,7 @@ Before changing backend code, AI assistants must:
 
 - review the relevant documentation first
 - inspect the current implementation second
+- update operational documentation and ADRs alongside the code when runtime behavior or observability changes
 - compare both sources before editing
 
 If documentation and implementation differ, the task must include one of these outcomes:

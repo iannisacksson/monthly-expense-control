@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import authRoutes from "./auth.routes"
+import { getHealth, getLiveness, getMetrics, getReadiness } from "../controllers/operational.controller"
 import userRoutes from "./user.routes"
 import monthRoutes from "./month.routes"
 import monthlyIncomeRoutes from "./monthly-income.routes"
@@ -15,9 +16,10 @@ import budgetRoutes from "./budget.routes"
 
 const router = Router()
 
-router.get("/health", (req, res) => {
-  res.json({ status: "ok" })
-})
+router.get("/health", getHealth)
+router.get("/live", getLiveness)
+router.get("/ready", getReadiness)
+router.get("/metrics", getMetrics)
 
 router.use("/auth", authRoutes)
 

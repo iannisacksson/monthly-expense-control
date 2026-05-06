@@ -6,9 +6,10 @@ dotenv.config({
 })
 
 import app from "./app"
+import { logger } from "./utils/logger"
 
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  logger.info({ port: Number(PORT), env: process.env.NODE_ENV ?? "development" }, "server_started")
 })

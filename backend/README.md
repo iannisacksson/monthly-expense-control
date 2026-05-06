@@ -80,6 +80,33 @@ docker build -f backend/Dockerfile .
 
 This image builds the backend workspace and runs `node dist/server.js`.
 
+## Operational observability
+
+The backend exposes a minimal operational surface for production readiness.
+
+### Structured logging
+
+- all backend operational logs use the shared Pino logger in `src/utils/logger.ts`
+- each request receives an `x-request-id` response header and a matching structured completion log
+- cookies, tokens, and password-like fields are redacted from log output
+
+### Operational endpoints
+
+- `GET /api/v1/live` — process liveness
+- `GET /api/v1/ready` — readiness including database connectivity
+- `GET /api/v1/health` — aggregate operational summary
+- `GET /api/v1/metrics` — Prometheus/OpenMetrics metrics output
+
+### Environment variables
+
+- `APP_NAME` — optional service name override for logs and metrics labels
+- `LOG_LEVEL` — optional log level override
+- `METRICS_ENABLED` — set to `false` to disable Prometheus metrics collection
+
+### Operations guide
+
+See `docs/architecture/backend-operations.md` for logging, metrics, backup/restore guidance, retention considerations, and incident response baseline.
+
 ## Notes
 
 - keep `.env.test` local only; do not commit secrets

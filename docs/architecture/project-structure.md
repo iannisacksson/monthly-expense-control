@@ -67,6 +67,7 @@ The backend application lives in `backend/`.
 backend/
 ├ package.json
 ├ README.md
+├ .env.example
 ├ .env.test.example
 ├ Dockerfile
 ├ tsconfig.json
@@ -76,6 +77,7 @@ backend/
 │ ├ server.ts
 │ ├ config/
 │ │ ├ auth.config.ts
+│ │ ├ observability.config.ts
 │ │ └ security.config.ts
 │ ├ controllers/
 │ ├ database/
@@ -172,6 +174,8 @@ Purpose: application and infrastructure configuration.
 
 Examples include auth cookie/session configuration and HTTP security configuration.
 
+Operational observability configuration such as application name, log level, and metrics toggles also belongs here.
+
 ### middlewares
 
 Location: `backend/src/middlewares`
@@ -180,6 +184,8 @@ Purpose: Express middleware functions.
 
 Examples include authentication, rate limiting, and other HTTP boundary protections.
 
+Operational middleware such as request logging and centralized error handling belongs here as well.
+
 ### utils
 
 Location: `backend/src/utils`
@@ -187,6 +193,8 @@ Location: `backend/src/utils`
 Purpose: small shared utilities that do not belong to a domain service.
 
 Examples include request metadata extraction and auth cookie helpers.
+
+Shared operational utilities such as the backend logger and Prometheus metrics registry also live here.
 
 ### tests
 
@@ -199,6 +207,8 @@ Responsibilities:
 - integration tests for critical HTTP and domain flows
 - shared setup for the PostgreSQL test database
 - reusable helpers for authenticated request flows
+
+Operational endpoints should also receive focused automated coverage when the observability surface changes.
 
 ---
 

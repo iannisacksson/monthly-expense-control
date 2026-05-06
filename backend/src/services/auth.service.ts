@@ -8,6 +8,7 @@ import { UserService } from "./user.service"
 import { RegisterDTO, LoginDTO, UpdateProfileDTO } from "../dtos/auth.dto"
 import { getAccessTokenSecret, getAccessTokenTtlMinutes, getRefreshTokenTtlDays, type AccessTokenPayload } from "../config/auth.config"
 import type { AuthRequestContext } from "../utils/request-context"
+import { logger } from "../utils/logger"
 
 const BCRYPT_ROUNDS = 12
 
@@ -86,7 +87,16 @@ export class AuthService {
         metadata: details.metadata ?? null,
       })
     } catch (error) {
-      console.error("Failed to persist auth audit log", error)
+      logger.error(
+        {
+          err: error,
+          eventType,
+          userId: details.userId ?? null,
+          sessionId: details.sessionId ?? null,
+          email: details.email ?? null,
+        },
+        "auth_audit_log_persist_failed"
+      )
     }
   }
 

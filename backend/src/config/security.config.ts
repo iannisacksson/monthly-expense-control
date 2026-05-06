@@ -1,5 +1,6 @@
 import type { CorsOptions } from "cors"
 import type { HelmetOptions } from "helmet"
+import { ForbiddenError } from "../utils/errors"
 
 function parseAllowedOrigins(): string[] {
   const explicitOrigins = process.env.CORS_ALLOWED_ORIGINS
@@ -47,7 +48,7 @@ export function buildCorsOptions(): CorsOptions {
         return
       }
 
-      callback(new Error("Origin not allowed by CORS"))
+      callback(new ForbiddenError("Origin not allowed by CORS"))
     },
   }
 }

@@ -107,11 +107,11 @@ These records capture the user, session, email when available, IP address, user 
 
 `src/middlewares/auth.middleware.ts`
 
-Reads the access token from the HttpOnly cookie, verifies the JWT, confirms the referenced session is active, and populates `req.user`. Returns 401 if the cookie is missing, the token is invalid, or the session is expired/revoked.
+Reads the access token from the HttpOnly cookie, verifies the JWT, confirms the referenced session is active, and populates `req.user`. Missing or invalid auth cookies are forwarded to the centralized error handler as `401 Unauthorized` responses.
 
-The middleware is applied **globally** in `src/routes/index.ts` immediately after the public `/auth` and `/health` routes, protecting all resource routes without requiring per-route decoration.
+The middleware is applied **globally** in `src/routes/index.ts` immediately after the public auth and operational routes, protecting all resource routes without requiring per-route decoration.
 
-Public routes (`register`, `login`, `refresh`, `logout`, `health`) are registered before the global `router.use(authMiddleware)` call.
+Public routes (`register`, `login`, `refresh`, `logout`, `health`, `live`, `ready`, `metrics`) are registered before the global `router.use(authMiddleware)` call.
 
 ## Security controls
 
@@ -181,6 +181,43 @@ All service methods that operate on a single resource accept `requestingUserId: 
 | TRUST_PROXY | reverse proxy setting for Express/rate limiting |
 | AUTH_LOGIN_RATE_LIMIT_MAX | max login attempts per rate-limit window (optional, defaults to 5) |
 | AUTH_REFRESH_RATE_LIMIT_MAX | max refresh attempts per rate-limit window (optional, defaults to 20) |
+| APP_NAME | logical service name used in structured logs and metrics labels |
+| LOG_LEVEL | backend log level override (`silent`, `error`, `warn`, `info`, `debug`) |
+| METRICS_ENABLED | enables Prometheus metrics collection when not set to `false` |
+
+## Operational observability baseline
+
+The backend now includes a minimal operational layer for production readiness.
+
+### Structured logging
+
+- `src/utils/logger.ts` provides the shared Pino logger
+- startup and operational failures log structured JSON events instead of raw `console.log`
+- `src/middlewares/request-logger.middleware.ts` emits one completion log per request
+- request logs include `requestId`, method, route, status code, and duration
+- sensitive fields such as cookies, tokens, and password values are redacted before output
+
+### Error handling
+
+- `src/middlewares/error-handler.middleware.ts` is the centralized fallback for HTTP boundary failures
+- middleware-originated failures such as auth and CORS errors are normalized before response
+- unexpected errors return `HTTP 500` with `{ "error": "Internal server error" }`
+
+### Operational endpoints
+
+- `GET /api/v1/live` verifies process liveness
+- `GET /api/v1/ready` verifies application readiness, including database connectivity
+- `GET /api/v1/health` returns an aggregate operational summary
+- `GET /api/v1/metrics` exposes Prometheus/OpenMetrics text metrics
+
+The readiness flow is implemented in `src/services/operational.service.ts` and uses the configured Sequelize connection to validate database availability.
+
+### Metrics
+
+- `src/utils/metrics.ts` owns the Prometheus registry and default process metrics
+- HTTP request count and duration are captured centrally in the request logging middleware
+
+Operational documentation for logging, health checks, metrics, backup guidance, retention, and incident response lives in `docs/architecture/backend-operations.md`.
 
 ---
 
