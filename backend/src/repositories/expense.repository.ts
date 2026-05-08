@@ -10,6 +10,8 @@ export class ExpenseRepository {
     responsible_user_id?: string
     installment_group_id?: string
     recurring_expense_id?: string
+    expense_kind?: string
+    planned_amount?: number
     is_paid?: boolean
     description: string
     value: number
@@ -25,6 +27,10 @@ export class ExpenseRepository {
 
   async findByMonthId(monthId: string) {
     return Expense.findAll({ where: { month_id: monthId } })
+  }
+
+  async findByMonthIdAndKind(monthId: string, expenseKind: string) {
+    return Expense.findAll({ where: { month_id: monthId, expense_kind: expenseKind } })
   }
 
   async findByIds(ids: string[]) {
@@ -57,6 +63,8 @@ export class ExpenseRepository {
     paid_by: string
     responsible_user_id: string
     recurring_expense_id: string
+    expense_kind: string
+    planned_amount: number | null
     is_paid: boolean
     description: string
     value: number

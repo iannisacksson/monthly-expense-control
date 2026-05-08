@@ -5,6 +5,8 @@ export class RecurringExpenseRepository {
     user_id?: string
     description: string
     value: number
+    expense_kind?: string
+    planned_amount?: number | null
     category_id: string
     subcategory_id?: string
     paid_by?: string
@@ -27,6 +29,8 @@ export class RecurringExpenseRepository {
   async update(id: string, data: Partial<{
     description: string
     value: number
+    expense_kind: string
+    planned_amount: number | null
     category_id: string
     subcategory_id: string
     paid_by: string

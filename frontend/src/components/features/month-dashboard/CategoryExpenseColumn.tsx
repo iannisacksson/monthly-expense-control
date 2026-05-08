@@ -6,8 +6,7 @@ import { formatCurrencyBRL } from "../../../utils/currency";
 interface CategoryExpenseColumnProps {
   title: string;
   headerColor: string;
-  categoryId?: string;
-  expenses: MonthExpenseListItem[];
+  items: MonthExpenseListItem[];
   defaultExpanded?: boolean;
   selectedExpenseIds?: string[];
   onToggleSelection?: (expenseId: string) => void;
@@ -15,12 +14,25 @@ interface CategoryExpenseColumnProps {
   onEdit: (expense: Expense) => void;
   onDelete: (id: string) => void;
   onTogglePaid: (expense: Expense) => void;
+  onOpenEnvelopeItems: (expense: Expense) => void;
 }
 
-export default function CategoryExpenseColumn({ title, headerColor, expenses, defaultExpanded = false, selectedExpenseIds = [], onToggleSelection, onAdd, onEdit, onDelete, onTogglePaid }: CategoryExpenseColumnProps) {
-  const total = expenses.reduce((s, e) => s + Number(e.value), 0);
+export default function CategoryExpenseColumn({
+  title,
+  headerColor,
+  items,
+  defaultExpanded = false,
+  selectedExpenseIds = [],
+  onToggleSelection,
+  onAdd,
+  onEdit,
+  onDelete,
+  onTogglePaid,
+  onOpenEnvelopeItems,
+}: CategoryExpenseColumnProps) {
+  const total = items.reduce((sum, item) => sum + Number(item.value), 0);
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const [activeExpenseId, setActiveExpenseId] = useState<string | null>(null);
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
 
   const getInstallmentLabel = (expense: MonthExpenseListItem) => {
     if (!expense.installment_group_id) {
@@ -40,7 +52,7 @@ export default function CategoryExpenseColumn({ title, headerColor, expenses, de
   const toggleExpanded = () => {
     setIsExpanded((current) => !current);
     if (isExpanded) {
-      setActiveExpenseId(null);
+      setActiveItemId(null);
     }
   };
 
@@ -56,7 +68,7 @@ export default function CategoryExpenseColumn({ title, headerColor, expenses, de
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2 }}>{title}</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6, fontSize: 12, opacity: 0.92 }}>
-              <span>{expenses.length} {expenses.length === 1 ? "lançamento" : "lançamentos"}</span>
+              <span>{items.length} {items.length === 1 ? "registro" : "registros"}</span>
               <span>{formatCurrencyBRL(total)}</span>
             </div>
           </div>
@@ -74,18 +86,25 @@ export default function CategoryExpenseColumn({ title, headerColor, expenses, de
 
       {isExpanded && (
         <div style={{ background: "#fffdf8", flex: 1 }}>
-          {expenses.length === 0 && (
-            <p style={{ color: "#9ca3af", fontSize: 14, margin: 0, padding: 16 }}>Nenhuma despesa neste grupo.</p>
+          {items.length === 0 && (
+            <p style={{ color: "#9ca3af", fontSize: 14, margin: 0, padding: 16 }}>Nenhum gasto neste grupo.</p>
           )}
 
-          {expenses.map((e, index) => {
-            const isActionOpen = activeExpenseId === e.id;
+          {items.map((item, index) => {
+            const e = item;
+            const isActionOpen = activeItemId === e.id;
             const isSelected = selectedExpenseIds.includes(e.id);
+            const isEnvelope = e.expense_kind === "envelope";
             const cardBackground = e.is_paid ? "#b7e1cd" : "#fffdf8";
             const cardBorder = e.is_paid ? "#8fbfa9" : "#f1f5f9";
-            const primaryText = e.is_paid ? "#254b38" : "#24303f";
+            const primaryText = e.is_paid
+              ? "#254b38"
+              : isEnvelope
+                ? (e.varianceAmount ?? 0) > 0 ? "#991b1b" : "#166534"
+                : "#24303f";
             const secondaryText = e.is_paid ? "#3f6651" : "#5f6c7b";
             const installmentLabel = getInstallmentLabel(e);
+
             return (
               <div key={e.id} style={{ borderTop: index === 0 ? "none" : "1px solid #f1f5f9", background: cardBackground }}>
                 <div style={{ padding: "16px 18px 14px", display: "flex", alignItems: "center", gap: 12, borderBottom: isActionOpen ? `1px solid ${cardBorder}` : "none" }}>
@@ -125,7 +144,7 @@ export default function CategoryExpenseColumn({ title, headerColor, expenses, de
 
                   <button
                     type="button"
-                    onClick={() => setActiveExpenseId((current) => current === e.id ? null : e.id)}
+                    onClick={() => setActiveItemId((current) => current === e.id ? null : e.id)}
                     style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
                     aria-expanded={isActionOpen}
                   >
@@ -155,6 +174,11 @@ export default function CategoryExpenseColumn({ title, headerColor, expenses, de
                         <div style={{ fontSize: 18, fontWeight: 800, color: primaryText, whiteSpace: "nowrap" }}>
                           {formatCurrencyBRL(Number(e.value))}
                         </div>
+                        {isEnvelope && e.plannedAmountValue != null && (
+                          <div style={{ marginTop: 4, fontSize: 12, color: secondaryText }}>
+                            Planejado: {formatCurrencyBRL(e.plannedAmountValue)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -169,6 +193,15 @@ export default function CategoryExpenseColumn({ title, headerColor, expenses, de
                     >
                       {e.is_paid ? "Desmarcar pagamento" : "Pagar"}
                     </button>
+                    {isEnvelope && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenEnvelopeItems(e)}
+                        style={{ background: e.is_paid ? "rgba(255,255,255,0.35)" : "#fff", border: "1px solid #cbd5e1", cursor: "pointer", fontSize: 12, color: e.is_paid ? "#305540" : "#334155", borderRadius: 999, padding: "7px 12px", fontWeight: 700 }}
+                      >
+                        Ver itens
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => onEdit(e)}

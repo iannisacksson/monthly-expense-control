@@ -6,7 +6,7 @@ export { useRecurringIncomes, useRecurringIncome, useRecurringIncomeMonthlyIncom
 export { useIncomeTaxes, useCreateIncomeTax, useUpdateIncomeTax, useDeleteIncomeTax } from "./useIncomeTaxes";
 export { useCategories, useCategory, useCreateCategory, useUpdateCategory, useDeleteCategory } from "./useCategories";
 export { useSubcategories, useCreateSubcategory, useUpdateSubcategory, useDeleteSubcategory } from "./useSubcategories";
-export { useExpenses, useExpense, useCreateExpense, useUpdateExpense, useDeleteExpense, useBulkDeleteExpenses, useBulkMarkExpensesPaid } from "./useExpenses";
+export { useExpenses, useExpense, useExpenseAdjustments, useExpenseItems, useCreateExpense, useUpdateExpense, useDeleteExpense, useCreateExpenseItem, useUpdateExpenseItem, useDeleteExpenseItem, useBulkDeleteExpenses, useBulkMarkExpensesPaid } from "./useExpenses";
 export { useInstallmentGroups, useInstallmentGroup, useInstallmentGroupExpenses, useCreateInstallmentGroup, useUpdateInstallmentGroup, useDeleteInstallmentGroup, useRestoreInstallmentOccurrence } from "./useInstallmentGroups";
 export { useRecurringExpenses, useRecurringExpense, useRecurringExpenseExpenses, useCreateRecurringExpense, useUpdateRecurringExpense, useDeleteRecurringExpense, useRestoreRecurringExpenseOccurrence } from "./useRecurringExpenses";
 export { useBudgetRules, useBudgetRule, useCreateBudgetRule, useUpdateBudgetRule, useDeleteBudgetRule, useBudgetAllocations, useCreateBudgetAllocation, useUpdateBudgetAllocation, useDeleteBudgetAllocation } from "./useBudgets";

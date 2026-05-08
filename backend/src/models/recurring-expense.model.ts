@@ -19,6 +19,15 @@ export const RecurringExpense = sequelize.define("RecurringExpense", {
     type: DataTypes.DECIMAL,
     allowNull: false
   },
+  expense_kind: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "standard"
+  },
+  planned_amount: {
+    type: DataTypes.DECIMAL,
+    allowNull: true
+  },
   category_id: {
     type: DataTypes.UUID,
     allowNull: false

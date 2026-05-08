@@ -157,7 +157,7 @@ Two ownership patterns exist:
 if (resource.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 ```
 
-**Traversal** — resources without a direct `user_id` (subcategories, income taxes, budget allocations):
+**Traversal** — resources without a direct `user_id` (subcategories, income taxes, budget allocations, expense items, expense adjustments):
 
 ```ts
 const parent = await parentRepository.findById(resource.parent_id)

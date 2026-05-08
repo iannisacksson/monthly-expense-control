@@ -1,9 +1,9 @@
-import type { BudgetAllocation, Category, Expense } from "../../../types";
+import type { BudgetAllocation, Category } from "../../../types";
 
 interface BudgetComparisonTableProps {
   allocations: BudgetAllocation[];
   categories: Category[];
-  expenses: Expense[];
+  realizedByCategory: Record<string, number>;
   planningBaseIncome: number;
   totalTaxes: number;
   ruleName?: string;
@@ -20,7 +20,7 @@ const TYPE_ORDER = ["essential", "necessary", "lifestyle", "investment"];
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function BudgetComparisonTable({ allocations, categories, expenses, planningBaseIncome, totalTaxes, ruleName }: BudgetComparisonTableProps) {
+export default function BudgetComparisonTable({ allocations, categories, realizedByCategory, planningBaseIncome, totalTaxes, ruleName }: BudgetComparisonTableProps) {
   if (allocations.length === 0) {
     return (
       <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: 16, textAlign: "center", color: "#9ca3af" }}>
@@ -31,11 +31,6 @@ export default function BudgetComparisonTable({ allocations, categories, expense
   }
 
   const categoryMap = Object.fromEntries(categories.map((category) => [category.id, category]));
-  const spentByCategory: Record<string, number> = {};
-  expenses.forEach((e) => {
-    spentByCategory[e.category_id] = (spentByCategory[e.category_id] ?? 0) + Number(e.value);
-  });
-
   const rowsByCategory = new Map<string, { categoryId: string; categoryName: string; categoryType: string; pct: number; ideal: number; spent: number; remaining: number }>();
 
   allocations.forEach((allocation) => {
@@ -46,7 +41,7 @@ export default function BudgetComparisonTable({ allocations, categories, expense
 
     const pct = Number(allocation.percentage);
     const ideal = planningBaseIncome * (pct / 100);
-    const spent = spentByCategory[allocation.category_id] ?? 0;
+    const spent = realizedByCategory[allocation.category_id] ?? 0;
 
     rowsByCategory.set(allocation.category_id, {
       categoryId: allocation.category_id,
@@ -59,7 +54,7 @@ export default function BudgetComparisonTable({ allocations, categories, expense
     });
   });
 
-  Object.entries(spentByCategory).forEach(([categoryId, spent]) => {
+  Object.entries(realizedByCategory).forEach(([categoryId, spent]) => {
     if (rowsByCategory.has(categoryId)) {
       return;
     }

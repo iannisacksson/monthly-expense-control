@@ -7,8 +7,10 @@ export interface CreateExpenseDTO {
   responsible_user_id?: string
   installment_group_id?: string
   recurring_expense_id?: string
+  expense_kind?: string
+  planned_amount?: number
   description: string
-  value: number
+  value?: number
   expense_date?: string
   payment_date?: string
 }
@@ -19,6 +21,8 @@ export interface UpdateExpenseDTO {
   paid_by?: string
   responsible_user_id?: string
   recurring_expense_id?: string
+  expense_kind?: string
+  planned_amount?: number | null
   is_paid?: boolean
   description?: string
   value?: number

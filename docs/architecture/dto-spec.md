@@ -247,8 +247,10 @@ paid_by?: string
 responsible_user_id?: string
 installment_group_id?: string
 recurring_expense_id?: string
+expense_kind?: string
+planned_amount?: number
 description: string
-value: number
+value?: number
 expense_date: string
 
 
@@ -260,10 +262,47 @@ subcategory_id?: string
 paid_by?: string
 responsible_user_id?: string
 recurring_expense_id?: string
+expense_kind?: string
+planned_amount?: number | null
 is_paid?: boolean
 description?: string
 value?: number
 expense_date?: string
+
+
+## ExpenseAdjustmentDTO
+
+
+id: string
+expense_id: string
+changed_by?: string
+previous_value: number
+new_value: number
+created_at: string
+
+
+## ExpenseItemDTO
+
+
+id: string
+expense_id: string
+description: string
+amount: number
+created_at: string
+
+
+## CreateExpenseItemDTO
+
+
+description: string
+amount: number
+
+
+## UpdateExpenseItemDTO
+
+
+description?: string
+amount?: number
 
 
 ---
@@ -332,6 +371,8 @@ responsible_user_id?: string
 start_month_id: string
 occurrences: number
 status: string
+expense_kind?: string
+planned_amount?: number
 
 
 ## UpdateRecurringExpenseDTO
@@ -345,6 +386,8 @@ paid_by?: string
 responsible_user_id?: string
 occurrences?: number
 status?: string
+expense_kind?: string
+planned_amount?: number | null
 
 
 ## UpdateRecurringExpenseWithScopeDTO

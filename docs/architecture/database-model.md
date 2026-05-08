@@ -311,6 +311,8 @@ This is the central financial table of the system.
 | is_paid | boolean |
 | description | text |
 | value | numeric |
+| expense_kind | text |
+| planned_amount | numeric nullable |
 | expense_date | date nullable |
 | payment_date | date nullable |
 | created_at | timestamp |
@@ -328,7 +330,8 @@ FOREIGN KEY (installment_group_id) REFERENCES installment_groups(id)
 ## Indexes
 
 INDEX (user_id, month_id)  
-INDEX (category_id)
+INDEX (category_id)  
+INDEX (expense_kind)
 
 ## Notes
 
@@ -337,6 +340,66 @@ INDEX (category_id)
 `payment_date` stores when the expense was actually paid.
 
 `expense_date` is optional metadata and must not be used as the primary rule for deciding which month owns the expense.
+
+`expense_kind` distinguishes standard expenses from envelope expenses.
+
+`planned_amount` stores the planned target for envelope expenses.
+
+For envelope expenses, `value` stores the derived current total calculated from `expense_items`.
+
+---
+
+# expense_items
+
+## Purpose
+
+Stores named subitems inside an envelope expense.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| expense_id | uuid |
+| description | text |
+| amount | numeric |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (expense_id) REFERENCES expenses(id)
+
+## Indexes
+
+INDEX (expense_id)
+
+---
+
+# expense_adjustments
+
+## Purpose
+
+Stores audit history for value changes applied to envelope expenses.
+
+## Columns
+
+| column | type |
+|------|------|
+| id | uuid |
+| expense_id | uuid |
+| changed_by | uuid nullable |
+| previous_value | numeric |
+| new_value | numeric |
+| created_at | timestamp |
+
+## Constraints
+
+FOREIGN KEY (expense_id) REFERENCES expenses(id)  
+FOREIGN KEY (changed_by) REFERENCES users(id)
+
+## Indexes
+
+INDEX (expense_id)
 
 ---
 
@@ -388,6 +451,8 @@ Represents predictable monthly expenses that automatically generate expenses in 
 | user_id | uuid |
 | description | text |
 | value | numeric |
+| expense_kind | text |
+| planned_amount | numeric nullable |
 | category_id | uuid |
 | subcategory_id | uuid |
 | paid_by | uuid |
@@ -407,6 +472,8 @@ FOREIGN KEY (start_month_id) REFERENCES months(id)
 ## Notes
 
 When `occurrences` is null, the recurring definition remains active indefinitely until its status changes.
+
+Recurring definitions with `expense_kind = envelope` generate envelope expenses and propagate `planned_amount` to each generated monthly expense.
 
 ---
 

@@ -2,17 +2,19 @@ interface MonthSummaryHeaderProps {
   grossIncome: number;
   totalTaxes: number;
   netIncome: number;
+  totalPlanned: number;
   totalExpenses: number;
   balance: number;
 }
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function MonthSummaryHeader({ grossIncome, totalTaxes, netIncome, totalExpenses, balance }: MonthSummaryHeaderProps) {
+export default function MonthSummaryHeader({ grossIncome, totalTaxes, netIncome, totalPlanned, totalExpenses, balance }: MonthSummaryHeaderProps) {
   const cards: { label: string; value: number; color: string; bg: string }[] = [
     { label: "Receita Bruta", value: grossIncome, color: "#16a34a", bg: "#f0fdf4" },
     { label: "Impostos", value: totalTaxes, color: "#dc2626", bg: "#fef2f2" },
     { label: "Salário Líquido", value: netIncome, color: "#2563eb", bg: "#eff6ff" },
+    { label: "Total Planejado", value: totalPlanned, color: "#b45309", bg: "#fff7ed" },
     { label: "Total Gastos", value: totalExpenses, color: "#dc2626", bg: "#fef2f2" },
     { label: "Saldo", value: balance, color: balance >= 0 ? "#16a34a" : "#dc2626", bg: balance >= 0 ? "#f0fdf4" : "#fef2f2" },
   ];

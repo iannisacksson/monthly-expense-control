@@ -36,6 +36,56 @@ export const getExpenseById = async (req: Request, res: Response) => {
   }
 }
 
+export const listExpenseAdjustments = async (req: Request, res: Response) => {
+  try {
+    const result = await expenseService.listExpenseAdjustments(req.params.id as string, req.user!.id)
+    return res.json(result)
+  } catch (error: any) {
+    if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+    return res.status(404).json({ error: error.message })
+  }
+}
+
+export const listExpenseItems = async (req: Request, res: Response) => {
+  try {
+    const result = await expenseService.listExpenseItems(req.params.id as string, req.user!.id)
+    return res.json(result)
+  } catch (error: any) {
+    if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+    return res.status(404).json({ error: error.message })
+  }
+}
+
+export const createExpenseItem = async (req: Request, res: Response) => {
+  try {
+    const result = await expenseService.createExpenseItem(req.params.id as string, req.body, req.user!.id)
+    return res.status(201).json(result)
+  } catch (error: any) {
+    if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+    return res.status(400).json({ error: error.message })
+  }
+}
+
+export const updateExpenseItem = async (req: Request, res: Response) => {
+  try {
+    const result = await expenseService.updateExpenseItem(req.params.itemId as string, req.body, req.user!.id)
+    return res.json(result)
+  } catch (error: any) {
+    if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+    return res.status(400).json({ error: error.message })
+  }
+}
+
+export const deleteExpenseItem = async (req: Request, res: Response) => {
+  try {
+    await expenseService.deleteExpenseItem(req.params.itemId as string, req.user!.id)
+    return res.json({ success: true })
+  } catch (error: any) {
+    if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+    return res.status(404).json({ error: error.message })
+  }
+}
+
 export const updateExpense = async (req: Request, res: Response) => {
   try {
     const result = await expenseService.updateExpense(req.params.id as string, req.body, req.user!.id)

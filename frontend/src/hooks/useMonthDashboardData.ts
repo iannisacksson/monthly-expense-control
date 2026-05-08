@@ -16,7 +16,13 @@ export type MonthExpenseListItem = Expense & {
   categoryName: string;
   subcategoryName?: string;
   categoryType: string;
+  isEnvelope: boolean;
+  plannedAmountValue: number | null;
+  varianceAmount: number | null;
+  envelopeStatus?: "within_planned" | "at_planned" | "above_planned";
 };
+
+const getSortableCreatedAt = (value?: string) => value ?? "";
 
 export function useMonthDashboardData(params: { userId?: string; monthId: string }) {
   const { data: month } = useMonth(params.monthId);
@@ -70,15 +76,80 @@ export function useMonthDashboardData(params: { userId?: string; monthId: string
   (expenses ?? []).forEach((e) => {
     const type = catTypeMap[e.category_id] ?? "other";
     if (!expensesByType[type]) expensesByType[type] = [];
+    const plannedAmountValue = e.planned_amount != null ? Number(e.planned_amount) : null;
+    const isEnvelope = e.expense_kind === "envelope";
+    const varianceAmount = isEnvelope && plannedAmountValue != null ? Number(e.value) - plannedAmountValue : null;
+    const envelopeStatus = !isEnvelope || varianceAmount == null
+      ? undefined
+      : varianceAmount > 0
+        ? "above_planned"
+        : varianceAmount === 0
+          ? "at_planned"
+          : "within_planned";
+
     expensesByType[type].push({
       ...e,
       categoryType: type,
       categoryName: categoryNameMap[e.category_id] ?? "Categoria não encontrada",
       subcategoryName: e.subcategory_id ? subcategoryNameMap[e.subcategory_id] : undefined,
+      isEnvelope,
+      plannedAmountValue,
+      varianceAmount,
+      envelopeStatus,
     });
   });
 
-  const totalExpenses = (expenses ?? []).reduce((s, e) => s + Number(e.value), 0);
+  const spendingByType: Record<string, MonthExpenseListItem[]> = {};
+  TYPE_ORDER.forEach((t) => { spendingByType[t] = []; });
+
+  Object.entries(expensesByType).forEach(([type, typedExpenses]) => {
+    if (!spendingByType[type]) {
+      spendingByType[type] = [];
+    }
+    spendingByType[type].push(...typedExpenses);
+  });
+
+  Object.values(spendingByType).forEach((items) => {
+    items.sort((left, right) => {
+      const rightCreatedAt = getSortableCreatedAt(right.created_at);
+      const leftCreatedAt = getSortableCreatedAt(left.created_at);
+
+      if (rightCreatedAt && leftCreatedAt) {
+        return rightCreatedAt.localeCompare(leftCreatedAt);
+      }
+
+      if (rightCreatedAt) {
+        return 1;
+      }
+
+      if (leftCreatedAt) {
+        return -1;
+      }
+
+      return right.id.localeCompare(left.id);
+    });
+  });
+
+  const realizedByCategory: Record<string, number> = {};
+  (expenses ?? []).forEach((expense) => {
+    realizedByCategory[expense.category_id] = (realizedByCategory[expense.category_id] ?? 0) + Number(expense.value);
+  });
+
+  const expensesList = Object.values(spendingByType).flat();
+  const totalExpenses = expensesList.reduce((sum, expense) => sum + Number(expense.value), 0);
+  const totalEnvelopeActual = expensesList
+    .filter((expense) => expense.isEnvelope)
+    .reduce((sum, expense) => sum + Number(expense.value), 0);
+  const totalEnvelopePlanned = expensesList
+    .filter((expense) => expense.isEnvelope)
+    .reduce((sum, expense) => sum + Number(expense.plannedAmountValue ?? 0), 0);
+  const totalStandaloneExpenses = expensesList
+    .filter((expense) => !expense.isEnvelope)
+    .reduce((sum, expense) => sum + Number(expense.value), 0);
+  const totalPlanned = expensesList.reduce(
+    (sum, expense) => sum + (expense.isEnvelope ? Number(expense.plannedAmountValue ?? 0) : Number(expense.value)),
+    0,
+  );
   const balance = netIncome - totalExpenses;
 
   const loadingTaxes = taxQueries.some((query) => query.isLoading);
@@ -92,13 +163,19 @@ export function useMonthDashboardData(params: { userId?: string; monthId: string
     allTaxes,
     categories: categories ?? [],
     allSubcategories,
-    expenses: expenses ?? [],
+    expenses: expensesList,
     expensesByType,
+    spendingByType,
     budgetRules: budgetRules ?? [],
     grossIncome,
     totalTaxes,
     netIncome,
+    totalPlanned,
     totalExpenses,
+    totalStandaloneExpenses,
+    totalEnvelopeActual,
+    totalEnvelopePlanned,
+    realizedByCategory,
     balance,
     isLoading,
   };

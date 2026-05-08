@@ -6,6 +6,8 @@ import { IncomeTax } from "./income-tax.model"
 import { Category } from "./category.model"
 import { Subcategory } from "./subcategory.model"
 import { Expense } from "./expense.model"
+import { ExpenseItem } from "./expense-item.model"
+import { ExpenseAdjustment } from "./expense-adjustment.model"
 import { InstallmentGroup } from "./installment-group.model"
 import { RecurringExpense } from "./recurring-expense.model"
 import { BudgetRule } from "./budget-rule.model"
@@ -69,6 +71,14 @@ Expense.belongsTo(User, { foreignKey: "responsible_user_id", as: "responsibleUse
 InstallmentGroup.hasMany(Expense, { foreignKey: "installment_group_id" })
 Expense.belongsTo(InstallmentGroup, { foreignKey: "installment_group_id" })
 
+// Expense -> ExpenseAdjustment
+Expense.hasMany(ExpenseAdjustment, { foreignKey: "expense_id" })
+ExpenseAdjustment.belongsTo(Expense, { foreignKey: "expense_id" })
+
+// Expense -> ExpenseItem
+Expense.hasMany(ExpenseItem, { foreignKey: "expense_id" })
+ExpenseItem.belongsTo(Expense, { foreignKey: "expense_id" })
+
 // User -> InstallmentGroup
 User.hasMany(InstallmentGroup, { foreignKey: "user_id" })
 InstallmentGroup.belongsTo(User, { foreignKey: "user_id" })
@@ -118,6 +128,8 @@ export {
   Category,
   Subcategory,
   Expense,
+  ExpenseItem,
+  ExpenseAdjustment,
   InstallmentGroup,
   RecurringExpense,
   BudgetRule,

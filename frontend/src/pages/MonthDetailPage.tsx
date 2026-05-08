@@ -14,8 +14,12 @@ import {
   useUpdateIncomeTax,
   useDeleteIncomeTax,
   useCreateExpense,
+  useExpenseItems,
   useUpdateExpense,
   useDeleteExpense,
+  useCreateExpenseItem,
+  useUpdateExpenseItem,
+  useDeleteExpenseItem,
   useBulkDeleteExpenses,
   useBulkMarkExpensesPaid,
   useUpdateMonth,
@@ -41,6 +45,7 @@ import RecurringIncomeForm from "../components/features/incomes/RecurringIncomeF
 import IncomeTaxForm from "../components/features/income-taxes/IncomeTaxForm/IncomeTaxForm";
 import IncomeTaxList from "../components/features/income-taxes/IncomeTaxList/IncomeTaxList";
 import ExpenseForm from "../components/features/expenses/ExpenseForm/ExpenseForm";
+import ExpenseItemForm from "../components/features/expenses/ExpenseItemForm/ExpenseItemForm";
 import InstallmentPurchaseForm from "../components/features/installment-groups/InstallmentPurchaseForm/InstallmentPurchaseForm";
 import RecurringExpenseForm from "../components/features/recurring-expenses/RecurringExpenseForm/RecurringExpenseForm";
 import Modal from "../components/ui/Modal/Modal";
@@ -69,6 +74,8 @@ import type {
   RecurringExpenseScope,
   UpdateInstallmentGroupDTO,
   UpdateRecurringExpenseDTO,
+  ExpenseItem,
+  CreateExpenseItemDTO,
 } from "../types";
 
 const MONTH_NAMES = [
@@ -106,6 +113,9 @@ export default function MonthDetailPage() {
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const createExpenseItem = useCreateExpenseItem();
+  const updateExpenseItem = useUpdateExpenseItem();
+  const deleteExpenseItem = useDeleteExpenseItem();
   const bulkDeleteExpenses = useBulkDeleteExpenses();
   const bulkMarkExpensesPaid = useBulkMarkExpensesPaid();
   const updateMonth = useUpdateMonth();
@@ -125,24 +135,41 @@ export default function MonthDetailPage() {
   const [taxModal, setTaxModal] = useState<{ open: boolean; income?: MonthlyIncome }>({ open: false });
   const [editingTax, setEditingTax] = useState<IncomeTax | undefined>();
   const [showTaxForm, setShowTaxForm] = useState(false);
-  const [expenseModal, setExpenseModal] = useState<{ open: boolean; editing?: Expense; prefilterType?: string }>({ open: false });
+  const [expenseModal, setExpenseModal] = useState<{ open: boolean; editing?: Expense; prefilterType?: string; forcedExpenseKind?: "standard" | "envelope" }>({ open: false });
+  const [envelopeItemsModal, setEnvelopeItemsModal] = useState<{ open: boolean; expense?: Expense }>({ open: false });
+  const [envelopeItemFormModal, setEnvelopeItemFormModal] = useState<{ open: boolean; expense?: Expense; editing?: ExpenseItem }>({ open: false });
   const [installmentModal, setInstallmentModal] = useState<{ open: boolean; editing?: InstallmentGroup }>({ open: false });
-  const [recurringModal, setRecurringModal] = useState<{ open: boolean; editing?: RecurringExpense }>({ open: false });
+  const [recurringModal, setRecurringModal] = useState<{ open: boolean; editing?: RecurringExpense; forcedExpenseKind?: "standard" | "envelope" }>({ open: false });
   const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([]);
   const [expensePaymentModal, setExpensePaymentModal] = useState<{ open: boolean; expense?: Expense }>({ open: false });
   const [expensePaymentPayer, setExpensePaymentPayer] = useState("");
   const [showRecurringIncomeList, setShowRecurringIncomeList] = useState(false);
+  const [showEnvelopeList, setShowEnvelopeList] = useState(false);
   const [showInstallmentList, setShowInstallmentList] = useState(false);
   const [showRecurringExpenseList, setShowRecurringExpenseList] = useState(false);
+  const activeEnvelopeExpense = envelopeItemFormModal.expense ?? envelopeItemsModal.expense;
+  const { data: selectedEnvelopeItems = [] } = useExpenseItems(activeEnvelopeExpense?.id ?? "");
 
   const { data: selectedTaxes } = useIncomeTaxes(taxModal.income?.id ?? "");
   const taxMutationError = createTax.error ?? updateTax.error ?? deleteTax.error;
   const installmentMutationError = createInstallmentGroup.error ?? updateInstallmentGroup.error ?? deleteInstallmentGroup.error ?? restoreInstallmentOccurrence.error;
   const recurringMutationError = createRecurringExpense.error ?? updateRecurringExpense.error ?? deleteRecurringExpense.error ?? restoreRecurringExpenseOccurrence.error;
   const recurringIncomeMutationError = createRecurringIncome.error ?? updateRecurringIncome.error ?? deleteRecurringIncome.error;
+  const envelopeMutationError = createExpense.error
+    ?? updateExpense.error
+    ?? deleteExpense.error
+    ?? createExpenseItem.error
+    ?? updateExpenseItem.error
+    ?? deleteExpenseItem.error
+    ?? createRecurringExpense.error
+    ?? updateRecurringExpense.error
+    ?? deleteRecurringExpense.error;
   const expenseMutationError = createExpense.error ?? updateExpense.error ?? deleteExpense.error ?? bulkDeleteExpenses.error ?? bulkMarkExpensesPaid.error;
   const monthMutationError = updateMonth.error ?? finalizeMonth.error;
   const isMonthClosed = dashboard.month?.status === "closed";
+  const monthEnvelopes = dashboard.expenses.filter((expense) => expense.expense_kind === "envelope");
+  const recurringEnvelopeExpenses = recurringExpenses.filter((expense) => expense.expense_kind === "envelope");
+  const recurringStandardExpenses = recurringExpenses.filter((expense) => expense.expense_kind !== "envelope");
 
   const currentMonthRecurringExpenseIds = new Set(
     dashboard.expenses.filter((expense) => expense.recurring_expense_id).map((expense) => expense.recurring_expense_id as string)
@@ -324,8 +351,10 @@ export default function MonthDetailPage() {
     const dto: UpdateExpenseDTO = {
       category_id: data.category_id,
       subcategory_id: data.subcategory_id,
+      expense_kind: data.expense_kind,
+      planned_amount: data.planned_amount,
       description: data.description,
-      value: data.value,
+      value: editingExpense.expense_kind === "envelope" ? undefined : data.value,
       payment_date: data.payment_date,
       paid_by: data.paid_by,
     };
@@ -407,6 +436,37 @@ export default function MonthDetailPage() {
 
     setExpensePaymentPayer(expense.paid_by ?? "");
     setExpensePaymentModal({ open: true, expense });
+  };
+
+  const handleCreateExpenseItem = (data: CreateExpenseItemDTO) => {
+    const selectedExpense = envelopeItemFormModal.expense;
+    if (!selectedExpense) return;
+
+    blockWhenClosed(() => {
+      createExpenseItem.mutate({ expenseId: selectedExpense.id, dto: data }, {
+        onSuccess: () => setEnvelopeItemFormModal({ open: false, expense: selectedExpense }),
+      });
+    });
+  };
+
+  const handleUpdateExpenseItem = (data: CreateExpenseItemDTO) => {
+    const editingItem = envelopeItemFormModal.editing;
+    const selectedExpense = envelopeItemFormModal.expense;
+    if (!editingItem || !selectedExpense) return;
+
+    blockWhenClosed(() => {
+      updateExpenseItem.mutate({ itemId: editingItem.id, dto: data }, {
+        onSuccess: () => setEnvelopeItemFormModal({ open: false, expense: selectedExpense }),
+      });
+    });
+  };
+
+  const handleDeleteExpenseItem = (item: ExpenseItem) => {
+    if (!window.confirm(`Excluir o item \"${item.description}\"?`)) {
+      return;
+    }
+
+    blockWhenClosed(() => deleteExpenseItem.mutate(item.id));
   };
 
   const handleConfirmExpensePaid = () => {
@@ -517,6 +577,8 @@ export default function MonthDetailPage() {
     const dto: UpdateRecurringExpenseDTO = {
       description: data.description,
       value: data.value,
+      expense_kind: data.expense_kind,
+      planned_amount: data.planned_amount,
       category_id: data.category_id,
       subcategory_id: data.subcategory_id,
       paid_by: data.paid_by,
@@ -591,6 +653,8 @@ export default function MonthDetailPage() {
   const formCategories = expenseModal.prefilterType
     ? dashboard.categories.filter((c) => c.type === expenseModal.prefilterType)
     : dashboard.categories;
+  const expenseModalKind = expenseModal.forcedExpenseKind ?? (expenseModal.editing?.expense_kind as "standard" | "envelope" | undefined) ?? "standard";
+  const recurringModalKind = recurringModal.forcedExpenseKind ?? (recurringModal.editing?.expense_kind as "standard" | "envelope" | undefined) ?? "standard";
 
   return (
     <div className="page">
@@ -646,6 +710,7 @@ export default function MonthDetailPage() {
         grossIncome={dashboard.grossIncome}
         totalTaxes={dashboard.totalTaxes}
         netIncome={dashboard.netIncome}
+        totalPlanned={dashboard.totalPlanned}
         totalExpenses={dashboard.totalExpenses}
         balance={dashboard.balance}
       />
@@ -667,10 +732,20 @@ export default function MonthDetailPage() {
             <div className="section-label">Extrato categorizado</div>
             <h2 className="page-section__title">Gastos por tipo</h2>
             <p className="page-section__subtitle">
-            Visualize os lançamentos em grupos compactos, com leitura rápida no estilo extrato.
+              Visualize despesas e envelopes nas colunas do mês, com leitura rápida no estilo extrato.
+            </p>
+          </div>
+          <div className="section-panel__controls">
+              <p className="muted-text">Os envelopes continuam aparecendo nas colunas, mas o cadastro foi movido para a seção dedicada abaixo.</p>
+          </div>
+        </div>
+
+        {envelopeMutationError && (
+          <p className="error-banner">
+            Erro: {envelopeMutationError.message || "Falha ao salvar envelopes."}
           </p>
-        </div>
-        </div>
+        )}
+
         {dashboard.month?.user_id && (
           <div className="section-toolbar">
             <p className="muted-text">
@@ -704,15 +779,15 @@ export default function MonthDetailPage() {
               key={col.type}
               title={col.title}
               headerColor={col.color}
-              categoryId={dashboard.categories.find((category) => category.type === col.type)?.id}
-              expenses={dashboard.expensesByType[col.type] ?? []}
+              items={dashboard.spendingByType[col.type] ?? []}
               defaultExpanded={true}
               selectedExpenseIds={selectedExpenseIds}
               onToggleSelection={handleToggleExpenseSelection}
-              onAdd={() => setExpenseModal({ open: true, prefilterType: col.type })}
-              onEdit={(e) => setExpenseModal({ open: true, editing: e })}
+              onAdd={() => setExpenseModal({ open: true, prefilterType: col.type, forcedExpenseKind: "standard" })}
+              onEdit={(e) => setExpenseModal({ open: true, editing: e, forcedExpenseKind: (e.expense_kind === "envelope" ? "envelope" : "standard") })}
               onDelete={handleDeleteExpense}
               onTogglePaid={handleToggleExpensePaid}
+              onOpenEnvelopeItems={(expense) => setEnvelopeItemsModal({ open: true, expense })}
             />
           ))}
         </div>
@@ -750,7 +825,7 @@ export default function MonthDetailPage() {
         <BudgetComparisonTable
           allocations={budgetAllocations ?? []}
           categories={dashboard.categories}
-          expenses={dashboard.expenses}
+          realizedByCategory={dashboard.realizedByCategory}
           planningBaseIncome={planningBaseIncome}
           totalTaxes={dashboard.totalTaxes}
           ruleName={dashboard.budgetRules.find((rule) => rule.id === selectedBudgetRuleId)?.name}
@@ -823,6 +898,103 @@ export default function MonthDetailPage() {
                 </div>
               ))}
             </div>
+          )}
+        </section>
+
+        <section className="section-panel">
+          <div className="section-panel__header">
+            <div>
+              <div className="section-panel__eyebrow">Planejamento com itens</div>
+              <h2 className="section-panel__title">Envelopes</h2>
+              <p className="section-panel__subtitle">
+                Cadastre envelopes do mês e modelos recorrentes. O valor atual sera calculado pela soma dos itens adicionados dentro de cada envelope.
+              </p>
+            </div>
+            <div className="section-panel__controls">
+              <Button variant="secondary" onClick={() => setShowEnvelopeList((current) => !current)}>
+                {showEnvelopeList ? "Ocultar lista" : "Mostrar lista"}
+              </Button>
+              <Button variant="secondary" onClick={() => setRecurringModal({ open: true, forcedExpenseKind: "envelope" })}>
+                Novo envelope recorrente
+              </Button>
+              <Button onClick={() => setExpenseModal({ open: true, forcedExpenseKind: "envelope" })}>
+                Novo envelope
+              </Button>
+            </div>
+          </div>
+
+          {envelopeMutationError && (
+            <p className="error-banner">
+              Erro: {envelopeMutationError.message || "Falha ao salvar envelope."}
+            </p>
+          )}
+
+          {!showEnvelopeList ? (
+            <p className="muted-text">Lista recolhida por padrão. Abra quando quiser revisar os envelopes do mês e seus modelos recorrentes.</p>
+          ) : (
+            <>
+              <div style={{ marginBottom: 16 }}>
+                <div className="section-label">Envelopes do mês</div>
+                {monthEnvelopes.length === 0 ? (
+                  <p className="ui-empty-state">Nenhum envelope criado neste mês.</p>
+                ) : (
+                  <div className="entity-list">
+                    {monthEnvelopes.map((expense) => (
+                      <div key={expense.id} className="entity-item">
+                        <div className="entity-item__header">
+                          <div>
+                            <div className="entity-item__title">{expense.description}</div>
+                            <div className="entity-item__meta">Planejado: {formatCurrencyBRL(Number(expense.planned_amount ?? 0))}</div>
+                            <div className="entity-item__meta">Atual: {formatCurrencyBRL(Number(expense.value))}</div>
+                            <div className="entity-tags">
+                              <span className={expense.is_paid ? "entity-tag entity-tag--success" : "entity-tag entity-tag--warn"}>
+                                {expense.is_paid ? "Pago" : "Em aberto"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="entity-actions">
+                            <button className="text-button text-button--primary" onClick={() => setEnvelopeItemsModal({ open: true, expense })}>Itens</button>
+                            <button className="text-button text-button--primary" onClick={() => setExpenseModal({ open: true, editing: expense, forcedExpenseKind: "envelope" })}>Editar</button>
+                            <button className="text-button text-button--warning" onClick={() => handleToggleExpensePaid(expense)}>{expense.is_paid ? "Desmarcar" : "Pagar"}</button>
+                            <button className="text-button text-button--danger" onClick={() => handleDeleteExpense(expense.id)}>Excluir</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="section-label">Envelopes recorrentes</div>
+                {recurringEnvelopeExpenses.length === 0 ? (
+                  <p className="ui-empty-state">Nenhum envelope recorrente cadastrado.</p>
+                ) : (
+                  <div className="entity-list">
+                    {recurringEnvelopeExpenses.map((item) => (
+                      <div key={item.id} className="entity-item">
+                        <div className="entity-item__header">
+                          <div>
+                            <div className="entity-item__title">{item.description}</div>
+                            <div className="entity-item__meta">Planejado: {formatCurrencyBRL(Number(item.planned_amount ?? 0))}</div>
+                            <div className="entity-tags">
+                              <span className={item.status === "active" ? "entity-tag entity-tag--success" : "entity-tag entity-tag--warn"}>
+                                {item.status === "active" ? "Ativo" : "Inativo"}
+                              </span>
+                              {item.occurrences ? <span className="entity-tag entity-tag--warn">{item.occurrences} ocorrência(s)</span> : <span className="entity-tag entity-tag--warn">Sem limite</span>}
+                            </div>
+                          </div>
+                          <div className="entity-actions">
+                            <button className="text-button text-button--primary" onClick={() => setRecurringModal({ open: true, editing: item, forcedExpenseKind: "envelope" })}>Editar</button>
+                            <button className="text-button text-button--danger" onClick={() => handleDeleteRecurringExpense(item)}>Excluir</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </section>
 
@@ -915,7 +1087,7 @@ export default function MonthDetailPage() {
               <Button variant="secondary" onClick={() => setShowRecurringExpenseList((current) => !current)}>
                 {showRecurringExpenseList ? "Ocultar lista" : "Mostrar lista"}
               </Button>
-              <Button onClick={() => setRecurringModal({ open: true })}>
+              <Button onClick={() => setRecurringModal({ open: true, forcedExpenseKind: "standard" })}>
                 Nova recorrência
               </Button>
             </div>
@@ -929,11 +1101,11 @@ export default function MonthDetailPage() {
 
           {!showRecurringExpenseList ? (
             <p className="muted-text">Lista recolhida por padrão. Abra quando quiser revisar ou editar as despesas recorrentes.</p>
-          ) : recurringExpenses.length === 0 ? (
+          ) : recurringStandardExpenses.length === 0 ? (
             <p className="ui-empty-state">Nenhuma despesa recorrente cadastrada.</p>
           ) : (
             <div className="entity-list">
-              {recurringExpenses.map((recurringExpense) => (
+              {recurringStandardExpenses.map((recurringExpense) => (
                 <div key={recurringExpense.id} className="entity-item">
                   <div className="entity-item__header">
                     <div>
@@ -948,7 +1120,7 @@ export default function MonthDetailPage() {
                     <div className="entity-actions">
                       <button
                         className="text-button text-button--primary"
-                        onClick={() => setRecurringModal({ open: true, editing: recurringExpense })}
+                        onClick={() => setRecurringModal({ open: true, editing: recurringExpense, forcedExpenseKind: "standard" })}
                       >
                         Editar
                       </button>
@@ -1082,10 +1254,12 @@ export default function MonthDetailPage() {
       {/* Expense Modal */}
       <Modal
         open={expenseModal.open}
-        title={expenseModal.editing ? "Editar Despesa" : "Nova Despesa"}
+        title={expenseModal.editing
+          ? expenseModalKind === "envelope" ? "Editar envelope" : "Editar despesa"
+          : expenseModalKind === "envelope" ? "Novo envelope" : "Nova despesa"}
         onClose={() => setExpenseModal({ open: false })}
       >
-        {expenseModal.prefilterType && !expenseModal.editing && (
+        {expenseModal.prefilterType && !expenseModal.editing && expenseModalKind === "standard" && (
           <div className="alert-banner" style={{ marginBottom: 16 }}>
             A categoria desta despesa será definida automaticamente pelo grupo selecionado.
           </div>
@@ -1099,6 +1273,9 @@ export default function MonthDetailPage() {
           categoryId={expenseModal.editing ? expenseModal.editing.category_id : formCategories[0]?.id}
           hideCategoryField={!expenseModal.editing && Boolean(expenseModal.prefilterType)}
           hidePaymentFields={!expenseModal.editing}
+          forcedExpenseKind={expenseModalKind}
+          hideExpenseKindField
+          hideValueField={expenseModalKind === "envelope"}
           onSubmit={expenseModal.editing ? handleUpdateExpense : handleCreateExpense}
           onCancel={() => setExpenseModal({ open: false })}
           isPending={expenseModal.editing ? updateExpense.isPending : createExpense.isPending}
@@ -1159,7 +1336,9 @@ export default function MonthDetailPage() {
 
       <Modal
         open={recurringModal.open}
-        title={recurringModal.editing ? "Editar despesa recorrente" : "Nova despesa recorrente"}
+        title={recurringModal.editing
+          ? recurringModalKind === "envelope" ? "Editar envelope recorrente" : "Editar despesa recorrente"
+          : recurringModalKind === "envelope" ? "Novo envelope recorrente" : "Nova despesa recorrente"}
         onClose={() => setRecurringModal({ open: false })}
       >
         <RecurringExpenseForm
@@ -1168,9 +1347,80 @@ export default function MonthDetailPage() {
           categories={dashboard.categories}
           subcategories={dashboard.allSubcategories}
           initialData={recurringModal.editing}
+          forcedExpenseKind={recurringModalKind}
+          hideExpenseKindField
+          hideValueField={recurringModalKind === "envelope"}
           onSubmit={recurringModal.editing ? handleUpdateRecurringExpense : handleCreateRecurringExpense}
           onCancel={() => setRecurringModal({ open: false })}
           isPending={recurringModal.editing ? updateRecurringExpense.isPending : createRecurringExpense.isPending}
+        />
+      </Modal>
+
+      <Modal
+        open={envelopeItemsModal.open}
+        title={envelopeItemsModal.expense ? `Itens - ${envelopeItemsModal.expense.description}` : "Itens do envelope"}
+        onClose={() => setEnvelopeItemsModal({ open: false })}
+      >
+        {envelopeItemsModal.expense && (
+          <div className="form-shell">
+            <div>
+              <div className="section-label">Resumo</div>
+              <h3 style={{ margin: "8px 0 0" }}>{envelopeItemsModal.expense.description}</h3>
+              <p className="muted-text" style={{ marginTop: 8 }}>
+                Planejado: {formatCurrencyBRL(Number(envelopeItemsModal.expense.planned_amount ?? 0))}.
+                Atual: {formatCurrencyBRL(Number(envelopeItemsModal.expense.value))}.
+              </p>
+            </div>
+
+            <div className="section-toolbar">
+              <div className="muted-text">
+                {selectedEnvelopeItems.length === 0
+                  ? "Nenhum item cadastrado neste envelope ainda."
+                  : `${selectedEnvelopeItems.length} item(ns) cadastrados neste envelope.`}
+              </div>
+              <Button onClick={() => setEnvelopeItemFormModal({ open: true, expense: envelopeItemsModal.expense })}>
+                Novo item
+              </Button>
+            </div>
+
+            {selectedEnvelopeItems.length === 0 ? (
+              <p className="ui-empty-state">Nenhum item cadastrado.</p>
+            ) : (
+              <div className="entity-list">
+                {selectedEnvelopeItems.map((item: ExpenseItem) => (
+                  <div key={item.id} className="entity-item">
+                    <div className="entity-item__header">
+                      <div>
+                        <div className="entity-item__title">
+                          {item.description}
+                        </div>
+                        <div className="entity-item__meta">
+                          {formatCurrencyBRL(Number(item.amount))}
+                        </div>
+                      </div>
+                      <div className="entity-actions">
+                        <button className="text-button text-button--primary" onClick={() => setEnvelopeItemFormModal({ open: true, expense: envelopeItemsModal.expense, editing: item })}>Editar</button>
+                        <button className="text-button text-button--danger" onClick={() => handleDeleteExpenseItem(item)}>Excluir</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={envelopeItemFormModal.open}
+        title={envelopeItemFormModal.editing ? "Editar item do envelope" : "Novo item do envelope"}
+        onClose={() => setEnvelopeItemFormModal({ open: false })}
+      >
+        <ExpenseItemForm
+          initialData={envelopeItemFormModal.editing}
+          onSubmit={envelopeItemFormModal.editing ? handleUpdateExpenseItem : handleCreateExpenseItem}
+          onCancel={() => setEnvelopeItemFormModal({ open: false, expense: envelopeItemsModal.expense })}
+          isPending={envelopeItemFormModal.editing ? updateExpenseItem.isPending : createExpenseItem.isPending}
         />
       </Modal>
     </div>

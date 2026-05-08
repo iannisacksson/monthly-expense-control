@@ -7,12 +7,41 @@ export interface Expense {
   responsible_user_id?: string;
   installment_group_id?: string;
   recurring_expense_id?: string;
+  expense_kind: string;
+  planned_amount?: number | null;
   is_paid: boolean;
   description: string;
   value: number;
   expense_date?: string;
   payment_date?: string;
   created_at: string;
+}
+
+export interface ExpenseAdjustment {
+  id: string;
+  expense_id: string;
+  changed_by?: string;
+  previous_value: number;
+  new_value: number;
+  created_at: string;
+}
+
+export interface ExpenseItem {
+  id: string;
+  expense_id: string;
+  description: string;
+  amount: number;
+  created_at: string;
+}
+
+export interface CreateExpenseItemDTO {
+  description: string;
+  amount: number;
+}
+
+export interface UpdateExpenseItemDTO {
+  description?: string;
+  amount?: number;
 }
 
 export interface CreateExpenseDTO {
@@ -24,8 +53,10 @@ export interface CreateExpenseDTO {
   responsible_user_id?: string;
   installment_group_id?: string;
   recurring_expense_id?: string;
+  expense_kind?: string;
+  planned_amount?: number;
   description: string;
-  value: number;
+  value?: number;
   expense_date?: string;
   payment_date?: string;
 }
@@ -36,6 +67,8 @@ export interface UpdateExpenseDTO {
   paid_by?: string;
   responsible_user_id?: string;
   recurring_expense_id?: string;
+  expense_kind?: string;
+  planned_amount?: number | null;
   is_paid?: boolean;
   description?: string;
   value?: number;

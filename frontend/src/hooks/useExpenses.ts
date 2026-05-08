@@ -1,4 +1,4 @@
-import type { BulkDeleteExpensesDTO, BulkMarkExpensesPaidDTO, CreateExpenseDTO, UpdateExpenseDTO } from "../types";
+import type { BulkDeleteExpensesDTO, BulkMarkExpensesPaidDTO, CreateExpenseDTO, CreateExpenseItemDTO, UpdateExpenseDTO, UpdateExpenseItemDTO } from "../types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { expenseService } from "../services";
 
@@ -28,6 +28,22 @@ export function useExpense(id: string) {
   });
 }
 
+export function useExpenseAdjustments(id: string) {
+  return useQuery({
+    queryKey: [...EXPENSES_KEY, id, "adjustments"],
+    queryFn: () => expenseService.listAdjustments(id),
+    enabled: !!id,
+  });
+}
+
+export function useExpenseItems(id: string) {
+  return useQuery({
+    queryKey: [...EXPENSES_KEY, id, "items"],
+    queryFn: () => expenseService.listItems(id),
+    enabled: !!id,
+  });
+}
+
 export function useCreateExpense() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -43,6 +59,38 @@ export function useUpdateExpense() {
   return useMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdateExpenseDTO }) =>
       expenseService.update(id, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
+    },
+  });
+}
+
+export function useCreateExpenseItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ expenseId, dto }: { expenseId: string; dto: CreateExpenseItemDTO }) =>
+      expenseService.createItem(expenseId, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
+    },
+  });
+}
+
+export function useUpdateExpenseItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, dto }: { itemId: string; dto: UpdateExpenseItemDTO }) =>
+      expenseService.updateItem(itemId, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
+    },
+  });
+}
+
+export function useDeleteExpenseItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => expenseService.deleteItem(itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
     },

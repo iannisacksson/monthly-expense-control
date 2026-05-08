@@ -261,6 +261,10 @@ The system must:
 - preserve clear monthly visibility of spending
 - store payment_date separately from monthly belonging so payment can happen later
 - allow payment metadata such as payer and payment date to be updated after creation
+- support `Expense` as the active envelope implementation through `expense_kind=envelope`
+- support `planned_amount` on envelope expenses for planned-versus-current comparisons
+- derive envelope current value through named ExpenseItem records
+- optionally keep envelope total-change history through ExpenseAdjustment records
 - validate bulk deletion using user_id and month_id
 - reject bulk deletion requests when any selected expense does not belong to the same user and month
 - validate bulk mark-paid requests using user_id and month_id
@@ -269,6 +273,8 @@ The system must:
 ### Domain Entities
 
 Expense  
+ExpenseItem  
+ExpenseAdjustment  
 Category  
 Subcategory  
 Month  
@@ -352,6 +358,52 @@ The system must:
 BudgetRule  
 BudgetAllocation  
 Category  
+User
+
+---
+
+## Feature 5A — Monthly Budget Envelopes
+
+### Goal
+
+Allow a user to manage an envelope as a real expense whose current value is built from named subitems during the month.
+
+### User Actions
+
+Users can:
+
+- create an envelope expense in a specific month
+- define the planned amount of the envelope
+- add, edit, and delete named items inside the envelope
+- mark the envelope as paid
+- view the items that compose the current value of the envelope
+- create recurring envelope expenses for future months
+- edit and delete recurring envelope expenses
+- compare planned versus current values per envelope
+
+### System Behavior
+
+The system must:
+
+- keep the envelope inside the Expense aggregate instead of a parallel monthly item aggregate
+- keep the current official envelope value in Expense.value as a derived total
+- derive Expense.value from the sum of ExpenseItem records for envelope expenses
+- preserve optional audit history of derived value changes in ExpenseAdjustment records
+- allow the current value to exceed the planned amount
+- show a visual warning when the current value exceeds the plan
+- generate future envelope expenses from recurring expense definitions flagged as envelope
+- include current envelope values in the month total spent calculation
+- include envelope planned amounts in the total planned calculation of the month
+- keep the main month summary centered on gross income, taxes, net balance, total spent, balance, and total planned
+
+### Domain Entities
+
+Expense
+ExpenseItem
+ExpenseAdjustment
+RecurringExpense
+Category
+Month
 User
 
 ---
@@ -491,6 +543,8 @@ The system must:
 - preserve category-based visibility across the month
 - expose enough data for a monthly dashboard centered on the current user
 - use net income, after taxes, as the planning base in planned-versus-actual comparisons
+- expose total planned in the month summary header
+- include envelope expense items in the total realized value of each envelope and in the month spending aggregates
 - allow recurring income, recurring expense, and installment sections to start collapsed while keeping title, context, and main action visible
 
 ### Domain Entities
@@ -502,6 +556,8 @@ Expense
 Category  
 BudgetRule  
 BudgetAllocation
+ExpenseItem
+ExpenseAdjustment
 
 ---
 

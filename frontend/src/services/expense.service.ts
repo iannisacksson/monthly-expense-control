@@ -1,4 +1,4 @@
-import type { Expense, CreateExpenseDTO, UpdateExpenseDTO, ApiSuccessResponse, BulkDeleteExpensesDTO, BulkDeleteExpensesResponse, BulkMarkExpensesPaidDTO, BulkMarkExpensesPaidResponse } from "../types";
+import type { Expense, ExpenseAdjustment, ExpenseItem, CreateExpenseDTO, CreateExpenseItemDTO, UpdateExpenseDTO, UpdateExpenseItemDTO, ApiSuccessResponse, BulkDeleteExpensesDTO, BulkDeleteExpensesResponse, BulkMarkExpensesPaidDTO, BulkMarkExpensesPaidResponse } from "../types";
 import httpClient from "./http-client";
 
 export const expenseService = {
@@ -12,6 +12,16 @@ export const expenseService = {
     return data;
   },
 
+  async listAdjustments(id: string): Promise<ExpenseAdjustment[]> {
+    const { data } = await httpClient.get<ExpenseAdjustment[]>(`/expenses/${id}/adjustments`);
+    return data;
+  },
+
+  async listItems(id: string): Promise<ExpenseItem[]> {
+    const { data } = await httpClient.get<ExpenseItem[]>(`/expenses/${id}/items`);
+    return data;
+  },
+
   async create(dto: CreateExpenseDTO): Promise<Expense> {
     const { data } = await httpClient.post<Expense>("/expenses", dto);
     return data;
@@ -19,6 +29,21 @@ export const expenseService = {
 
   async update(id: string, dto: UpdateExpenseDTO): Promise<Expense> {
     const { data } = await httpClient.put<Expense>(`/expenses/${id}`, dto);
+    return data;
+  },
+
+  async createItem(expenseId: string, dto: CreateExpenseItemDTO): Promise<ExpenseItem> {
+    const { data } = await httpClient.post<ExpenseItem>(`/expenses/${expenseId}/items`, dto);
+    return data;
+  },
+
+  async updateItem(itemId: string, dto: UpdateExpenseItemDTO): Promise<ExpenseItem> {
+    const { data } = await httpClient.put<ExpenseItem>(`/expenses/items/${itemId}`, dto);
+    return data;
+  },
+
+  async deleteItem(itemId: string): Promise<ApiSuccessResponse> {
+    const { data } = await httpClient.delete<ApiSuccessResponse>(`/expenses/items/${itemId}`);
     return data;
   },
 

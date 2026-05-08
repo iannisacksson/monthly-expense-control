@@ -97,7 +97,7 @@ This is implemented at the service layer via `ForbiddenError` (`src/utils/errors
 
 Resources with a direct `user_id` column are checked directly.
 
-Resources without a direct `user_id` (e.g. subcategories, income taxes, budget allocations) traverse to their parent resource to resolve the owner.
+Resources without a direct `user_id` (e.g. subcategories, income taxes, budget allocations, expense items, expense adjustments) traverse to their parent resource to resolve the owner.
 
 Current implementation note:
 
@@ -603,8 +603,9 @@ POST /api/v1/expenses
   "month_id": "uuid",
   "category_id": "uuid",
   "subcategory_id": "uuid",
+  "expense_kind": "envelope",
+  "planned_amount": 600,
   "description": "Internet",
-  "value": 120,
   "expense_date": "2026-03-10"
 }
 
@@ -612,6 +613,9 @@ Behavior note:
 
 - the backend must validate expense ownership through the selected month and category owner, using `user_id + month_id + category` as the primary invariant
 - `family_id` may be accepted only as a legacy fallback when the selected month still belongs exclusively to a legacy family context
+- `expense_kind=envelope` turns the expense into an envelope expense while keeping it in the same Expense resource
+- envelope expenses may define `planned_amount` and start with current value zero in the primary creation flow
+- envelope current value is derived from items managed in `/expenses/{id}/items`
 
 ## List Expenses by User and Month
 
@@ -629,9 +633,34 @@ GET /api/v1/expenses/{id}
 
 PUT /api/v1/expenses/{id}
 
+Behavior note:
+
+- envelope current value is not expected to be updated manually in the primary flow
+- envelope current value changes through item mutations and may create adjustment history records
+
 ## Delete Expense
 
 DELETE /api/v1/expenses/{id}
+
+## List Expense Adjustments
+
+GET /api/v1/expenses/{id}/adjustments
+
+## List Expense Items
+
+GET /api/v1/expenses/{id}/items
+
+## Create Expense Item
+
+POST /api/v1/expenses/{id}/items
+
+## Update Expense Item
+
+PUT /api/v1/expenses/items/{itemId}
+
+## Delete Expense Item
+
+DELETE /api/v1/expenses/items/{itemId}
 
 ## Bulk Delete Expenses
 
@@ -781,6 +810,11 @@ DELETE /api/v1/installment-groups/{id}
 # Resource: Recurring Expenses
 
 Represents recurring expense series.
+
+Behavior note:
+
+- recurring expenses may also act as recurring envelope templates when `expense_kind=envelope`
+- recurring envelope templates propagate both `value` and `planned_amount` into generated monthly expenses
 
 ## Create Recurring Expense
 

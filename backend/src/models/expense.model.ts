@@ -30,6 +30,15 @@ export const Expense = sequelize.define("Expense", {
   recurring_expense_id: {
     type: DataTypes.UUID
   },
+  expense_kind: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "standard"
+  },
+  planned_amount: {
+    type: DataTypes.DECIMAL,
+    allowNull: true
+  },
   is_paid: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
@@ -58,6 +67,7 @@ export const Expense = sequelize.define("Expense", {
   updatedAt: false,
   indexes: [
     { fields: ["month_id"] },
-    { fields: ["category_id"] }
+    { fields: ["category_id"] },
+    { fields: ["expense_kind"] }
   ]
 })

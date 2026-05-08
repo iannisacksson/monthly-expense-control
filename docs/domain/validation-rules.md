@@ -52,7 +52,7 @@ Ownership check: `resource.user_id !== requestingUserId → ForbiddenError`
 
 ## Resources without direct `user_id` (traversal required)
 
-subcategories (via category), income_taxes (via monthly_income), budget_allocations (via budget_rule)
+subcategories (via category), income_taxes (via monthly_income), budget_allocations (via budget_rule), expense_items (via expense), expense_adjustments (via expense)
 
 Ownership check: traverse to parent resource, then `parent.user_id !== requestingUserId → ForbiddenError`
 
@@ -352,13 +352,37 @@ When a month is closed, incompatible mutations that change monthly financial res
 
 ## value
 
-- required
-- must be greater than zero
+- required for standard expenses
+- must be greater than zero for standard expenses
+- for envelope expenses, the stored value is derived from ExpenseItem amounts
+
+## expense_kind
+
+- optional on create
+- defaults to `standard`
+- allowed values: `standard`, `envelope`
+
+## planned_amount
+
+- optional for standard expenses
+- required for envelope expenses
+- must be greater than zero when provided
 
 ## expense_date
 
 - required
 - must be a valid date
+
+## Envelope History
+
+- changing the value of an envelope expense should happen through ExpenseItem mutations
+- ExpenseAdjustment records may be created to preserve previous and new derived totals
+
+## Envelope Items
+
+- envelope items are only allowed for expenses with `expense_kind = envelope`
+- each item must have description with at most 255 characters
+- each item amount must be greater than zero
 
 ## Bulk Deletion
 

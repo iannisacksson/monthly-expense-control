@@ -376,6 +376,8 @@ description
 value
 expenseDate
 paymentDate
+expenseKind
+plannedAmount
 createdAt
 
 ### Rules
@@ -392,11 +394,81 @@ expenseDate is optional operational metadata and must not be the central decisio
 
 Every expense has a payment state for that monthly record.
 
+Expense may be a standard expense or an envelope expense.
+
+Envelope expenses keep the official current value in the same Expense record, but that value is derived from the sum of ExpenseItem records.
+
+Envelope expenses may define a plannedAmount to compare the current monthly value against the original target.
+
+Envelope expenses must not receive manual current-value editing in the primary flow.
+
+Changes to the current value of an envelope expense happen through ExpenseItem records and may generate ExpenseAdjustment records as audit history.
+
 Installment expenses may be generated automatically.
 
 Recurring expenses may be generated automatically.
 
 An expense may be removed from a month and recreated later when business rules allow it.
+
+### Relationships
+
+Expense
+├── Month
+├── Category
+├── Subcategory
+├── RecurringExpense
+├── InstallmentGroup
+├── ExpenseItem
+└── ExpenseAdjustment
+
+---
+
+## ExpenseItem
+
+### Purpose
+
+Represents a named subitem inside an envelope expense.
+
+### Fields
+
+id
+expenseId
+description
+amount
+createdAt
+
+### Rules
+
+Expense items belong to exactly one envelope expense.
+
+The current value of an envelope expense is the sum of its ExpenseItem amounts.
+
+Expense items are the primary input used to change the current value of an envelope expense.
+
+---
+
+## ExpenseAdjustment
+
+### Purpose
+
+Represents the audit history of value changes applied to an envelope expense during the month.
+
+### Fields
+
+id
+expenseId
+changedBy
+previousValue
+newValue
+createdAt
+
+### Rules
+
+Expense adjustments belong to exactly one expense.
+
+Expense adjustments do not replace the current value stored in Expense.
+
+Expense adjustments exist to preserve the timeline of value changes derived from ExpenseItem mutations.
 
 ---
 
@@ -464,6 +536,8 @@ id
 userId
 description
 value
+expenseKind
+plannedAmount
 categoryId
 subcategoryId
 paidBy
@@ -482,6 +556,10 @@ RecurringExpense
 ### Rules
 
 Recurring expenses generate expense occurrences across owner months from the start month onward while active.
+
+Recurring expenses may also represent recurring envelope templates when expenseKind is envelope.
+
+Recurring envelope expenses must propagate both the current value and the plannedAmount into generated monthly expenses.
 
 Recurring expenses may optionally define an upper bound through occurrences, but the default behavior is continuous generation until the template is inactivated.
 
@@ -520,6 +598,9 @@ The main aggregate roots of the target model are:
 - Month as the monthly operational boundary
 - Category as the expense classification boundary
 - BudgetRule as the budgeting boundary
+- Expense as the monthly expense and envelope boundary
+- ExpenseItem as the envelope composition boundary
+- ExpenseAdjustment as the envelope audit-history boundary
 - RecurringExpense as a recurring expense series boundary
 - InstallmentGroup as an installment series boundary
 - RecurringIncome as an income series boundary

@@ -15,6 +15,8 @@ const subcategoryRepository = new SubcategoryRepository()
 const userRepository = new UserRepository()
 
 export class RecurringExpenseService {
+  private readonly allowedExpenseKinds = ["standard", "envelope"] as const
+
   private async findMonthByIdOrThrow(id: string) {
     const month = await monthRepository.findById(id)
     if (!month) {
@@ -91,17 +93,34 @@ export class RecurringExpenseService {
     description: string
     value: number
     status: string
+    expenseKind?: string
+    plannedAmount?: number | null
   }) {
     if (!params.description || params.description.length > 255) {
       throw new Error("Description is required and must be at most 255 characters")
     }
 
-    if (params.value <= 0) {
-      throw new Error("Recurring expense amount must be greater than zero")
-    }
-
     if (!["active", "inactive"].includes(params.status)) {
       throw new Error("Status must be active or inactive")
+    }
+
+    const expenseKind = params.expenseKind ?? "standard"
+    if (!this.allowedExpenseKinds.includes(expenseKind as typeof this.allowedExpenseKinds[number])) {
+      throw new Error("Recurring expense kind must be standard or envelope")
+    }
+
+    if (expenseKind === "envelope") {
+      if (params.value < 0) {
+        throw new Error("Recurring envelope expenses cannot define a negative current amount")
+      }
+
+      if (params.plannedAmount === undefined || params.plannedAmount === null || params.plannedAmount <= 0) {
+        throw new Error("Recurring envelope expenses must define a planned amount greater than zero")
+      }
+    } else if (params.value <= 0) {
+      throw new Error("Recurring expense amount must be greater than zero")
+    } else if (params.plannedAmount !== undefined && params.plannedAmount !== null && params.plannedAmount <= 0) {
+      throw new Error("Planned amount must be greater than zero when provided")
     }
   }
 
@@ -138,6 +157,8 @@ export class RecurringExpenseService {
     userId?: string
     description: string
     value: number
+    expenseKind?: string
+    plannedAmount?: number | null
     categoryId: string
     subcategoryId?: string
     paidBy?: string
@@ -158,6 +179,8 @@ export class RecurringExpenseService {
       paid_by: data.paidBy,
       responsible_user_id: data.responsibleUserId,
       recurring_expense_id: data.recurringExpenseId,
+      expense_kind: data.expenseKind,
+      planned_amount: data.plannedAmount ?? undefined,
       description: data.description,
       value: data.value,
       expense_date: this.getMonthDate(month)
@@ -171,6 +194,8 @@ export class RecurringExpenseService {
     userId?: string
     description: string
     value: number
+    expenseKind?: string
+    plannedAmount?: number | null
     categoryId: string
     subcategoryId?: string
     paidBy?: string
@@ -193,6 +218,8 @@ export class RecurringExpenseService {
         paid_by: data.paidBy,
         responsible_user_id: data.responsibleUserId,
         recurring_expense_id: data.recurringExpenseId,
+        expense_kind: data.expenseKind,
+        planned_amount: data.plannedAmount ?? undefined,
         description: data.description,
         value: data.value,
         expense_date: this.getMonthDate(month)
@@ -205,6 +232,8 @@ export class RecurringExpenseService {
     userId: string
     description: string
     value: number
+    expenseKind?: string
+    plannedAmount?: number | null
     categoryId: string
     subcategoryId?: string
     paidBy?: string
@@ -228,6 +257,8 @@ export class RecurringExpenseService {
       userId: data.userId,
       description: data.description,
       value: data.value,
+      expenseKind: data.expenseKind,
+      plannedAmount: data.plannedAmount,
       categoryId: data.categoryId,
       subcategoryId: data.subcategoryId,
       paidBy: data.paidBy,
@@ -264,6 +295,8 @@ export class RecurringExpenseService {
         userId: recurringExpense.getDataValue("user_id") as string | undefined,
         description: recurringExpense.getDataValue("description") as string,
         value: Number(recurringExpense.getDataValue("value")),
+        expenseKind: recurringExpense.getDataValue("expense_kind") as string | undefined,
+        plannedAmount: recurringExpense.getDataValue("planned_amount") as number | null | undefined,
         categoryId: recurringExpense.getDataValue("category_id") as string,
         subcategoryId: recurringExpense.getDataValue("subcategory_id") as string | undefined,
         paidBy: recurringExpense.getDataValue("paid_by") as string | undefined,
@@ -277,6 +310,8 @@ export class RecurringExpenseService {
     this.validateBaseFields({
       description: data.description,
       value: data.value,
+      expenseKind: data.expense_kind,
+      plannedAmount: data.planned_amount,
       status: data.status,
     })
 
@@ -305,6 +340,8 @@ export class RecurringExpenseService {
       user_id: requestingUserId,
       description: data.description,
       value: data.value,
+      expense_kind: data.expense_kind,
+      planned_amount: data.planned_amount,
       category_id: data.category_id,
       subcategory_id: data.subcategory_id,
       paid_by: data.paid_by,
@@ -320,6 +357,8 @@ export class RecurringExpenseService {
         userId: requestingUserId,
         description: data.description,
         value: data.value,
+        expenseKind: data.expense_kind,
+        plannedAmount: data.planned_amount,
         categoryId: data.category_id,
         subcategoryId: data.subcategory_id,
         paidBy: data.paid_by,
@@ -353,6 +392,10 @@ export class RecurringExpenseService {
   private async updateWholeSeries(id: string, existingRecurringExpense: any, data: UpdateRecurringExpenseDTO) {
     const nextDescription = data.description ?? (existingRecurringExpense.getDataValue("description") as string)
     const nextValue = data.value ?? Number(existingRecurringExpense.getDataValue("value"))
+    const nextExpenseKind = data.expense_kind ?? (existingRecurringExpense.getDataValue("expense_kind") as string | undefined)
+    const nextPlannedAmount = data.planned_amount !== undefined
+      ? data.planned_amount
+      : (existingRecurringExpense.getDataValue("planned_amount") as number | null | undefined)
     const nextCategoryId = data.category_id ?? (existingRecurringExpense.getDataValue("category_id") as string)
     const nextSubcategoryId = data.subcategory_id !== undefined
       ? data.subcategory_id
@@ -373,6 +416,8 @@ export class RecurringExpenseService {
       description: nextDescription,
       value: nextValue,
       status: nextStatus,
+      expenseKind: nextExpenseKind,
+      plannedAmount: nextPlannedAmount,
     })
 
     await this.validateCategoryAndSubcategory({
@@ -384,6 +429,8 @@ export class RecurringExpenseService {
     const recurringExpense = await recurringExpenseRepository.update(id, {
       description: nextDescription,
       value: nextValue,
+      expense_kind: nextExpenseKind,
+      planned_amount: nextPlannedAmount ?? null,
       category_id: nextCategoryId,
       subcategory_id: nextSubcategoryId,
       paid_by: nextPaidBy,
@@ -404,6 +451,8 @@ export class RecurringExpenseService {
         userId,
         description: nextDescription,
         value: nextValue,
+        expenseKind: nextExpenseKind,
+        plannedAmount: nextPlannedAmount,
         categoryId: nextCategoryId,
         subcategoryId: nextSubcategoryId,
         paidBy: nextPaidBy,
@@ -457,6 +506,10 @@ export class RecurringExpenseService {
       return expenseRepository.update(occurrence.getDataValue("id") as string, {
         description: data.description ?? (occurrence.getDataValue("description") as string),
         value: data.value ?? Number(occurrence.getDataValue("value")),
+          expense_kind: data.expense_kind ?? (occurrence.getDataValue("expense_kind") as string | undefined),
+          planned_amount: data.planned_amount !== undefined
+            ? data.planned_amount
+            : (occurrence.getDataValue("planned_amount") as number | null | undefined),
         category_id: nextCategoryId,
         subcategory_id: nextSubcategoryId,
         paid_by: data.paid_by !== undefined ? data.paid_by : (occurrence.getDataValue("paid_by") as string | undefined),
@@ -472,6 +525,10 @@ export class RecurringExpenseService {
 
     const nextDescription = data.description ?? (existingRecurringExpense.getDataValue("description") as string)
     const nextValue = data.value ?? Number(existingRecurringExpense.getDataValue("value"))
+    const nextExpenseKind = data.expense_kind ?? (existingRecurringExpense.getDataValue("expense_kind") as string | undefined)
+    const nextPlannedAmount = data.planned_amount !== undefined
+      ? data.planned_amount
+      : (existingRecurringExpense.getDataValue("planned_amount") as number | null | undefined)
     const nextCategoryId = data.category_id ?? (existingRecurringExpense.getDataValue("category_id") as string)
     const nextSubcategoryId = data.subcategory_id !== undefined
       ? data.subcategory_id
@@ -492,6 +549,8 @@ export class RecurringExpenseService {
       description: nextDescription,
       value: nextValue,
       status: nextStatus,
+      expenseKind: nextExpenseKind,
+      plannedAmount: nextPlannedAmount,
     })
 
     await this.validateCategoryAndSubcategory({
@@ -507,6 +566,8 @@ export class RecurringExpenseService {
       user_id: userId,
       description: nextDescription,
       value: nextValue,
+      expense_kind: nextExpenseKind,
+      planned_amount: nextPlannedAmount ?? null,
       category_id: nextCategoryId,
       subcategory_id: nextSubcategoryId,
       paid_by: nextPaidBy,
@@ -522,6 +583,8 @@ export class RecurringExpenseService {
         userId,
         description: nextDescription,
         value: nextValue,
+        expenseKind: nextExpenseKind,
+        plannedAmount: nextPlannedAmount,
         categoryId: nextCategoryId,
         subcategoryId: nextSubcategoryId,
         paidBy: nextPaidBy,
@@ -602,6 +665,8 @@ export class RecurringExpenseService {
       userId: recurringExpense.getDataValue("user_id") as string | undefined,
       description: recurringExpense.getDataValue("description") as string,
       value: Number(recurringExpense.getDataValue("value")),
+      expenseKind: recurringExpense.getDataValue("expense_kind") as string | undefined,
+      plannedAmount: recurringExpense.getDataValue("planned_amount") as number | null | undefined,
       categoryId: recurringExpense.getDataValue("category_id") as string,
       subcategoryId: recurringExpense.getDataValue("subcategory_id") as string | undefined,
       paidBy: recurringExpense.getDataValue("paid_by") as string | undefined,

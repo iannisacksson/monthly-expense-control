@@ -4,6 +4,8 @@ export interface CreateRecurringExpenseDTO {
   user_id?: string
   description: string
   value: number
+  expense_kind?: string
+  planned_amount?: number
   category_id: string
   subcategory_id?: string
   paid_by?: string
@@ -16,6 +18,8 @@ export interface CreateRecurringExpenseDTO {
 export interface UpdateRecurringExpenseDTO {
   description?: string
   value?: number
+  expense_kind?: string
+  planned_amount?: number | null
   category_id?: string
   subcategory_id?: string
   paid_by?: string
