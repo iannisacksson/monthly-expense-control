@@ -1,1 +1,1 @@
-export * from "../../../controllers/recurring-expense.controller"
+export * from "./recurring-expense";

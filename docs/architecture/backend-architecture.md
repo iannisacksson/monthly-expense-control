@@ -378,6 +378,8 @@ Current state:
 
 - runtime controllers are exposed through `src/interfaces/http/controllers`
 - runtime route composition starts in `src/interfaces/http/routes/index.ts`
+- pure controller actions now live in resource folders such as `src/interfaces/http/controllers/category/create.controller.ts`
+- Express adaptation is centralized in `src/interfaces/http/express-route.adapter.ts`
 - `src/services` remains as a compatibility support layer reused by the explicit use cases while the domain/application split matures further
 
 This is intentional and avoids a destructive rewrite while moving the runtime flow to the new architectural boundary.
@@ -397,16 +399,25 @@ Backend automated tests are now organized by level:
 
 Controllers are responsible for:
 
-- handling HTTP requests
-- validating input
-- calling services
-- returning HTTP responses
+- one action per file
+- receiving simple request models instead of Express objects
+- calling use cases
+- returning simple HTTP response models
 
 Controllers must **NOT**:
 
 - implement business logic
 - access the database directly
 - interact with Sequelize models
+- import `Request`, `Response`, or `NextFunction` from Express
+
+Express-specific request extraction, cookie handling, fallback status normalization, and response serialization belong to the HTTP adapter layer.
+
+Current adapter baseline:
+
+- `src/interfaces/http/express-route.adapter.ts` maps Express requests into controller request models
+- the adapter forwards failures to the centralized `error-handler` middleware
+- action-specific fallback status normalization may occur in the adapter to preserve legacy HTTP contracts while services migrate to typed errors
 
 Example responsibility:
 
@@ -420,13 +431,28 @@ Formatting response
 Example pattern:
 
 ```ts
-export const createExpense = async (req, res) => {
-  const data = req.body
+export async function createExpenseController(request) {
+  const result = await createExpenseUseCase.execute({
+    ...request.body,
+    user_id: request.userId,
+  })
 
-  const result = await expenseService.createExpense(data)
-
-  return res.status(201).json(result)
+  return {
+    statusCode: 201,
+    body: result,
+  }
 }
+```
+
+Express adapter example:
+
+```ts
+router.post(
+  "/",
+  adaptExpressRoute(createExpenseController, (req) => buildAuthenticatedHttpRequest(req)),
+)
+```
+
 Services
 
 Services implement the business logic of the application.

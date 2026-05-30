@@ -1,1 +1,1 @@
-export * from "../../../controllers/subcategory.controller"
+export * from "./subcategory";

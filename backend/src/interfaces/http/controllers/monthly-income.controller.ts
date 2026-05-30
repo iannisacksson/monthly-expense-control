@@ -1,1 +1,1 @@
-export * from "../../../controllers/monthly-income.controller"
+export * from "./monthly-income";

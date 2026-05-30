@@ -44,6 +44,7 @@ The backend adopts a Clean Architecture inspired hybrid structure with these dec
    - `tests/unit`
    - `tests/integration/http`
    - `tests/shared`
+7. The HTTP boundary may continue evolving toward pure controllers plus thin framework adapters as the interface layer is made more explicit.
 
 ## Rationale
 

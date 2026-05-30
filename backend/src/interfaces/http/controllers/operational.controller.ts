@@ -1,1 +1,1 @@
-export * from "../../../controllers/operational.controller"
+export * from "./operational";

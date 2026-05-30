@@ -232,9 +232,17 @@ Implement HTTP layer.
 
 Controllers must:
 
-- receive DTOs
+- be organized as one action per file
+- receive simple request models instead of Express objects
 - call use cases
-- return responses
+- return simple response models
+
+Express adapters must:
+
+- live at the HTTP boundary
+- extract `req` data
+- call the pure controller
+- forward failures to the centralized error handler
 
 Example prompt:
 
@@ -245,7 +253,7 @@ Generate the controller following api-spec.md.
 Expected output:
 
 
-src/interfaces/http/controllers/<entity>.controller.ts
+src/interfaces/http/controllers/<resource>/<action>.controller.ts
 
 
 ---
@@ -348,7 +356,7 @@ Workflow:
 5. Generate or update ExpenseRepository
 6. Generate or update rich domain entities or rules when needed
 7. Generate or update Expense use cases
-8. Generate or update ExpenseController and routes
+8. Generate or update pure Expense controllers, HTTP adapters, and routes
 9. Validate against api-spec.md and documentation consistency
 10. Add or update automated tests
 11. Run backend quality gates

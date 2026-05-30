@@ -132,6 +132,8 @@ See `docs/architecture/backend-operations.md` for logging, metrics, backup/resto
 Current runtime direction:
 
 - HTTP controllers and route entrypoints are exposed through `src/interfaces/http`
+- controller actions are split into one file per action under `src/interfaces/http/controllers/<resource>`
+- Express-specific request/response wiring is centralized in `src/interfaces/http/express-route.adapter.ts`
 - explicit application actions live in `src/application/use-cases`
 - rich entities and value objects live in `src/domain`
 - repositories, models, and database setup remain infrastructure concerns

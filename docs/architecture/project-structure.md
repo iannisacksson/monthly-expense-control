@@ -141,10 +141,17 @@ Purpose: HTTP-facing boundary.
 
 Responsibilities:
 
-- expose controllers used by routes
+- expose pure action controllers used by routes
+- centralize Express adapters used by routes
 - compose the runtime route entrypoint
 
 Controllers must not contain business logic.
+
+Current pattern:
+
+- one action per controller file, for example `backend/src/interfaces/http/controllers/category/create.controller.ts`
+- shared Express adaptation in `backend/src/interfaces/http/express-route.adapter.ts`
+- routes receive Express `req`/`res`, controllers do not
 
 ### services
 
@@ -264,6 +271,10 @@ The following folders still exist during the architectural transition and are st
 - `backend/src/services`
 
 They should be treated as compatibility surfaces around the new explicit application and domain layers, not as the long-term primary architecture.
+
+Current note:
+
+- `backend/src/controllers` now acts primarily as a compatibility re-export surface to the new `interfaces/http/controllers` folders
 
 ---
 

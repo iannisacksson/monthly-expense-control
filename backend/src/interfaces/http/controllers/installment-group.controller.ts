@@ -1,1 +1,1 @@
-export * from "../../../controllers/installment-group.controller"
+export * from "./installment-group";

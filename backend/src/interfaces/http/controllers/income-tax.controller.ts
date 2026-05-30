@@ -1,1 +1,1 @@
-export * from "../../../controllers/income-tax.controller"
+export * from "./income-tax";

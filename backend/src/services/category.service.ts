@@ -1,7 +1,11 @@
 import { CategoryRepository } from "../repositories/category.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/category.dto"
-import { ForbiddenError } from "../utils/errors"
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "../utils/errors";
 import { CategoryEntity } from "../domain/entities/category.entity";
 
 const categoryRepository = new CategoryRepository()
@@ -15,7 +19,7 @@ export class CategoryService {
 
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error("User not found")
+      throw new BadRequestError("User not found");
     }
 
     return categoryRepository.create({
@@ -32,7 +36,7 @@ export class CategoryService {
   async findCategoryById(id: string, requestingUserId: string) {
     const category = await categoryRepository.findById(id)
     if (!category) {
-      throw new Error("Category not found")
+      throw new NotFoundError("Category not found");
     }
     if (category.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
     return category
@@ -42,24 +46,24 @@ export class CategoryService {
     if (data.name !== undefined) CategoryEntity.validateName(data.name);
 
     const existing = await categoryRepository.findById(id)
-    if (!existing) throw new Error("Category not found")
+    if (!existing) throw new NotFoundError("Category not found");
     if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const category = await categoryRepository.update(id, data)
     if (!category) {
-      throw new Error("Category not found")
+      throw new NotFoundError("Category not found");
     }
     return category
   }
 
   async deleteCategory(id: string, requestingUserId: string) {
     const existing = await categoryRepository.findById(id)
-    if (!existing) throw new Error("Category not found")
+    if (!existing) throw new NotFoundError("Category not found");
     if (existing.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
     const category = await categoryRepository.delete(id)
     if (!category) {
-      throw new Error("Category not found")
+      throw new NotFoundError("Category not found");
     }
     return category
   }
