@@ -5,6 +5,7 @@ import { UserRepository } from "../repositories/user.repository"
 import { BudgetRuleRepository } from "../repositories/budget-rule.repository"
 import { CreateMonthDTO, UpdateMonthDTO } from "../dtos/month.dto"
 import { ForbiddenError } from "../utils/errors"
+import { MonthEntity } from "../domain/entities/month.entity";
 
 const monthRepository = new MonthRepository()
 const userRepository = new UserRepository()
@@ -43,13 +44,7 @@ export class MonthService {
   }
 
   async createMonth(data: CreateMonthDTO) {
-    if (data.month < 1 || data.month > 12) {
-      throw new Error("Month must be between 1 and 12")
-    }
-
-    if (data.year < 2000 || data.year > 2100) {
-      throw new Error("Year must be between 2000 and 2100")
-    }
+    MonthEntity.validatePeriod(data.year, data.month);
 
     const user = await userRepository.findById(data.user_id)
     if (!user) {
@@ -86,9 +81,7 @@ export class MonthService {
   }
 
   async updateMonth(id: string, data: UpdateMonthDTO, requestingUserId: string) {
-    if (data.status !== undefined && !["open", "closed"].includes(data.status)) {
-      throw new Error("Status must be open or closed")
-    }
+    if (data.status !== undefined) MonthEntity.validateStatus(data.status);
 
     await this.validateBudgetRuleOwnership(id, data.budget_rule_id)
 
@@ -110,7 +103,7 @@ export class MonthService {
     }
     if (month.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
 
-    throw new Error("Month deletion is not allowed")
+    MonthEntity.ensureDeletionAllowed();
   }
 
   async finalizeMonth(id: string, requestingUserId: string) {

@@ -6,6 +6,12 @@ import { RecurringExpenseRepository } from "../repositories/recurring-expense.re
 import { ForbiddenError } from "../utils/errors"
 import { SubcategoryRepository } from "../repositories/subcategory.repository"
 import { UserRepository } from "../repositories/user.repository"
+import { RecurringExpenseEntity } from "../domain/entities/recurring-expense.entity";
+import {
+  getMonthDistance,
+  isMonthWithinRecurringRange,
+  type MonthPeriod,
+} from "../domain/value-objects/month-period";
 
 const recurringExpenseRepository = new RecurringExpenseRepository()
 const expenseRepository = new ExpenseRepository()
@@ -26,11 +32,16 @@ export class RecurringExpenseService {
   }
 
   private getMonthDistance(startMonth: any, targetMonth: any) {
-    const startYear = startMonth.getDataValue("year") as number
-    const startMonthNumber = startMonth.getDataValue("month") as number
-    const targetYear = targetMonth.getDataValue("year") as number
-    const targetMonthNumber = targetMonth.getDataValue("month") as number
-    return ((targetYear - startYear) * 12) + (targetMonthNumber - startMonthNumber)
+    return getMonthDistance(
+      {
+        year: startMonth.getDataValue("year") as number,
+        month: startMonth.getDataValue("month") as number,
+      } satisfies MonthPeriod,
+      {
+        year: targetMonth.getDataValue("year") as number,
+        month: targetMonth.getDataValue("month") as number,
+      } satisfies MonthPeriod,
+    );
   }
 
   private getMonthDate(month: any) {
@@ -96,45 +107,21 @@ export class RecurringExpenseService {
     expenseKind?: string
     plannedAmount?: number | null
   }) {
-    if (!params.description || params.description.length > 255) {
-      throw new Error("Description is required and must be at most 255 characters")
-    }
-
-    if (!["active", "inactive"].includes(params.status)) {
-      throw new Error("Status must be active or inactive")
-    }
-
-    const expenseKind = params.expenseKind ?? "standard"
-    if (!this.allowedExpenseKinds.includes(expenseKind as typeof this.allowedExpenseKinds[number])) {
-      throw new Error("Recurring expense kind must be standard or envelope")
-    }
-
-    if (expenseKind === "envelope") {
-      if (params.value < 0) {
-        throw new Error("Recurring envelope expenses cannot define a negative current amount")
-      }
-
-      if (params.plannedAmount === undefined || params.plannedAmount === null || params.plannedAmount <= 0) {
-        throw new Error("Recurring envelope expenses must define a planned amount greater than zero")
-      }
-    } else if (params.value <= 0) {
-      throw new Error("Recurring expense amount must be greater than zero")
-    } else if (params.plannedAmount !== undefined && params.plannedAmount !== null && params.plannedAmount <= 0) {
-      throw new Error("Planned amount must be greater than zero when provided")
-    }
+    RecurringExpenseEntity.validateBaseFields(params);
   }
 
   private isMonthWithinRecurringRange(startMonth: any, targetMonth: any, occurrences?: number | null) {
-    const distance = this.getMonthDistance(startMonth, targetMonth)
-    if (distance < 0) {
-      return false
-    }
-
-    if (occurrences != null && distance >= occurrences) {
-      return false
-    }
-
-    return true
+    return isMonthWithinRecurringRange(
+      {
+        year: startMonth.getDataValue("year") as number,
+        month: startMonth.getDataValue("month") as number,
+      },
+      {
+        year: targetMonth.getDataValue("year") as number,
+        month: targetMonth.getDataValue("month") as number,
+      },
+      occurrences,
+    );
   }
 
   private async ensureMonth(params: { userId: string; year: number; month: number }) {

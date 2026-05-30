@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { getMonthDistance, isMonthWithinRecurringRange } from "../src/utils/month-period"
+import { getMonthDistance, isMonthWithinRecurringRange } from "../../../src/domain/value-objects/month-period"
 
 describe("month period utils", () => {
   it("calculates the distance between two months", () => {

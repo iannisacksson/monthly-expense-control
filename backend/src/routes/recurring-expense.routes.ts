@@ -6,8 +6,8 @@ import {
   updateRecurringExpense,
   getExpensesByRecurringExpense,
   deleteRecurringExpense,
-  restoreRecurringExpenseOccurrence
-} from "../controllers/recurring-expense.controller"
+  restoreRecurringExpenseOccurrence,
+} from "../interfaces/http/controllers/recurring-expense.controller";
 
 const router = Router()
 

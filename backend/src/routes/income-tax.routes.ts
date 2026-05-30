@@ -1,5 +1,11 @@
 import { Router } from "express"
-import { createTax, listTaxesByIncome, getTaxById, updateTax, deleteTax } from "../controllers/income-tax.controller"
+import {
+  createTax,
+  listTaxesByIncome,
+  getTaxById,
+  updateTax,
+  deleteTax,
+} from "../interfaces/http/controllers/income-tax.controller";
 
 const router = Router()
 

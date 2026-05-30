@@ -1,0 +1,1 @@
+export * from "../../../controllers/installment-group.controller"

@@ -7,6 +7,12 @@ import { UserRepository } from "../repositories/user.repository"
 import { IncomeTaxationDTO } from "../dtos/monthly-income.dto"
 import { IncomeTaxationService } from "./income-taxation.service"
 import { ForbiddenError } from "../utils/errors"
+import { RecurringIncomeEntity } from "../domain/entities/recurring-income.entity";
+import {
+  getMonthDistance,
+  isMonthWithinRecurringRange,
+  type MonthPeriod,
+} from "../domain/value-objects/month-period";
 
 const recurringIncomeRepository = new RecurringIncomeRepository()
 const monthlyIncomeRepository = new MonthlyIncomeRepository()
@@ -17,11 +23,16 @@ const incomeTaxationService = new IncomeTaxationService()
 
 export class RecurringIncomeService {
   private getMonthDistance(startMonth: any, targetMonth: any) {
-    const startYear = startMonth.getDataValue("year") as number
-    const startMonthNumber = startMonth.getDataValue("month") as number
-    const targetYear = targetMonth.getDataValue("year") as number
-    const targetMonthNumber = targetMonth.getDataValue("month") as number
-    return ((targetYear - startYear) * 12) + (targetMonthNumber - startMonthNumber)
+    return getMonthDistance(
+      {
+        year: startMonth.getDataValue("year") as number,
+        month: startMonth.getDataValue("month") as number,
+      } satisfies MonthPeriod,
+      {
+        year: targetMonth.getDataValue("year") as number,
+        month: targetMonth.getDataValue("month") as number,
+      } satisfies MonthPeriod,
+    );
   }
 
   private validateBaseFields(params: {
@@ -31,38 +42,21 @@ export class RecurringIncomeService {
     kind: string
     status: string
   }) {
-    if (!params.description || params.description.length > 255) {
-      throw new Error("Description is required and must be at most 255 characters")
-    }
-
-    if (params.grossIncome <= 0) {
-      throw new Error("Recurring income amount must be greater than zero")
-    }
-
-    if (!params.incomeType) {
-      throw new Error("Income type is required")
-    }
-
-    if (!["fixed_salary", "recurring_extra"].includes(params.kind)) {
-      throw new Error("Recurring income kind must be fixed_salary or recurring_extra")
-    }
-
-    if (!["active", "inactive"].includes(params.status)) {
-      throw new Error("Status must be active or inactive")
-    }
+    RecurringIncomeEntity.validateBaseFields(params);
   }
 
   private isMonthWithinRecurringRange(startMonth: any, targetMonth: any, occurrences?: number | null) {
-    const distance = this.getMonthDistance(startMonth, targetMonth)
-    if (distance < 0) {
-      return false
-    }
-
-    if (occurrences != null && distance >= occurrences) {
-      return false
-    }
-
-    return true
+    return isMonthWithinRecurringRange(
+      {
+        year: startMonth.getDataValue("year") as number,
+        month: startMonth.getDataValue("month") as number,
+      },
+      {
+        year: targetMonth.getDataValue("year") as number,
+        month: targetMonth.getDataValue("month") as number,
+      },
+      occurrences,
+    );
   }
 
   private async validateUserAndMonth(params: {

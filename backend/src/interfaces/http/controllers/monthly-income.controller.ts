@@ -1,0 +1,1 @@
+export * from "../../../controllers/monthly-income.controller"

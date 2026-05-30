@@ -2,30 +2,27 @@ import { CategoryRepository } from "../repositories/category.repository"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/category.dto"
 import { ForbiddenError } from "../utils/errors"
+import { CategoryEntity } from "../domain/entities/category.entity";
 
 const categoryRepository = new CategoryRepository()
 const userRepository = new UserRepository()
 
 export class CategoryService {
   async createCategory(data: CreateCategoryDTO) {
-    if (!data.name || data.name.length < 2 || data.name.length > 100) {
-      throw new Error("Category name must be between 2 and 100 characters")
-    }
+    CategoryEntity.validateName(data.name);
+    CategoryEntity.ensureUserOwnership(data.user_id);
+    const userId = data.user_id as string;
 
-    if (!data.user_id) {
-      throw new Error("Category must belong to a user")
-    }
-
-    const user = await userRepository.findById(data.user_id)
+    const user = await userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found")
     }
 
     return categoryRepository.create({
-      user_id: data.user_id,
+      user_id: userId,
       name: data.name,
       type: data.type,
-    })
+    });
   }
 
   async listCategoriesByUser(userId: string) {
@@ -42,9 +39,7 @@ export class CategoryService {
   }
 
   async updateCategory(id: string, data: UpdateCategoryDTO, requestingUserId: string) {
-    if (data.name !== undefined && (data.name.length < 2 || data.name.length > 100)) {
-      throw new Error("Category name must be between 2 and 100 characters")
-    }
+    if (data.name !== undefined) CategoryEntity.validateName(data.name);
 
     const existing = await categoryRepository.findById(id)
     if (!existing) throw new Error("Category not found")

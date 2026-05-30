@@ -1,4 +1,4 @@
-import { createAuthenticatedSession, createCategory, createMonth } from "./helpers/api"
+import { createAuthenticatedSession, createCategory, createMonth } from "../../shared/helpers/api"
 
 describe("month finalization", () => {
   it("closes a month and blocks new expenses in the closed month", async () => {

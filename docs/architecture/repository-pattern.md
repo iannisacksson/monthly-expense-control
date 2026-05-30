@@ -11,7 +11,7 @@ They isolate database logic from business logic.
 AI assistants must follow this pattern when generating:
 
 - repositories
-- service layer
+- application layer persistence access
 - database interactions
 
 This document complements:
@@ -24,20 +24,21 @@ docs/domain/aggregates.md
 
 # Architecture Layers
 
-The backend follows a layered architecture.
+The backend now uses a Clean Architecture inspired separation.
 
-Controller Layer  
-Service Layer  
-Repository Layer  
-Database Layer
+Interfaces Layer  
+Application Layer  
+Domain Layer  
+Infrastructure Layer
 
 Responsibilities:
 
 Controllers → handle HTTP requests and responses  
-Services → implement business logic  
+Use cases → orchestrate application behavior  
+Domain → hold pure business rules  
 Repositories → interact with the database
 
-Services must **never access Sequelize models directly**.
+Application use cases and domain code must **never access Sequelize models directly**.
 
 All database access must go through repositories.
 
@@ -60,10 +61,16 @@ They only handle persistence.
 
 # Repository Location
 
-Repositories must be stored in:
+Current physical location:
 
 
 src/repositories
+
+
+Architectural role:
+
+- repositories are infrastructure adapters used by the application layer
+- the physical location may remain `src/repositories` during migration, but their responsibility is infrastructure, not domain
 
 
 Example:
@@ -78,7 +85,7 @@ src/repositories/income.repository.ts
 
 # Repository Interface Design
 
-Each repository should expose methods required by the service layer.
+Each repository should expose methods required by the application layer.
 
 Example interface:
 
@@ -129,7 +136,7 @@ account.model.ts
 
 Repositories should import Sequelize models and perform queries.
 
-Services must not interact with Sequelize directly.
+Application use cases and domain code must not interact with Sequelize directly.
 
 ---
 
@@ -169,14 +176,14 @@ return account.destroy()
 
 ---
 
-# Service Interaction
+# Application Interaction
 
-Services must use repositories to interact with the database.
+Application use cases and supporting services must use repositories to interact with the database.
 
 Example flow:
 
 Controller  
-→ Service  
+→ Use Case  
 → Repository  
 → Database
 
@@ -184,7 +191,7 @@ Example:
 
 
 AccountController
-→ AccountService
+→ CreateAccountUseCase
 → AccountRepository
 → Sequelize
 → PostgreSQL
@@ -194,7 +201,7 @@ AccountController
 
 # Business Logic Location
 
-Business rules must exist in the service layer.
+Business rules must exist in the application layer or domain layer.
 
 Repositories must not:
 
@@ -202,7 +209,7 @@ Repositories must not:
 - coordinate aggregates
 - trigger domain events
 
-These responsibilities belong to services.
+These responsibilities belong to the application layer and pure domain code, not to repositories.
 
 ---
 
@@ -212,8 +219,8 @@ When generating backend code, AI assistants must:
 
 1. create repository classes for each aggregate root
 2. use Sequelize models inside repositories
-3. call repositories from services
-4. avoid database logic inside controllers or services
+3. call repositories from application use cases or supporting orchestration services
+4. avoid database logic inside controllers, use cases, and domain entities
 
 Repositories must focus strictly on **data persistence**.
 

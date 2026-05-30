@@ -1,4 +1,4 @@
-import { createAuthenticatedSession, createCategory, createMonth } from "./helpers/api"
+import { createAuthenticatedSession, createCategory, createMonth } from "../../shared/helpers/api"
 
 describe("installment groups", () => {
   it("materializes all installment expenses across the schedule", async () => {

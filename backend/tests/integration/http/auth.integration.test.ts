@@ -1,5 +1,5 @@
 import request from "supertest"
-import app from "../src/app"
+import app from "../../../src/app"
 
 describe("authentication flow", () => {
   it("registers, logs in, refreshes and logs out with secure cookies", async () => {

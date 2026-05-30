@@ -6,6 +6,7 @@ import { sequelize } from "../database/connection"
 import { CreateMonthlyIncomeDTO, IncomeTaxationDTO, UpdateMonthlyIncomeDTO } from "../dtos/monthly-income.dto"
 import { IncomeTaxationService } from "./income-taxation.service"
 import { ForbiddenError } from "../utils/errors"
+import { MonthlyIncomeEntity } from "../domain/entities/monthly-income.entity";
 
 const monthlyIncomeRepository = new MonthlyIncomeRepository()
 const monthRepository = new MonthRepository()
@@ -15,13 +16,8 @@ const incomeTaxationService = new IncomeTaxationService()
 
 export class MonthlyIncomeService {
   async registerIncome(data: CreateMonthlyIncomeDTO, requestingUserId: string) {
-    if (data.gross_income <= 0) {
-      throw new Error("Income amount must be greater than zero")
-    }
-
-    if (data.notes && data.notes.length > 255) {
-      throw new Error("Income notes must be at most 255 characters")
-    }
+    MonthlyIncomeEntity.validateGrossIncome(data.gross_income);
+    MonthlyIncomeEntity.validateNotes(data.notes);
 
     const user = await userRepository.findById(requestingUserId)
     if (!user) {
@@ -87,9 +83,9 @@ export class MonthlyIncomeService {
   }
 
   async updateIncome(id: string, data: UpdateMonthlyIncomeDTO, requestingUserId: string) {
-    if (data.gross_income !== undefined && data.gross_income <= 0) {
-      throw new Error("Income amount must be greater than zero")
-    }
+    if (data.gross_income !== undefined)
+      MonthlyIncomeEntity.validateGrossIncome(data.gross_income);
+    if (data.notes !== undefined) MonthlyIncomeEntity.validateNotes(data.notes);
 
     const existingIncome = await monthlyIncomeRepository.findById(id)
     if (!existingIncome) {

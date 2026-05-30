@@ -1,4 +1,4 @@
-import { createAuthenticatedSession, createCategory } from "./helpers/api"
+import { createAuthenticatedSession, createCategory } from "../../shared/helpers/api"
 
 describe("budget rules and allocations", () => {
   it("rejects allocations whose total percentage exceeds 100 percent", async () => {

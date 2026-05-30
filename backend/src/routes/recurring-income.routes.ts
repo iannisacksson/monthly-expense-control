@@ -6,7 +6,7 @@ import {
   updateRecurringIncome,
   getMonthlyIncomesByRecurringIncome,
   deleteRecurringIncome,
-} from "../controllers/recurring-income.controller"
+} from "../interfaces/http/controllers/recurring-income.controller";
 
 const router = Router()
 

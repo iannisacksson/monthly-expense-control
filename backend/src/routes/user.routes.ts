@@ -1,5 +1,10 @@
 import { Router } from "express"
-import { createUser, getUserById, updateUser, deleteUser } from "../controllers/user.controller"
+import {
+  createUser,
+  getUserById,
+  updateUser,
+  deleteUser,
+} from "../interfaces/http/controllers/user.controller";
 
 const router = Router()
 

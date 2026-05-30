@@ -1,12 +1,25 @@
 import { Request, Response } from "express"
-import { MonthlyIncomeService } from "../services/monthly-income.service"
+import {
+  DeleteMonthlyIncomeUseCase,
+  GetMonthlyIncomeByIdUseCase,
+  ListMonthlyIncomesUseCase,
+  RegisterMonthlyIncomeUseCase,
+  UpdateMonthlyIncomeUseCase,
+} from "../application/use-cases/monthly-income.use-cases";
 import { ForbiddenError } from "../utils/errors"
 
-const monthlyIncomeService = new MonthlyIncomeService()
+const registerMonthlyIncomeUseCase = new RegisterMonthlyIncomeUseCase();
+const listMonthlyIncomesUseCase = new ListMonthlyIncomesUseCase();
+const getMonthlyIncomeByIdUseCase = new GetMonthlyIncomeByIdUseCase();
+const updateMonthlyIncomeUseCase = new UpdateMonthlyIncomeUseCase();
+const deleteMonthlyIncomeUseCase = new DeleteMonthlyIncomeUseCase();
 
 export const registerIncome = async (req: Request, res: Response) => {
   try {
-    const result = await monthlyIncomeService.registerIncome(req.body, req.user!.id)
+    const result = await registerMonthlyIncomeUseCase.execute(
+      req.body,
+      req.user!.id,
+    );
     return res.status(201).json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -16,7 +29,10 @@ export const registerIncome = async (req: Request, res: Response) => {
 
 export const listIncomesByMonth = async (req: Request, res: Response) => {
   try {
-    const result = await monthlyIncomeService.listIncomesByMonth(req.params.monthId as string, req.user!.id)
+    const result = await listMonthlyIncomesUseCase.execute(
+      req.params.monthId as string,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -26,7 +42,10 @@ export const listIncomesByMonth = async (req: Request, res: Response) => {
 
 export const getIncomeById = async (req: Request, res: Response) => {
   try {
-    const result = await monthlyIncomeService.findIncomeById(req.params.id as string, req.user!.id)
+    const result = await getMonthlyIncomeByIdUseCase.execute(
+      req.params.id as string,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -36,7 +55,11 @@ export const getIncomeById = async (req: Request, res: Response) => {
 
 export const updateIncome = async (req: Request, res: Response) => {
   try {
-    const result = await monthlyIncomeService.updateIncome(req.params.id as string, req.body, req.user!.id)
+    const result = await updateMonthlyIncomeUseCase.execute(
+      req.params.id as string,
+      req.body,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -46,7 +69,10 @@ export const updateIncome = async (req: Request, res: Response) => {
 
 export const deleteIncome = async (req: Request, res: Response) => {
   try {
-    await monthlyIncomeService.deleteIncome(req.params.id as string, req.user!.id)
+    await deleteMonthlyIncomeUseCase.execute(
+      req.params.id as string,
+      req.user!.id,
+    );
     return res.json({ success: true })
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })

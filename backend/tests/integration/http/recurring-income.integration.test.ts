@@ -1,4 +1,4 @@
-import { createAuthenticatedSession, createMonth } from "./helpers/api"
+import { createAuthenticatedSession, createMonth } from "../../shared/helpers/api"
 
 describe("recurring incomes", () => {
   it("generates monthly incomes for eligible owner months", async () => {

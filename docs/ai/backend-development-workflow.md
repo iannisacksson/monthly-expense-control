@@ -25,11 +25,12 @@ Backend development should follow these steps:
 4. Review domain model
 5. Review database schema
 6. Generate or update repository
-7. Generate or update service
-8. Generate or update controller and routes
-9. Validate against API specification and documentation sync rules
-10. Add or update automated tests
-11. Run backend quality gates
+7. Generate or update domain entities or domain rules when needed
+8. Generate or update application use cases
+9. Generate or update controller and routes
+10. Validate against API specification and documentation sync rules
+11. Add or update automated tests
+12. Run backend quality gates
 
 Each step references specific documentation.
 
@@ -85,7 +86,7 @@ Before editing backend code, AI assistants must inspect the current implementati
 Minimum codebase review:
 
 - routes or controllers that expose the behavior
-- services that enforce the behavior
+- use cases or services that enforce the behavior
 - repositories or models that constrain the behavior
 - related frontend calls when the contract affects the UI
 
@@ -171,7 +172,22 @@ src/repositories/<entity>.repository.ts
 
 ---
 
-# Step 7 — Generate Service
+# Step 7 — Generate Domain Rules
+
+AI assistants must consult:
+
+docs/domain/domain-model.md  
+docs/domain/validation-rules.md  
+
+Goal:
+
+Move pure validations and reusable invariants into rich entities or domain-level constructs when that improves clarity and testability.
+
+Domain code must not depend on Express or Sequelize.
+
+---
+
+# Step 8 — Generate Application Use Cases
 
 AI assistants must consult:
 
@@ -181,29 +197,29 @@ docs/domain/validation-rules.md
 
 Goal:
 
-Implement business logic.
+Implement orchestration and use-case behavior.
 
-Services must:
+Use cases must:
 
-- validate business rules
-- coordinate aggregates
-- trigger domain events
+- coordinate repositories and supporting services
+- invoke rich domain entities and domain rules
+- keep orchestration out of controllers
 
 Example prompt:
 
 
-Generate the service implementing the business logic for this entity.
+Generate the application use cases for this feature.
 
 
 Expected output:
 
 
-src/services/<entity>.service.ts
+src/application/use-cases/<feature>.use-cases.ts
 
 
 ---
 
-# Step 8 — Generate Controller
+# Step 9 — Generate Controller
 
 AI assistants must consult:
 
@@ -217,7 +233,7 @@ Implement HTTP layer.
 Controllers must:
 
 - receive DTOs
-- call services
+- call use cases
 - return responses
 
 Example prompt:
@@ -229,12 +245,12 @@ Generate the controller following api-spec.md.
 Expected output:
 
 
-src/controllers/<entity>.controller.ts
+src/interfaces/http/controllers/<entity>.controller.ts
 
 
 ---
 
-# Step 9 — Generate Routes
+# Step 10 — Generate Routes
 
 AI assistants must consult:
 
@@ -253,12 +269,12 @@ Generate Express routes for the resource.
 Expected output:
 
 
-src/routes/<entity>.routes.ts
+src/interfaces/http/routes/<entity>.routes.ts
 
 
 ---
 
-# Step 10 — Validate the Implementation
+# Step 11 — Validate the Implementation
 
 AI assistants must verify:
 
@@ -283,7 +299,7 @@ Review the generated code and ensure it follows the architecture and validation 
 
 ---
 
-# Step 11 — Add or Update Automated Tests
+# Step 12 — Add or Update Automated Tests
 
 Automated backend tests are mandatory for:
 
@@ -296,6 +312,7 @@ AI assistants must add or update tests that exercise the affected behavior using
 Minimum expectation:
 
 - prefer integration coverage for critical HTTP and domain flows
+- add focused unit coverage when logic becomes pure and isolated in domain entities or value objects
 - do not rely on mock-only tests when real repository and database behavior is part of the risk
 - keep test setup reproducible and documented
 
@@ -303,7 +320,7 @@ If a backend change does not update tests for the affected behavior, the task is
 
 ---
 
-# Step 12 — Run Backend Quality Gates
+# Step 13 — Run Backend Quality Gates
 
 Before considering a backend task complete, AI assistants must run the available quality gates for the affected scope.
 
@@ -329,11 +346,12 @@ Workflow:
 3. Review Expense entity in domain-model.md
 4. Review database impact when needed
 5. Generate or update ExpenseRepository
-6. Generate or update ExpenseService
-7. Generate or update ExpenseController and routes
-8. Validate against api-spec.md and documentation consistency
-9. Add or update automated tests
-10. Run backend quality gates
+6. Generate or update rich domain entities or rules when needed
+7. Generate or update Expense use cases
+8. Generate or update ExpenseController and routes
+9. Validate against api-spec.md and documentation consistency
+10. Add or update automated tests
+11. Run backend quality gates
 
 ---
 
@@ -347,6 +365,7 @@ When generating backend features, AI assistants must:
 4. review the existing codebase before editing behavior
 5. update documentation before or alongside code when a mismatch is found
 6. add or update automated tests for every backend feature, bug fix, or behavior-changing refactor
+7. classify backend tests explicitly by level when reorganizing or adding new suites
 
 AI tools should not skip workflow steps.
 

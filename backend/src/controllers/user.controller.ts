@@ -1,11 +1,19 @@
 import { Request, Response } from "express"
-import { UserService } from "../services/user.service"
+import {
+  CreateUserUseCase,
+  DeleteUserUseCase,
+  GetUserByIdUseCase,
+  UpdateUserUseCase,
+} from "../application/use-cases/user.use-cases";
 
-const userService = new UserService()
+const createUserUseCase = new CreateUserUseCase();
+const getUserByIdUseCase = new GetUserByIdUseCase();
+const updateUserUseCase = new UpdateUserUseCase();
+const deleteUserUseCase = new DeleteUserUseCase();
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const result = await userService.createUser(req.body)
+    const result = await createUserUseCase.execute(req.body);
     return res.status(201).json(result)
   } catch (error: any) {
     return res.status(400).json({ error: error.message })
@@ -14,7 +22,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const result = await userService.findUserById(req.params.id as string)
+    const result = await getUserByIdUseCase.execute(req.params.id as string);
     return res.json(result)
   } catch (error: any) {
     return res.status(404).json({ error: error.message })
@@ -23,7 +31,10 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const result = await userService.updateUser(req.params.id as string, req.body)
+    const result = await updateUserUseCase.execute(
+      req.params.id as string,
+      req.body,
+    );
     return res.json(result)
   } catch (error: any) {
     return res.status(400).json({ error: error.message })
@@ -32,7 +43,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    await userService.deleteUser(req.params.id as string)
+    await deleteUserUseCase.execute(req.params.id as string);
     return res.json({ success: true })
   } catch (error: any) {
     return res.status(404).json({ error: error.message })

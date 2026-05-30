@@ -1,12 +1,22 @@
 import { Request, Response } from "express"
-import { IncomeTaxService } from "../services/income-tax.service"
+import {
+  CreateIncomeTaxUseCase,
+  DeleteIncomeTaxUseCase,
+  GetIncomeTaxByIdUseCase,
+  ListIncomeTaxesUseCase,
+  UpdateIncomeTaxUseCase,
+} from "../application/use-cases/income-tax.use-cases";
 import { ForbiddenError } from "../utils/errors"
 
-const incomeTaxService = new IncomeTaxService()
+const createIncomeTaxUseCase = new CreateIncomeTaxUseCase();
+const listIncomeTaxesUseCase = new ListIncomeTaxesUseCase();
+const getIncomeTaxByIdUseCase = new GetIncomeTaxByIdUseCase();
+const updateIncomeTaxUseCase = new UpdateIncomeTaxUseCase();
+const deleteIncomeTaxUseCase = new DeleteIncomeTaxUseCase();
 
 export const createTax = async (req: Request, res: Response) => {
   try {
-    const result = await incomeTaxService.createTax(req.body, req.user!.id)
+    const result = await createIncomeTaxUseCase.execute(req.body, req.user!.id);
     return res.status(201).json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -16,7 +26,10 @@ export const createTax = async (req: Request, res: Response) => {
 
 export const listTaxesByIncome = async (req: Request, res: Response) => {
   try {
-    const result = await incomeTaxService.listTaxesByIncome(req.params.incomeId as string, req.user!.id)
+    const result = await listIncomeTaxesUseCase.execute(
+      req.params.incomeId as string,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -26,7 +39,10 @@ export const listTaxesByIncome = async (req: Request, res: Response) => {
 
 export const getTaxById = async (req: Request, res: Response) => {
   try {
-    const result = await incomeTaxService.findTaxById(req.params.id as string, req.user!.id)
+    const result = await getIncomeTaxByIdUseCase.execute(
+      req.params.id as string,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -36,7 +52,11 @@ export const getTaxById = async (req: Request, res: Response) => {
 
 export const updateTax = async (req: Request, res: Response) => {
   try {
-    const result = await incomeTaxService.updateTax(req.params.id as string, req.body, req.user!.id)
+    const result = await updateIncomeTaxUseCase.execute(
+      req.params.id as string,
+      req.body,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -46,7 +66,7 @@ export const updateTax = async (req: Request, res: Response) => {
 
 export const deleteTax = async (req: Request, res: Response) => {
   try {
-    await incomeTaxService.deleteTax(req.params.id as string, req.user!.id)
+    await deleteIncomeTaxUseCase.execute(req.params.id as string, req.user!.id);
     return res.json({ success: true })
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })

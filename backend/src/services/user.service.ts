@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt"
 import { UserRepository } from "../repositories/user.repository"
 import { CreateUserDTO, UpdateUserDTO } from "../dtos/user.dto"
+import { UserEntity } from "../domain/entities/user.entity";
 
 const BCRYPT_ROUNDS = 12
 
@@ -8,13 +9,8 @@ const userRepository = new UserRepository()
 
 export class UserService {
   async createUser(data: CreateUserDTO) {
-    if (!data.name || data.name.length < 2 || data.name.length > 100) {
-      throw new Error("Name must be between 2 and 100 characters")
-    }
-
-    if (!data.email) {
-      throw new Error("Email is required")
-    }
+    UserEntity.validateName(data.name);
+    UserEntity.validateEmail(data.email);
 
     const existing = await userRepository.findByEmail(data.email)
     if (existing) {
@@ -25,15 +21,8 @@ export class UserService {
   }
 
   async createUserWithRawPassword(name: string, email: string, password: string) {
-    if (!name || name.length < 2 || name.length > 100) {
-      throw new Error("Name must be between 2 and 100 characters")
-    }
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new Error("A valid email is required")
-    }
-
-    this.validatePasswordStrength(password)
+    const user = UserEntity.create({ name, email });
+    UserEntity.validatePasswordStrength(password);
 
     const existing = await userRepository.findByEmail(email)
     if (existing) {
@@ -41,29 +30,22 @@ export class UserService {
     }
 
     const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS)
-    const user = await userRepository.create({ name, email, password_hash })
+    const persistedUser = await userRepository.create({
+      name: user.name,
+      email: user.email,
+      password_hash,
+    });
 
     return {
-      id: user.getDataValue("id"),
-      name: user.getDataValue("name"),
-      email: user.getDataValue("email"),
-      createdAt: user.getDataValue("created_at"),
-    }
+      id: persistedUser.getDataValue("id"),
+      name: persistedUser.getDataValue("name"),
+      email: persistedUser.getDataValue("email"),
+      createdAt: persistedUser.getDataValue("created_at"),
+    };
   }
 
   validatePasswordStrength(password: string) {
-    if (!password || password.length < 8) {
-      throw new Error("Password must be at least 8 characters")
-    }
-    if (!/[A-Z]/.test(password)) {
-      throw new Error("Password must contain at least one uppercase letter")
-    }
-    if (!/[a-z]/.test(password)) {
-      throw new Error("Password must contain at least one lowercase letter")
-    }
-    if (!/[0-9]/.test(password)) {
-      throw new Error("Password must contain at least one number")
-    }
+    UserEntity.validatePasswordStrength(password);
   }
 
   async findUserById(id: string) {
@@ -79,9 +61,8 @@ export class UserService {
   }
 
   async updateUser(id: string, data: UpdateUserDTO) {
-    if (data.name !== undefined && (data.name.length < 2 || data.name.length > 100)) {
-      throw new Error("Name must be between 2 and 100 characters")
-    }
+    if (data.name !== undefined) UserEntity.validateName(data.name);
+    if (data.email !== undefined) UserEntity.validateEmail(data.email);
 
     if (data.email) {
       const existing = await userRepository.findByEmail(data.email)

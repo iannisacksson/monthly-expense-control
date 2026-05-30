@@ -3,10 +3,35 @@ import { sequelize } from "../../src/database/connection"
 import "../../src/models"
 
 async function truncateAllTables() {
-  const tableNames = Object.values(sequelize.models)
+  const modelTableNames = Object.values(sequelize.models)
     .map((model) => model.getTableName())
-    .map((tableName) => (typeof tableName === "string" ? tableName : tableName.tableName))
-    .filter((tableName, index, allNames) => !!tableName && allNames.indexOf(tableName) === index)
+    .map((tableName) =>
+      typeof tableName === "string" ? tableName : tableName.tableName,
+    )
+    .filter(
+      (tableName, index, allNames) =>
+        !!tableName && allNames.indexOf(tableName) === index,
+    );
+
+  if (modelTableNames.length === 0) {
+    return;
+  }
+
+  const [existingTables] = await sequelize.query<{ table_name: string }>(
+    `
+      SELECT table_name
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_type = 'BASE TABLE'
+    `,
+  );
+
+  const existingTableNames = new Set(
+    existingTables.map((row) => row.table_name),
+  );
+  const tableNames = modelTableNames.filter((tableName) =>
+    existingTableNames.has(tableName),
+  );
 
   if (tableNames.length === 0) {
     return

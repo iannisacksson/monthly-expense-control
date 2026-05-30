@@ -1,12 +1,25 @@
 import { Request, Response } from "express"
-import { SubcategoryService } from "../services/subcategory.service"
+import {
+  CreateSubcategoryUseCase,
+  DeleteSubcategoryUseCase,
+  GetSubcategoryByIdUseCase,
+  ListSubcategoriesUseCase,
+  UpdateSubcategoryUseCase,
+} from "../application/use-cases/subcategory.use-cases";
 import { ForbiddenError } from "../utils/errors"
 
-const subcategoryService = new SubcategoryService()
+const createSubcategoryUseCase = new CreateSubcategoryUseCase();
+const listSubcategoriesUseCase = new ListSubcategoriesUseCase();
+const getSubcategoryByIdUseCase = new GetSubcategoryByIdUseCase();
+const updateSubcategoryUseCase = new UpdateSubcategoryUseCase();
+const deleteSubcategoryUseCase = new DeleteSubcategoryUseCase();
 
 export const createSubcategory = async (req: Request, res: Response) => {
   try {
-    const result = await subcategoryService.createSubcategory(req.body, req.user!.id)
+    const result = await createSubcategoryUseCase.execute(
+      req.body,
+      req.user!.id,
+    );
     return res.status(201).json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -16,7 +29,10 @@ export const createSubcategory = async (req: Request, res: Response) => {
 
 export const listSubcategoriesByCategory = async (req: Request, res: Response) => {
   try {
-    const result = await subcategoryService.listSubcategoriesByCategory(req.params.categoryId as string, req.user!.id)
+    const result = await listSubcategoriesUseCase.execute(
+      req.params.categoryId as string,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -26,7 +42,10 @@ export const listSubcategoriesByCategory = async (req: Request, res: Response) =
 
 export const getSubcategoryById = async (req: Request, res: Response) => {
   try {
-    const result = await subcategoryService.findSubcategoryById(req.params.id as string, req.user!.id)
+    const result = await getSubcategoryByIdUseCase.execute(
+      req.params.id as string,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -36,7 +55,11 @@ export const getSubcategoryById = async (req: Request, res: Response) => {
 
 export const updateSubcategory = async (req: Request, res: Response) => {
   try {
-    const result = await subcategoryService.updateSubcategory(req.params.id as string, req.body, req.user!.id)
+    const result = await updateSubcategoryUseCase.execute(
+      req.params.id as string,
+      req.body,
+      req.user!.id,
+    );
     return res.json(result)
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
@@ -46,7 +69,10 @@ export const updateSubcategory = async (req: Request, res: Response) => {
 
 export const deleteSubcategory = async (req: Request, res: Response) => {
   try {
-    await subcategoryService.deleteSubcategory(req.params.id as string, req.user!.id)
+    await deleteSubcategoryUseCase.execute(
+      req.params.id as string,
+      req.user!.id,
+    );
     return res.json({ success: true })
   } catch (error: any) {
     if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })

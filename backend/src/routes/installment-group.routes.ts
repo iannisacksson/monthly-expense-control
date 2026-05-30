@@ -6,8 +6,8 @@ import {
   getExpensesByInstallmentGroup,
   deleteInstallmentGroup,
   restoreInstallmentOccurrence,
-  updateInstallmentGroup
-} from "../controllers/installment-group.controller"
+  updateInstallmentGroup,
+} from "../interfaces/http/controllers/installment-group.controller";
 
 const router = Router()
 

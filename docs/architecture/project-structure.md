@@ -72,19 +72,35 @@ backend/
 ├ Dockerfile
 ├ tsconfig.json
 ├ tests/
+│ ├ integration/
+│ │ └ http/
+│ ├ shared/
+│ │ └ helpers/
+│ ├ setup/
+│ └ unit/
+│   └ domain/
 ├ src/
 │ ├ app.ts
 │ ├ server.ts
+│ ├ application/
+│ │ └ use-cases/
+│ ├ domain/
+│ │ ├ entities/
+│ │ └ value-objects/
 │ ├ config/
 │ │ ├ auth.config.ts
 │ │ ├ observability.config.ts
 │ │ └ security.config.ts
-│ ├ controllers/
 │ ├ database/
-│ ├ dtos/
+│ ├ interfaces/
+│ │ └ http/
+│ │   ├ controllers/
+│ │   └ routes/
 │ ├ middlewares/
 │ ├ models/
 │ ├ repositories/
+│ ├ controllers/
+│ ├ dtos/
 │ ├ routes/
 │ ├ services/
 │ ├ types/
@@ -94,18 +110,39 @@ backend/
 
 ## Backend Folder Responsibilities
 
-### controllers
+### application/use-cases
 
-Location: `backend/src/controllers`
+Location: `backend/src/application/use-cases`
 
-Purpose: handle HTTP requests and responses.
+Purpose: explicit application actions.
 
 Responsibilities:
 
-- receive requests
-- validate DTO shape at the boundary when needed
-- call services
-- return HTTP responses
+- orchestrate use cases
+- coordinate repositories and supporting services
+- keep orchestration out of controllers
+
+### domain
+
+Location: `backend/src/domain`
+
+Purpose: rich domain entities and domain-level reusable rules.
+
+Responsibilities:
+
+- hold pure business validations and invariants
+- expose value objects and rich entities without HTTP or ORM dependencies
+
+### interfaces/http
+
+Location: `backend/src/interfaces/http`
+
+Purpose: HTTP-facing boundary.
+
+Responsibilities:
+
+- expose controllers used by routes
+- compose the runtime route entrypoint
 
 Controllers must not contain business logic.
 
@@ -113,14 +150,12 @@ Controllers must not contain business logic.
 
 Location: `backend/src/services`
 
-Purpose: implement business logic and application rules.
+Purpose: compatibility support for orchestration that has not yet been fully absorbed by explicit use cases.
 
 Responsibilities:
 
-- enforce domain rules
-- coordinate repositories
-- validate invariants
-- orchestrate mutations and reads
+- preserve legacy orchestration that has not yet been fully absorbed by explicit use cases
+- support current runtime behavior while the architecture migrates toward application + domain boundaries
 
 ### repositories
 
@@ -135,6 +170,10 @@ Responsibilities:
 - isolate persistence concerns from services
 
 Security-related persistence such as authenticated sessions and auth audit logs also belongs here.
+
+Architectural note:
+
+- repositories are infrastructure adapters even though the physical folder remains `src/repositories`
 
 ### models
 
@@ -204,11 +243,27 @@ Purpose: backend automated quality gate.
 
 Responsibilities:
 
-- integration tests for critical HTTP and domain flows
-- shared setup for the PostgreSQL test database
-- reusable helpers for authenticated request flows
+- unit tests for pure domain and value-object behavior
+- integration/http tests for critical HTTP and domain flows
+- shared setup and reusable helpers for the PostgreSQL test database
 
 Operational endpoints should also receive focused automated coverage when the observability surface changes.
+
+Current taxonomy:
+
+- `backend/tests/unit/domain`
+- `backend/tests/integration/http`
+- `backend/tests/shared`
+
+### legacy compatibility folders
+
+The following folders still exist during the architectural transition and are still used internally in runtime support:
+
+- `backend/src/controllers`
+- `backend/src/routes`
+- `backend/src/services`
+
+They should be treated as compatibility surfaces around the new explicit application and domain layers, not as the long-term primary architecture.
 
 ---
 

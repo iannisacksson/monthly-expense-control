@@ -5,6 +5,8 @@ import { UserRepository } from "../repositories/user.repository"
 import { CreateBudgetRuleDTO, UpdateBudgetRuleDTO } from "../dtos/budget-rule.dto"
 import { CreateBudgetAllocationDTO, UpdateBudgetAllocationDTO } from "../dtos/budget-allocation.dto"
 import { ForbiddenError } from "../utils/errors"
+import { BudgetAllocationEntity } from "../domain/entities/budget-allocation.entity";
+import { BudgetRuleEntity } from "../domain/entities/budget-rule.entity";
 
 const budgetRuleRepository = new BudgetRuleRepository()
 const budgetAllocationRepository = new BudgetAllocationRepository()
@@ -30,9 +32,7 @@ export class BudgetService {
   }
 
   async createBudgetRule(data: CreateBudgetRuleDTO, requestingUserId: string) {
-    if (!data.name || data.name.length < 2 || data.name.length > 100) {
-      throw new Error("Budget rule name must be between 2 and 100 characters")
-    }
+    BudgetRuleEntity.validateName(data.name);
 
     const user = await userRepository.findById(requestingUserId)
     if (!user) {
@@ -59,9 +59,7 @@ export class BudgetService {
   }
 
   async updateBudgetRule(id: string, data: UpdateBudgetRuleDTO, requestingUserId: string) {
-    if (data.name !== undefined && (data.name.length < 2 || data.name.length > 100)) {
-      throw new Error("Budget rule name must be between 2 and 100 characters")
-    }
+    if (data.name !== undefined) BudgetRuleEntity.validateName(data.name);
 
     const existing = await budgetRuleRepository.findById(id)
     if (!existing) throw new Error("Budget rule not found")
@@ -87,9 +85,7 @@ export class BudgetService {
   }
 
   async createAllocation(data: CreateBudgetAllocationDTO, requestingUserId: string) {
-    if (data.percentage <= 0 || data.percentage > 100) {
-      throw new Error("Percentage must be between 0 and 100")
-    }
+    BudgetAllocationEntity.validatePercentage(data.percentage);
 
     const rule = await budgetRuleRepository.findById(data.budget_rule_id)
     if (!rule) {
@@ -105,9 +101,10 @@ export class BudgetService {
       0
     )
 
-    if (currentTotal + data.percentage > 100) {
-      throw new Error("Total allocation percentage cannot exceed 100%")
-    }
+    BudgetAllocationEntity.ensureTotalPercentageWithinLimit(
+      currentTotal,
+      data.percentage,
+    );
 
     return budgetAllocationRepository.create(data)
   }
@@ -119,9 +116,8 @@ export class BudgetService {
   }
 
   async updateAllocation(id: string, data: UpdateBudgetAllocationDTO, requestingUserId: string) {
-    if (data.percentage !== undefined && (data.percentage <= 0 || data.percentage > 100)) {
-      throw new Error("Percentage must be between 0 and 100")
-    }
+    if (data.percentage !== undefined)
+      BudgetAllocationEntity.validatePercentage(data.percentage);
 
     const existingAllocation = await budgetAllocationRepository.findById(id)
     if (!existingAllocation) {
@@ -145,9 +141,10 @@ export class BudgetService {
         .filter((alloc) => alloc.getDataValue("id") !== id)
         .reduce((sum, alloc) => sum + Number(alloc.getDataValue("percentage")), 0)
 
-      if (currentTotal + data.percentage > 100) {
-        throw new Error("Total allocation percentage cannot exceed 100%")
-      }
+      BudgetAllocationEntity.ensureTotalPercentageWithinLimit(
+        currentTotal,
+        data.percentage,
+      );
     }
 
     const allocation = await budgetAllocationRepository.update(id, data)

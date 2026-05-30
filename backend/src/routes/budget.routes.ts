@@ -8,8 +8,8 @@ import {
   createAllocation,
   listAllocationsByRule,
   updateAllocation,
-  deleteAllocation
-} from "../controllers/budget.controller"
+  deleteAllocation,
+} from "../interfaces/http/controllers/budget.controller";
 
 const router = Router()
 

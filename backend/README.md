@@ -45,6 +45,20 @@ cd backend && npm run test:db:migrate
 cd backend && npm run test
 ```
 
+### Test taxonomy
+
+The backend test suite is organized by level:
+
+- `tests/unit/domain` for pure domain and value-object behavior
+- `tests/integration/http` for full HTTP integration tests with Supertest and PostgreSQL
+- `tests/shared` for reusable helpers
+
+If the local test schema drifts from the current migrations, reapply the test migrations before trusting the suite:
+
+```bash
+cd backend && npm run test:db:migrate
+```
+
 ## Mandatory quality gate
 
 Automated backend tests are mandatory for every new backend feature, backend bug fix, and behavior-changing refactor.
@@ -112,3 +126,14 @@ See `docs/architecture/backend-operations.md` for logging, metrics, backup/resto
 - keep `.env.test` local only; do not commit secrets
 - use `backend/.env.example` and `backend/.env.test.example` as templates only
 - run migrations separately for the target environment before serving production traffic
+
+## Architecture summary
+
+Current runtime direction:
+
+- HTTP controllers and route entrypoints are exposed through `src/interfaces/http`
+- explicit application actions live in `src/application/use-cases`
+- rich entities and value objects live in `src/domain`
+- repositories, models, and database setup remain infrastructure concerns
+
+Legacy `src/controllers`, `src/routes`, and `src/services` still exist as compatibility surfaces around the new runtime flow.

@@ -223,19 +223,30 @@ Operational documentation for logging, health checks, metrics, backup guidance, 
 
 # Architectural Style
 
-The backend follows a **layered architecture**.
+The backend now follows a **Clean Architecture inspired hybrid structure**.
 
-Main layers:
-
-
-Controller
-Service
-Repository
-Model
-DTO
+Runtime direction:
 
 
-Responsibilities are strictly separated.
+Interfaces HTTP
+↓
+Application Use Cases
+↓
+Domain Entities / Domain Rules
+↓
+Repositories / Infrastructure
+↓
+Sequelize / PostgreSQL
+
+
+The repository still contains legacy folders from the previous layered organization, but the official runtime entrypoint now flows through the explicit application layer.
+
+Main architectural layers:
+
+- interfaces
+- application
+- domain
+- infrastructure
 
 ---
 
@@ -269,9 +280,11 @@ Typical request lifecycle:
 
 HTTP Request
 ↓
-Controller
+Interface Controller
 ↓
-Service
+Application Use Case
+↓
+Domain Entities / Rules
 ↓
 Repository
 ↓
@@ -285,9 +298,9 @@ Database
 ↓
 Repository
 ↓
-Service
+Application Use Case
 ↓
-Controller
+Interface Controller
 ↓
 HTTP Response
 
@@ -296,21 +309,19 @@ HTTP Response
 
 # Folder Structure
 
-The backend project follows this structure:
+The backend project now uses this architectural structure:
 
 
 src/
 
-controllers
-services
+application
+domain
+interfaces
 repositories
 models
-routes
-dtos
 middlewares
 config
 database
-tests
 utils
 
 
@@ -318,11 +329,22 @@ Example:
 
 
 src/
-├ controllers
-│ └ expense.controller.ts
+├ application
+│ └ use-cases
+│   └ expense.use-cases.ts
 │
-├ services
-│ └ expense.service.ts
+├ domain
+│ ├ entities
+│ │ └ budget-allocation.entity.ts
+│ └ value-objects
+│   └ month-period.ts
+│
+├ interfaces
+│ └ http
+│   ├ controllers
+│   │ └ expense.controller.ts
+│   └ routes
+│     └ index.ts
 │
 ├ repositories
 │ └ expense.repository.ts
@@ -330,12 +352,6 @@ src/
 ├ models
 │ ├ expense.model.ts
 │ └ auth-session.model.ts
-│
-├ routes
-│ └ expense.routes.ts
-│
-├ dtos
-│ └ create-expense.dto.ts
 │
 ├ middlewares
 │ ├ auth.middleware.ts
@@ -353,6 +369,26 @@ src/
 └ utils
   ├ auth-cookies.ts
   └ request-context.ts
+
+## Current compatibility note
+
+The repository still contains legacy `src/controllers`, `src/routes`, and `src/services` modules.
+
+Current state:
+
+- runtime controllers are exposed through `src/interfaces/http/controllers`
+- runtime route composition starts in `src/interfaces/http/routes/index.ts`
+- `src/services` remains as a compatibility support layer reused by the explicit use cases while the domain/application split matures further
+
+This is intentional and avoids a destructive rewrite while moving the runtime flow to the new architectural boundary.
+
+## Test taxonomy
+
+Backend automated tests are now organized by level:
+
+- `backend/tests/unit` for pure domain or utility tests
+- `backend/tests/integration/http` for Express + Supertest + PostgreSQL integration tests
+- `backend/tests/shared` for reusable helpers
 
 
 ---

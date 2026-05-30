@@ -1,5 +1,5 @@
 import request from "supertest"
-import app from "../src/app"
+import app from "../../../src/app"
 
 describe("operational endpoints", () => {
   it("exposes health, liveness, readiness and metrics endpoints", async () => {

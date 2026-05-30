@@ -1,5 +1,12 @@
 import { Router } from "express"
-import { createMonth, listMonthsByUser, getMonthById, updateMonth, deleteMonth, finalizeMonth } from "../controllers/month.controller"
+import {
+  createMonth,
+  listMonthsByUser,
+  getMonthById,
+  updateMonth,
+  deleteMonth,
+  finalizeMonth,
+} from "../interfaces/http/controllers/month.controller";
 
 const router = Router()
 

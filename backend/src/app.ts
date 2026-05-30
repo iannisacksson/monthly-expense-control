@@ -5,7 +5,7 @@ dotenv.config({
 })
 
 import express from "express"
-import routes from "./routes"
+import routes from "./interfaces/http/routes";
 import cookieParser from "cookie-parser"
 import cors from "cors"
 import helmet from "helmet"

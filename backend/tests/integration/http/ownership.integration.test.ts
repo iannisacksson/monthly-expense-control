@@ -1,4 +1,4 @@
-import { createAuthenticatedSession, createMonth } from "./helpers/api"
+import { createAuthenticatedSession, createMonth } from "../../shared/helpers/api"
 
 describe("ownership isolation", () => {
   it("prevents one user from reading another user's month", async () => {
