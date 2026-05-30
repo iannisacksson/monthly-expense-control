@@ -1,12 +1,21 @@
 import type { CreateRecurringIncomeDTO } from "../../../../dtos/recurring-income.dto"
 import { CreateRecurringIncomeUseCase } from "../../../../application/use-cases/recurring-income.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const createRecurringIncomeUseCase = new CreateRecurringIncomeUseCase()
+export class CreateRecurringIncomeController implements IController<
+  AuthenticatedHttpRequest<CreateRecurringIncomeDTO>
+> {
+  constructor(private readonly useCase: CreateRecurringIncomeUseCase) {}
 
-export async function createRecurringIncomeController(
-  request: AuthenticatedHttpRequest<CreateRecurringIncomeDTO>,
-): Promise<HttpResponse<unknown>> {
-  const result = await createRecurringIncomeUseCase.execute(request.body, request.userId)
-  return { statusCode: 201, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<CreateRecurringIncomeDTO>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.body, request.userId);
+    return { statusCode: HttpStatusCode.CREATED, body: result };
+  }
 }

@@ -1,15 +1,21 @@
 import { DeleteUserUseCase } from "../../../../application/use-cases/user.use-cases"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const deleteUserUseCase = new DeleteUserUseCase()
+export class DeleteUserController implements IController<
+  HttpRequest<unknown, { id: string }>,
+  { success: boolean }
+> {
+  constructor(private readonly useCase: DeleteUserUseCase) {}
 
-export async function deleteUserController(
-  request: HttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<{ success: boolean }>> {
-  await deleteUserUseCase.execute(request.params.id)
+  async handle(
+    request: HttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse<{ success: boolean }>> {
+    await this.useCase.execute(request.params.id);
 
-  return {
-    statusCode: 200,
-    body: { success: true },
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: { success: true },
+    };
   }
 }

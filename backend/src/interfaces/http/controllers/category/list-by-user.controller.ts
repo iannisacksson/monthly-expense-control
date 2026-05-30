@@ -1,15 +1,20 @@
 import { ListCategoriesUseCase } from "../../../../application/use-cases/category.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const listCategoriesUseCase = new ListCategoriesUseCase()
+export class ListCategoriesByUserController implements IController<AuthenticatedHttpRequest> {
+  constructor(private readonly useCase: ListCategoriesUseCase) {}
 
-export async function listCategoriesByUserController(
-  request: AuthenticatedHttpRequest,
-): Promise<HttpResponse<unknown>> {
-  const result = await listCategoriesUseCase.execute(request.userId)
+  async handle(request: AuthenticatedHttpRequest): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.userId);
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

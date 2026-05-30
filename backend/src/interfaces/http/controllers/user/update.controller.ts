@@ -1,16 +1,21 @@
-import { UpdateUserUseCase } from "../../../../application/use-cases/user.use-cases"
-import type { UpdateUserDTO } from "../../../../dtos/user.dto"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import type { UpdateUserDTO } from "../../../../dtos/user.dto";
+import { UpdateUserUseCase } from "../../../../application/use-cases/user.use-cases";
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const updateUserUseCase = new UpdateUserUseCase()
+export class UpdateUserController implements IController<
+  HttpRequest<UpdateUserDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateUserUseCase) {}
 
-export async function updateUserController(
-  request: HttpRequest<UpdateUserDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateUserUseCase.execute(request.params.id, request.body)
+  async handle(
+    request: HttpRequest<UpdateUserDTO, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.params.id, request.body);
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

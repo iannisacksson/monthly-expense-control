@@ -1,11 +1,16 @@
 import { ListRecurringIncomesUseCase } from "../../../../application/use-cases/recurring-income.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const listRecurringIncomesUseCase = new ListRecurringIncomesUseCase()
+export class ListRecurringIncomesByUserController implements IController<AuthenticatedHttpRequest> {
+  constructor(private readonly useCase: ListRecurringIncomesUseCase) {}
 
-export async function listRecurringIncomesByUserController(
-  request: AuthenticatedHttpRequest,
-): Promise<HttpResponse<unknown>> {
-  const result = await listRecurringIncomesUseCase.execute(request.userId)
-  return { statusCode: 200, body: result }
+  async handle(request: AuthenticatedHttpRequest): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.userId);
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

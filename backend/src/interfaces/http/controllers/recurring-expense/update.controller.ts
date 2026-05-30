@@ -1,12 +1,28 @@
 import type { UpdateRecurringExpenseDTO } from "../../../../dtos/recurring-expense.dto"
 import { UpdateRecurringExpenseUseCase } from "../../../../application/use-cases/recurring-expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateRecurringExpenseUseCase = new UpdateRecurringExpenseUseCase()
+export class UpdateRecurringExpenseController implements IController<
+  AuthenticatedHttpRequest<UpdateRecurringExpenseDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateRecurringExpenseUseCase) {}
 
-export async function updateRecurringExpenseController(
-  request: AuthenticatedHttpRequest<UpdateRecurringExpenseDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateRecurringExpenseUseCase.execute(request.params.id, request.body, request.userId)
-  return { statusCode: 200, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<
+      UpdateRecurringExpenseDTO,
+      { id: string }
+    >,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

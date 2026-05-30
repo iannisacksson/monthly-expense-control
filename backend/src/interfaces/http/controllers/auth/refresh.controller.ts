@@ -1,25 +1,39 @@
 import { RefreshSessionUseCase } from "../../../../application/use-cases/auth.use-cases"
 import type { AuthRequestContext } from "../../../../utils/request-context"
 import { UnauthorizedError } from "../../../../utils/errors"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const refreshSessionUseCase = new RefreshSessionUseCase()
+type RefreshRequest = HttpRequest & {
+  refreshToken: string | null;
+  context: AuthRequestContext;
+};
 
-export async function refreshController(
-  request: HttpRequest & { refreshToken: string | null; context: AuthRequestContext },
-): Promise<HttpResponse<{ user: unknown }>> {
-  if (!request.refreshToken) {
-    throw new UnauthorizedError("Missing refresh cookie")
-  }
+export class RefreshController implements IController<
+  RefreshRequest,
+  { user: unknown }
+> {
+  constructor(private readonly useCase: RefreshSessionUseCase) {}
 
-  const result = await refreshSessionUseCase.execute(request.refreshToken, request.context)
+  async handle(
+    request: RefreshRequest,
+  ): Promise<HttpResponse<{ user: unknown }>> {
+    if (!request.refreshToken) {
+      throw new UnauthorizedError("Missing refresh cookie");
+    }
 
-  return {
-    statusCode: 200,
-    body: { user: result.user },
-    authCookies: {
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    },
+    const result = await this.useCase.execute(
+      request.refreshToken,
+      request.context,
+    );
+
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: { user: result.user },
+      authCookies: {
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      },
+    };
   }
 }

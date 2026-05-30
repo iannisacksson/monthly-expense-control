@@ -1,7 +1,19 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/auth.middleware"
 import authRoutes from "./auth.routes"
-import { getHealth, getLiveness, getMetrics, getReadiness } from "../controllers/operational.controller"
+import { GetHealthController } from "../interfaces/http/controllers/operational/get-health.controller";
+import { GetLivenessController } from "../interfaces/http/controllers/operational/get-liveness.controller";
+import { GetMetricsController } from "../interfaces/http/controllers/operational/get-metrics.controller";
+import { GetReadinessController } from "../interfaces/http/controllers/operational/get-readiness.controller";
+import {
+  GetHealthUseCase,
+  GetLivenessUseCase,
+  GetReadinessUseCase,
+} from "../application/use-cases/operational.use-cases";
+import {
+  adaptExpressRoute,
+  buildHttpRequest,
+} from "../interfaces/http/express-route.adapter";
 import userRoutes from "./user.routes"
 import monthRoutes from "./month.routes"
 import monthlyIncomeRoutes from "./monthly-income.routes"
@@ -16,10 +28,43 @@ import budgetRoutes from "./budget.routes"
 
 const router = Router()
 
-router.get("/health", getHealth)
-router.get("/live", getLiveness)
-router.get("/ready", getReadiness)
-router.get("/metrics", getMetrics)
+const getHealthController = new GetHealthController(new GetHealthUseCase());
+const getLivenessController = new GetLivenessController(
+  new GetLivenessUseCase(),
+);
+const getMetricsController = new GetMetricsController();
+const getReadinessController = new GetReadinessController(
+  new GetReadinessUseCase(),
+);
+
+router.get(
+  "/health",
+  adaptExpressRoute(
+    getHealthController.handle.bind(getHealthController),
+    (req) => buildHttpRequest(req),
+  ),
+);
+router.get(
+  "/live",
+  adaptExpressRoute(
+    getLivenessController.handle.bind(getLivenessController),
+    (req) => buildHttpRequest(req),
+  ),
+);
+router.get(
+  "/ready",
+  adaptExpressRoute(
+    getReadinessController.handle.bind(getReadinessController),
+    (req) => buildHttpRequest(req),
+  ),
+);
+router.get(
+  "/metrics",
+  adaptExpressRoute(
+    getMetricsController.handle.bind(getMetricsController),
+    (req) => buildHttpRequest(req),
+  ),
+);
 
 router.use("/auth", authRoutes)
 

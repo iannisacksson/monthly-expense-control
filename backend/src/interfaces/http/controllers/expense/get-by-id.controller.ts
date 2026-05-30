@@ -1,11 +1,23 @@
 import { GetExpenseByIdUseCase } from "../../../../application/use-cases/expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const getExpenseByIdUseCase = new GetExpenseByIdUseCase()
+export class GetExpenseByIdController implements IController<
+  AuthenticatedHttpRequest<unknown, { id: string }>
+> {
+  constructor(private readonly useCase: GetExpenseByIdUseCase) {}
 
-export async function getExpenseByIdController(
-  request: AuthenticatedHttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await getExpenseByIdUseCase.execute(request.params.id, request.userId)
-  return { statusCode: 200, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.userId,
+    );
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

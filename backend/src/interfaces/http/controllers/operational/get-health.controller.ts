@@ -1,15 +1,19 @@
 import { GetHealthUseCase } from "../../../../application/use-cases/operational.use-cases"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const getHealthUseCase = new GetHealthUseCase()
+export class GetHealthController implements IController<HttpRequest> {
+  constructor(private readonly useCase: GetHealthUseCase) {}
 
-export async function getHealthController(
-  _request: HttpRequest,
-): Promise<HttpResponse<unknown>> {
-  const health = await getHealthUseCase.execute()
+  async handle(_request: HttpRequest): Promise<HttpResponse> {
+    const health = await this.useCase.execute();
 
-  return {
-    statusCode: health.status === "ok" ? 200 : 503,
-    body: health,
+    return {
+      statusCode:
+        health.status === "ok"
+          ? HttpStatusCode.OK
+          : HttpStatusCode.SERVICE_UNAVAILABLE,
+      body: health,
+    };
   }
 }

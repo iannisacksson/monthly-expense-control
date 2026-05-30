@@ -1,15 +1,19 @@
 import { GetReadinessUseCase } from "../../../../application/use-cases/operational.use-cases"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const getReadinessUseCase = new GetReadinessUseCase()
+export class GetReadinessController implements IController<HttpRequest> {
+  constructor(private readonly useCase: GetReadinessUseCase) {}
 
-export async function getReadinessController(
-  _request: HttpRequest,
-): Promise<HttpResponse<unknown>> {
-  const readiness = await getReadinessUseCase.execute()
+  async handle(_request: HttpRequest): Promise<HttpResponse> {
+    const readiness = await this.useCase.execute();
 
-  return {
-    statusCode: readiness.status === "ok" ? 200 : 503,
-    body: readiness,
+    return {
+      statusCode:
+        readiness.status === "ok"
+          ? HttpStatusCode.OK
+          : HttpStatusCode.SERVICE_UNAVAILABLE,
+      body: readiness,
+    };
   }
 }

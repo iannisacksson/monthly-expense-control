@@ -1,12 +1,30 @@
 import type { RestoreRecurringExpenseOccurrenceDTO } from "../../../../dtos/recurring-expense.dto"
 import { RestoreRecurringExpenseOccurrenceUseCase } from "../../../../application/use-cases/recurring-expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const restoreRecurringExpenseOccurrenceUseCase = new RestoreRecurringExpenseOccurrenceUseCase()
+export class RestoreRecurringExpenseOccurrenceController implements IController<
+  AuthenticatedHttpRequest<RestoreRecurringExpenseOccurrenceDTO, { id: string }>
+> {
+  constructor(
+    private readonly useCase: RestoreRecurringExpenseOccurrenceUseCase,
+  ) {}
 
-export async function restoreRecurringExpenseOccurrenceController(
-  request: AuthenticatedHttpRequest<RestoreRecurringExpenseOccurrenceDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await restoreRecurringExpenseOccurrenceUseCase.execute(request.params.id, request.body, request.userId)
-  return { statusCode: 201, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<
+      RestoreRecurringExpenseOccurrenceDTO,
+      { id: string }
+    >,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
+    return { statusCode: HttpStatusCode.CREATED, body: result };
+  }
 }

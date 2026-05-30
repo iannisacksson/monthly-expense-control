@@ -1,16 +1,19 @@
-import { CreateUserUseCase } from "../../../../application/use-cases/user.use-cases"
-import type { CreateUserDTO, UpdateUserDTO } from "../../../../dtos/user.dto"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import type { CreateUserDTO } from "../../../../dtos/user.dto";
+import { CreateUserUseCase } from "../../../../application/use-cases/user.use-cases";
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const createUserUseCase = new CreateUserUseCase()
+export class CreateUserController implements IController<
+  HttpRequest<CreateUserDTO>
+> {
+  constructor(private readonly useCase: CreateUserUseCase) {}
 
-export async function createUserController(
-  request: HttpRequest<CreateUserDTO>,
-): Promise<HttpResponse<unknown>> {
-  const result = await createUserUseCase.execute(request.body)
+  async handle(request: HttpRequest<CreateUserDTO>): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.body);
 
-  return {
-    statusCode: 201,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.CREATED,
+      body: result,
+    };
   }
 }

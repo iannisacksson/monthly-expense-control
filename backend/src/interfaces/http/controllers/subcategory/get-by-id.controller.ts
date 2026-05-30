@@ -1,15 +1,27 @@
 import { GetSubcategoryByIdUseCase } from "../../../../application/use-cases/subcategory.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const getSubcategoryByIdUseCase = new GetSubcategoryByIdUseCase()
+export class GetSubcategoryByIdController implements IController<
+  AuthenticatedHttpRequest<unknown, { id: string }>
+> {
+  constructor(private readonly useCase: GetSubcategoryByIdUseCase) {}
 
-export async function getSubcategoryByIdController(
-  request: AuthenticatedHttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await getSubcategoryByIdUseCase.execute(request.params.id, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.userId,
+    );
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

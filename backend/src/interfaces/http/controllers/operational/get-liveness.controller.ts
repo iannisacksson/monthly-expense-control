@@ -1,13 +1,14 @@
 import { GetLivenessUseCase } from "../../../../application/use-cases/operational.use-cases"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const getLivenessUseCase = new GetLivenessUseCase()
+export class GetLivenessController implements IController<HttpRequest> {
+  constructor(private readonly useCase: GetLivenessUseCase) {}
 
-export async function getLivenessController(
-  _request: HttpRequest,
-): Promise<HttpResponse<unknown>> {
-  return {
-    statusCode: 200,
-    body: getLivenessUseCase.execute(),
+  async handle(_request: HttpRequest): Promise<HttpResponse> {
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: this.useCase.execute(),
+    };
   }
 }

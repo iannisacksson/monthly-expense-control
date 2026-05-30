@@ -1,13 +1,21 @@
 import type { CreateBudgetRuleDTO } from "../../../../dtos/budget-rule.dto"
 import { CreateBudgetRuleUseCase } from "../../../../application/use-cases/budget.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const createBudgetRuleUseCase = new CreateBudgetRuleUseCase()
+export class CreateBudgetRuleController implements IController<
+  AuthenticatedHttpRequest<CreateBudgetRuleDTO>
+> {
+  constructor(private readonly useCase: CreateBudgetRuleUseCase) {}
 
-export async function createBudgetRuleController(
-  request: AuthenticatedHttpRequest<CreateBudgetRuleDTO>,
-): Promise<HttpResponse<unknown>> {
-  const result = await createBudgetRuleUseCase.execute(request.body, request.userId)
-
-  return { statusCode: 201, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<CreateBudgetRuleDTO>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.body, request.userId);
+    return { statusCode: HttpStatusCode.CREATED, body: result };
+  }
 }

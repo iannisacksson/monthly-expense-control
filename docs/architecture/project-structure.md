@@ -149,9 +149,20 @@ Controllers must not contain business logic.
 
 Current pattern:
 
-- one action per controller file, for example `backend/src/interfaces/http/controllers/category/create.controller.ts`
+- one action per controller file, for example `backend/src/interfaces/http/controllers/month/create.controller.ts`
+- each controller is a class implementing `IController<TReq, TRes>` from `http.types.ts`
+- use cases are injected via the constructor
+- HTTP status codes use the `HttpStatusCode` enum from `http-status-code.ts`
 - shared Express adaptation in `backend/src/interfaces/http/express-route.adapter.ts`
 - routes receive Express `req`/`res`, controllers do not
+- `adaptExpressRoute` calls and controller instantiation live directly in the route file
+- there must be no `index.ts` or aggregator files inside resource controller folders whose sole purpose is re-exporting
+
+Anti-patterns that must not be introduced:
+
+- `index.ts` files inside resource folders that only re-export action controllers
+- `<resource>.controller.ts` files at the controllers root that only do `export * from "./<resource>"`
+- hard-coded numeric HTTP status literals inside controllers or routes
 
 ### services
 

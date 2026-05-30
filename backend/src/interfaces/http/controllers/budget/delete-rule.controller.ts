@@ -1,11 +1,21 @@
 import { DeleteBudgetRuleUseCase } from "../../../../application/use-cases/budget.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const deleteBudgetRuleUseCase = new DeleteBudgetRuleUseCase()
+export class DeleteBudgetRuleController implements IController<
+  AuthenticatedHttpRequest<unknown, { id: string }>,
+  { success: boolean }
+> {
+  constructor(private readonly useCase: DeleteBudgetRuleUseCase) {}
 
-export async function deleteBudgetRuleController(
-  request: AuthenticatedHttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<{ success: boolean }>> {
-  await deleteBudgetRuleUseCase.execute(request.params.id, request.userId)
-  return { statusCode: 200, body: { success: true } }
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse<{ success: boolean }>> {
+    await this.useCase.execute(request.params.id, request.userId);
+    return { statusCode: HttpStatusCode.OK, body: { success: true } };
+  }
 }

@@ -20,3 +20,7 @@ export interface AuthenticatedHttpRequest<TBody = unknown, TParams extends Recor
   params: TParams
   userId: string
 }
+
+export interface IController<TRequest, TResponse = unknown> {
+  handle(request: TRequest): Promise<HttpResponse<TResponse>>
+}

@@ -1,11 +1,16 @@
 import { ListRecurringExpensesUseCase } from "../../../../application/use-cases/recurring-expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const listRecurringExpensesUseCase = new ListRecurringExpensesUseCase()
+export class ListRecurringExpensesByUserController implements IController<AuthenticatedHttpRequest> {
+  constructor(private readonly useCase: ListRecurringExpensesUseCase) {}
 
-export async function listRecurringExpensesByUserController(
-  request: AuthenticatedHttpRequest,
-): Promise<HttpResponse<unknown>> {
-  const result = await listRecurringExpensesUseCase.execute(request.userId)
-  return { statusCode: 200, body: result }
+  async handle(request: AuthenticatedHttpRequest): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.userId);
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

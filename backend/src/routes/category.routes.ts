@@ -1,11 +1,16 @@
 import { Router } from "express"
+import { CreateCategoryController } from "../interfaces/http/controllers/category/create.controller";
+import { DeleteCategoryController } from "../interfaces/http/controllers/category/delete.controller";
+import { GetCategoryByIdController } from "../interfaces/http/controllers/category/get-by-id.controller";
+import { ListCategoriesByUserController } from "../interfaces/http/controllers/category/list-by-user.controller";
+import { UpdateCategoryController } from "../interfaces/http/controllers/category/update.controller";
 import {
-  createCategoryController,
-  deleteCategoryController,
-  getCategoryByIdController,
-  listCategoriesByUserController,
-  updateCategoryController,
-} from "../interfaces/http/controllers/category";
+  CreateCategoryUseCase,
+  DeleteCategoryUseCase,
+  GetCategoryByIdUseCase,
+  ListCategoriesUseCase,
+  UpdateCategoryUseCase,
+} from "../application/use-cases/category.use-cases";
 import {
   adaptExpressRoute,
   buildAuthenticatedHttpRequest,
@@ -13,34 +18,55 @@ import {
 
 const router = Router()
 
+const createCategoryController = new CreateCategoryController(
+  new CreateCategoryUseCase(),
+);
+const listCategoriesByUserController = new ListCategoriesByUserController(
+  new ListCategoriesUseCase(),
+);
+const getCategoryByIdController = new GetCategoryByIdController(
+  new GetCategoryByIdUseCase(),
+);
+const updateCategoryController = new UpdateCategoryController(
+  new UpdateCategoryUseCase(),
+);
+const deleteCategoryController = new DeleteCategoryController(
+  new DeleteCategoryUseCase(),
+);
+
 router.post(
   "/",
-  adaptExpressRoute(createCategoryController, (req) =>
-    buildAuthenticatedHttpRequest(req),
+  adaptExpressRoute(
+    createCategoryController.handle.bind(createCategoryController),
+    (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.get(
   "/user/:userId",
-  adaptExpressRoute(listCategoriesByUserController, (req) =>
-    buildAuthenticatedHttpRequest(req),
+  adaptExpressRoute(
+    listCategoriesByUserController.handle.bind(listCategoriesByUserController),
+    (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.get(
   "/:id",
-  adaptExpressRoute(getCategoryByIdController, (req) =>
-    buildAuthenticatedHttpRequest(req),
+  adaptExpressRoute(
+    getCategoryByIdController.handle.bind(getCategoryByIdController),
+    (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.put(
   "/:id",
-  adaptExpressRoute(updateCategoryController, (req) =>
-    buildAuthenticatedHttpRequest(req),
+  adaptExpressRoute(
+    updateCategoryController.handle.bind(updateCategoryController),
+    (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.delete(
   "/:id",
-  adaptExpressRoute(deleteCategoryController, (req) =>
-    buildAuthenticatedHttpRequest(req),
+  adaptExpressRoute(
+    deleteCategoryController.handle.bind(deleteCategoryController),
+    (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 

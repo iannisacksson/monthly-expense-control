@@ -1,12 +1,25 @@
 import type { UpdateExpenseDTO } from "../../../../dtos/expense.dto"
 import { UpdateExpenseUseCase } from "../../../../application/use-cases/expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateExpenseUseCase = new UpdateExpenseUseCase()
+export class UpdateExpenseController implements IController<
+  AuthenticatedHttpRequest<UpdateExpenseDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateExpenseUseCase) {}
 
-export async function updateExpenseController(
-  request: AuthenticatedHttpRequest<UpdateExpenseDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateExpenseUseCase.execute(request.params.id, request.body, request.userId)
-  return { statusCode: 200, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<UpdateExpenseDTO, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

@@ -1,16 +1,25 @@
-import type { CreateIncomeTaxDTO, UpdateIncomeTaxDTO } from "../../../../dtos/income-tax.dto"
-import { CreateIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import type { CreateIncomeTaxDTO } from "../../../../dtos/income-tax.dto";
+import { CreateIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases";
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const createIncomeTaxUseCase = new CreateIncomeTaxUseCase()
+export class CreateIncomeTaxController implements IController<
+  AuthenticatedHttpRequest<CreateIncomeTaxDTO>
+> {
+  constructor(private readonly useCase: CreateIncomeTaxUseCase) {}
 
-export async function createTaxController(
-  request: AuthenticatedHttpRequest<CreateIncomeTaxDTO>,
-): Promise<HttpResponse<unknown>> {
-  const result = await createIncomeTaxUseCase.execute(request.body, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<CreateIncomeTaxDTO>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.body, request.userId);
 
-  return {
-    statusCode: 201,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.CREATED,
+      body: result,
+    };
   }
 }

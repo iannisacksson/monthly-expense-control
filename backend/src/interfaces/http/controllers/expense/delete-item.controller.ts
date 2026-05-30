@@ -1,11 +1,21 @@
 import { DeleteExpenseItemUseCase } from "../../../../application/use-cases/expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const deleteExpenseItemUseCase = new DeleteExpenseItemUseCase()
+export class DeleteExpenseItemController implements IController<
+  AuthenticatedHttpRequest<unknown, { itemId: string }>,
+  { success: boolean }
+> {
+  constructor(private readonly useCase: DeleteExpenseItemUseCase) {}
 
-export async function deleteExpenseItemController(
-  request: AuthenticatedHttpRequest<unknown, { itemId: string }>,
-): Promise<HttpResponse<{ success: boolean }>> {
-  await deleteExpenseItemUseCase.execute(request.params.itemId, request.userId)
-  return { statusCode: 200, body: { success: true } }
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { itemId: string }>,
+  ): Promise<HttpResponse<{ success: boolean }>> {
+    await this.useCase.execute(request.params.itemId, request.userId);
+    return { statusCode: HttpStatusCode.OK, body: { success: true } };
+  }
 }

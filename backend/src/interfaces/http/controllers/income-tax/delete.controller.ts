@@ -1,15 +1,25 @@
 import { DeleteIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const deleteIncomeTaxUseCase = new DeleteIncomeTaxUseCase()
+export class DeleteIncomeTaxController implements IController<
+  AuthenticatedHttpRequest<unknown, { id: string }>,
+  { success: boolean }
+> {
+  constructor(private readonly useCase: DeleteIncomeTaxUseCase) {}
 
-export async function deleteTaxController(
-  request: AuthenticatedHttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<{ success: boolean }>> {
-  await deleteIncomeTaxUseCase.execute(request.params.id, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse<{ success: boolean }>> {
+    await this.useCase.execute(request.params.id, request.userId);
 
-  return {
-    statusCode: 200,
-    body: { success: true },
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: { success: true },
+    };
   }
 }

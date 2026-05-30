@@ -1,20 +1,29 @@
 import type { CreateCategoryDTO } from "../../../../dtos/category.dto"
 import { CreateCategoryUseCase } from "../../../../application/use-cases/category.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const createCategoryUseCase = new CreateCategoryUseCase()
+export class CreateCategoryController implements IController<
+  AuthenticatedHttpRequest<CreateCategoryDTO>
+> {
+  constructor(private readonly useCase: CreateCategoryUseCase) {}
 
-export async function createCategoryController(
-  request: AuthenticatedHttpRequest<CreateCategoryDTO>,
-): Promise<HttpResponse<unknown>> {
-  const { user_id: _ignored, ...body } = request.body
-  const result = await createCategoryUseCase.execute({
-    ...body,
-    user_id: request.userId,
-  })
+  async handle(
+    request: AuthenticatedHttpRequest<CreateCategoryDTO>,
+  ): Promise<HttpResponse> {
+    const { user_id: _ignored, ...body } = request.body;
+    const result = await this.useCase.execute({
+      ...body,
+      user_id: request.userId,
+    });
 
-  return {
-    statusCode: 201,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.CREATED,
+      body: result,
+    };
   }
 }

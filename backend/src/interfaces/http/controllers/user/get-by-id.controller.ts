@@ -1,15 +1,20 @@
 import { GetUserByIdUseCase } from "../../../../application/use-cases/user.use-cases"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const getUserByIdUseCase = new GetUserByIdUseCase()
+export class GetUserByIdController implements IController<
+  HttpRequest<unknown, { id: string }>
+> {
+  constructor(private readonly useCase: GetUserByIdUseCase) {}
 
-export async function getUserByIdController(
-  request: HttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await getUserByIdUseCase.execute(request.params.id)
+  async handle(
+    request: HttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.params.id);
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

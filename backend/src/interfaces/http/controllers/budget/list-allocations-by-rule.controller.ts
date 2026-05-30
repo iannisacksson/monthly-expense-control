@@ -1,11 +1,23 @@
 import { ListBudgetAllocationsUseCase } from "../../../../application/use-cases/budget.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const listBudgetAllocationsUseCase = new ListBudgetAllocationsUseCase()
+export class ListBudgetAllocationsByRuleController implements IController<
+  AuthenticatedHttpRequest<unknown, { ruleId: string }>
+> {
+  constructor(private readonly useCase: ListBudgetAllocationsUseCase) {}
 
-export async function listAllocationsByRuleController(
-  request: AuthenticatedHttpRequest<unknown, { ruleId: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await listBudgetAllocationsUseCase.execute(request.params.ruleId, request.userId)
-  return { statusCode: 200, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { ruleId: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.ruleId,
+      request.userId,
+    );
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

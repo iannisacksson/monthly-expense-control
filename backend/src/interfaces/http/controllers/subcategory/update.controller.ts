@@ -1,16 +1,29 @@
 import type { UpdateSubcategoryDTO } from "../../../../dtos/subcategory.dto"
 import { UpdateSubcategoryUseCase } from "../../../../application/use-cases/subcategory.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateSubcategoryUseCase = new UpdateSubcategoryUseCase()
+export class UpdateSubcategoryController implements IController<
+  AuthenticatedHttpRequest<UpdateSubcategoryDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateSubcategoryUseCase) {}
 
-export async function updateSubcategoryController(
-  request: AuthenticatedHttpRequest<UpdateSubcategoryDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateSubcategoryUseCase.execute(request.params.id, request.body, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<UpdateSubcategoryDTO, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

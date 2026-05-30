@@ -1,16 +1,25 @@
-import type { CreateSubcategoryDTO, UpdateSubcategoryDTO } from "../../../../dtos/subcategory.dto"
-import { CreateSubcategoryUseCase } from "../../../../application/use-cases/subcategory.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import type { CreateSubcategoryDTO } from "../../../../dtos/subcategory.dto";
+import { CreateSubcategoryUseCase } from "../../../../application/use-cases/subcategory.use-cases";
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const createSubcategoryUseCase = new CreateSubcategoryUseCase()
+export class CreateSubcategoryController implements IController<
+  AuthenticatedHttpRequest<CreateSubcategoryDTO>
+> {
+  constructor(private readonly useCase: CreateSubcategoryUseCase) {}
 
-export async function createSubcategoryController(
-  request: AuthenticatedHttpRequest<CreateSubcategoryDTO>,
-): Promise<HttpResponse<unknown>> {
-  const result = await createSubcategoryUseCase.execute(request.body, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<CreateSubcategoryDTO>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.body, request.userId);
 
-  return {
-    statusCode: 201,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.CREATED,
+      body: result,
+    };
   }
 }

@@ -1,16 +1,29 @@
 import type { UpdateMonthlyIncomeDTO } from "../../../../dtos/monthly-income.dto"
 import { UpdateMonthlyIncomeUseCase } from "../../../../application/use-cases/monthly-income.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateMonthlyIncomeUseCase = new UpdateMonthlyIncomeUseCase()
+export class UpdateMonthlyIncomeController implements IController<
+  AuthenticatedHttpRequest<UpdateMonthlyIncomeDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateMonthlyIncomeUseCase) {}
 
-export async function updateIncomeController(
-  request: AuthenticatedHttpRequest<UpdateMonthlyIncomeDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateMonthlyIncomeUseCase.execute(request.params.id, request.body, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<UpdateMonthlyIncomeDTO, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

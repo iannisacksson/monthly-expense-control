@@ -1,21 +1,30 @@
 import type { UpdateProfileDTO } from "../../../../dtos/auth.dto"
 import { UpdateAuthenticatedProfileUseCase } from "../../../../application/use-cases/auth.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateAuthenticatedProfileUseCase = new UpdateAuthenticatedProfileUseCase()
+export class UpdateMeController implements IController<
+  AuthenticatedHttpRequest<UpdateProfileDTO>
+> {
+  constructor(private readonly useCase: UpdateAuthenticatedProfileUseCase) {}
 
-export async function updateMeController(
-  request: AuthenticatedHttpRequest<UpdateProfileDTO>,
-): Promise<HttpResponse<unknown>> {
-  const { name, email, password } = request.body
-  const user = await updateAuthenticatedProfileUseCase.execute(request.userId, {
-    name,
-    email,
-    password,
-  })
+  async handle(
+    request: AuthenticatedHttpRequest<UpdateProfileDTO>,
+  ): Promise<HttpResponse> {
+    const { name, email, password } = request.body;
+    const user = await this.useCase.execute(request.userId, {
+      name,
+      email,
+      password,
+    });
 
-  return {
-    statusCode: 200,
-    body: user,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: user,
+    };
   }
 }

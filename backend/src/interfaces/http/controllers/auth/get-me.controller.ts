@@ -1,15 +1,20 @@
 import { GetAuthenticatedProfileUseCase } from "../../../../application/use-cases/auth.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const getAuthenticatedProfileUseCase = new GetAuthenticatedProfileUseCase()
+export class GetMeController implements IController<AuthenticatedHttpRequest> {
+  constructor(private readonly useCase: GetAuthenticatedProfileUseCase) {}
 
-export async function getMeController(
-  request: AuthenticatedHttpRequest,
-): Promise<HttpResponse<unknown>> {
-  const user = await getAuthenticatedProfileUseCase.execute(request.userId)
+  async handle(request: AuthenticatedHttpRequest): Promise<HttpResponse> {
+    const user = await this.useCase.execute(request.userId);
 
-  return {
-    statusCode: 200,
-    body: user,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: user,
+    };
   }
 }

@@ -1,15 +1,27 @@
 import { GetMonthlyIncomeByIdUseCase } from "../../../../application/use-cases/monthly-income.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const getMonthlyIncomeByIdUseCase = new GetMonthlyIncomeByIdUseCase()
+export class GetMonthlyIncomeByIdController implements IController<
+  AuthenticatedHttpRequest<unknown, { id: string }>
+> {
+  constructor(private readonly useCase: GetMonthlyIncomeByIdUseCase) {}
 
-export async function getIncomeByIdController(
-  request: AuthenticatedHttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await getMonthlyIncomeByIdUseCase.execute(request.params.id, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.userId,
+    );
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

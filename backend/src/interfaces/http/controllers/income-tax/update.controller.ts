@@ -1,16 +1,29 @@
-import { UpdateIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases"
-import type { UpdateIncomeTaxDTO } from "../../../../dtos/income-tax.dto"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import type { UpdateIncomeTaxDTO } from "../../../../dtos/income-tax.dto";
+import { UpdateIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases";
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateIncomeTaxUseCase = new UpdateIncomeTaxUseCase()
+export class UpdateIncomeTaxController implements IController<
+  AuthenticatedHttpRequest<UpdateIncomeTaxDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateIncomeTaxUseCase) {}
 
-export async function updateTaxController(
-  request: AuthenticatedHttpRequest<UpdateIncomeTaxDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateIncomeTaxUseCase.execute(request.params.id, request.body, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<UpdateIncomeTaxDTO, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
 
-  return {
-    statusCode: 200,
-    body: result,
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: result,
+    };
   }
 }

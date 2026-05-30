@@ -1,11 +1,26 @@
 import { ListExpensesByMonthUseCase } from "../../../../application/use-cases/expense.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const listExpensesByMonthUseCase = new ListExpensesByMonthUseCase()
+export class ListExpensesByUserAndMonthController implements IController<
+  AuthenticatedHttpRequest<unknown, { userId: string; monthId: string }>
+> {
+  constructor(private readonly useCase: ListExpensesByMonthUseCase) {}
 
-export async function listExpensesByUserAndMonthController(
-  request: AuthenticatedHttpRequest<unknown, { userId: string; monthId: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await listExpensesByMonthUseCase.execute(request.userId, request.params.monthId)
-  return { statusCode: 200, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<
+      unknown,
+      { userId: string; monthId: string }
+    >,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.userId,
+      request.params.monthId,
+    );
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

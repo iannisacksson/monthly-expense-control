@@ -1,12 +1,25 @@
 import type { UpdateBudgetRuleDTO } from "../../../../dtos/budget-rule.dto"
 import { UpdateBudgetRuleUseCase } from "../../../../application/use-cases/budget.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const updateBudgetRuleUseCase = new UpdateBudgetRuleUseCase()
+export class UpdateBudgetRuleController implements IController<
+  AuthenticatedHttpRequest<UpdateBudgetRuleDTO, { id: string }>
+> {
+  constructor(private readonly useCase: UpdateBudgetRuleUseCase) {}
 
-export async function updateBudgetRuleController(
-  request: AuthenticatedHttpRequest<UpdateBudgetRuleDTO, { id: string }>,
-): Promise<HttpResponse<unknown>> {
-  const result = await updateBudgetRuleUseCase.execute(request.params.id, request.body, request.userId)
-  return { statusCode: 200, body: result }
+  async handle(
+    request: AuthenticatedHttpRequest<UpdateBudgetRuleDTO, { id: string }>,
+  ): Promise<HttpResponse> {
+    const result = await this.useCase.execute(
+      request.params.id,
+      request.body,
+      request.userId,
+    );
+    return { statusCode: HttpStatusCode.OK, body: result };
+  }
 }

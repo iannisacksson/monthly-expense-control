@@ -1,5 +1,0 @@
-export { createCategoryController } from "./create.controller"
-export { deleteCategoryController } from "./delete.controller"
-export { getCategoryByIdController } from "./get-by-id.controller"
-export { listCategoriesByUserController } from "./list-by-user.controller"
-export { updateCategoryController } from "./update.controller"

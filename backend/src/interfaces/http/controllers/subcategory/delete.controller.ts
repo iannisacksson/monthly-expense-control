@@ -1,15 +1,25 @@
 import { DeleteSubcategoryUseCase } from "../../../../application/use-cases/subcategory.use-cases"
-import type { AuthenticatedHttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type {
+  AuthenticatedHttpRequest,
+  HttpResponse,
+  IController,
+} from "../../http.types";
 
-const deleteSubcategoryUseCase = new DeleteSubcategoryUseCase()
+export class DeleteSubcategoryController implements IController<
+  AuthenticatedHttpRequest<unknown, { id: string }>,
+  { success: boolean }
+> {
+  constructor(private readonly useCase: DeleteSubcategoryUseCase) {}
 
-export async function deleteSubcategoryController(
-  request: AuthenticatedHttpRequest<unknown, { id: string }>,
-): Promise<HttpResponse<{ success: boolean }>> {
-  await deleteSubcategoryUseCase.execute(request.params.id, request.userId)
+  async handle(
+    request: AuthenticatedHttpRequest<unknown, { id: string }>,
+  ): Promise<HttpResponse<{ success: boolean }>> {
+    await this.useCase.execute(request.params.id, request.userId);
 
-  return {
-    statusCode: 200,
-    body: { success: true },
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: { success: true },
+    };
   }
 }

@@ -232,17 +232,23 @@ Implement HTTP layer.
 
 Controllers must:
 
-- be organized as one action per file
-- receive simple request models instead of Express objects
-- call use cases
-- return simple response models
+- be organized as one action per file under `src/interfaces/http/controllers/<resource>/<action>.controller.ts`
+- be classes implementing the `IController<TReq, TRes>` interface from `src/interfaces/http/http.types.ts`
+- receive the relevant use case injected via the constructor
+- receive simple request models (`HttpRequest` or `AuthenticatedHttpRequest`) instead of Express objects
+- call the injected use case and return an `HttpResponse`
+- use `HttpStatusCode` enum from `src/interfaces/http/http-status-code.ts` instead of numeric literals
 
 Express adapters must:
 
-- live at the HTTP boundary
-- extract `req` data
-- call the pure controller
+- live at the HTTP boundary, inside the route file
+- instantiate controller classes and inject their use cases
+- call `adaptExpressRoute` passing `controller.handle.bind(controller)` as the handler
+- extract `req` data using `buildHttpRequest` or `buildAuthenticatedHttpRequest`
 - forward failures to the centralized error handler
+
+There must be no `index.ts` or aggregator files inside resource controller folders.
+`adaptExpressRoute` calls and controller instantiation belong exclusively in the route file.
 
 Example prompt:
 
@@ -254,6 +260,36 @@ Expected output:
 
 
 src/interfaces/http/controllers/<resource>/<action>.controller.ts
+
+
+Example controller structure:
+
+```ts
+import type { SomeDTO } from "../../../../dtos/some.dto"
+import { SomeUseCase } from "../../../../application/use-cases/some.use-cases"
+import { HttpStatusCode } from "../../http-status-code"
+import type { AuthenticatedHttpRequest, HttpResponse, IController } from "../../http.types"
+
+export class CreateSomeController implements IController<AuthenticatedHttpRequest<SomeDTO>> {
+  constructor(private readonly useCase: SomeUseCase) {}
+
+  async handle(request: AuthenticatedHttpRequest<SomeDTO>): Promise<HttpResponse> {
+    const result = await this.useCase.execute(request.body, request.userId)
+    return { statusCode: HttpStatusCode.CREATED, body: result }
+  }
+}
+```
+
+Example route registration:
+
+```ts
+const controller = new CreateSomeController(new SomeUseCase())
+router.post("/", adaptExpressRoute(
+  controller.handle.bind(controller),
+  (req) => buildAuthenticatedHttpRequest(req),
+  withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
+))
+```
 
 
 ---

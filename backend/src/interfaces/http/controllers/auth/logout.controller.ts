@@ -1,22 +1,40 @@
 import { LogoutUserUseCase, ReadSessionIdFromAccessTokenUseCase } from "../../../../application/use-cases/auth.use-cases"
 import type { AuthRequestContext } from "../../../../utils/request-context"
-import type { HttpRequest, HttpResponse } from "../../http.types"
+import { HttpStatusCode } from "../../http-status-code";
+import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 
-const logoutUserUseCase = new LogoutUserUseCase()
-const readSessionIdFromAccessTokenUseCase = new ReadSessionIdFromAccessTokenUseCase()
+type LogoutRequest = HttpRequest & {
+  refreshToken: string | null;
+  accessToken: string | null;
+  context: AuthRequestContext;
+};
 
-export async function logoutController(
-  request: HttpRequest & { refreshToken: string | null; accessToken: string | null; context: AuthRequestContext },
-): Promise<HttpResponse<{ success: boolean }>> {
-  const sessionId = request.accessToken
-    ? readSessionIdFromAccessTokenUseCase.execute(request.accessToken)
-    : null
+export class LogoutController implements IController<
+  LogoutRequest,
+  { success: boolean }
+> {
+  constructor(
+    private readonly logoutUseCase: LogoutUserUseCase,
+    private readonly readSessionIdUseCase: ReadSessionIdFromAccessTokenUseCase,
+  ) {}
 
-  await logoutUserUseCase.execute(request.refreshToken, sessionId, request.context)
+  async handle(
+    request: LogoutRequest,
+  ): Promise<HttpResponse<{ success: boolean }>> {
+    const sessionId = request.accessToken
+      ? this.readSessionIdUseCase.execute(request.accessToken)
+      : null;
 
-  return {
-    statusCode: 200,
-    body: { success: true },
-    clearAuthCookies: true,
+    await this.logoutUseCase.execute(
+      request.refreshToken,
+      sessionId,
+      request.context,
+    );
+
+    return {
+      statusCode: HttpStatusCode.OK,
+      body: { success: true },
+      clearAuthCookies: true,
+    };
   }
 }
