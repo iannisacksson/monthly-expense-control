@@ -1,4 +1,4 @@
-import { DeleteIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases"
+import { DeleteIncomeTaxUseCase } from "../../../../application/use-cases/income-tax/delete.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

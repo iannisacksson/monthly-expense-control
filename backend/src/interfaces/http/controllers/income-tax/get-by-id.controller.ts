@@ -1,4 +1,4 @@
-import { GetIncomeTaxByIdUseCase } from "../../../../application/use-cases/income-tax.use-cases"
+import { GetIncomeTaxByIdUseCase } from "../../../../application/use-cases/income-tax/get-by-id.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

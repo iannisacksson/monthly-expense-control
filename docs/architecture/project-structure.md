@@ -122,6 +122,12 @@ Responsibilities:
 - coordinate repositories and supporting services
 - keep orchestration out of controllers
 
+Current organization rule:
+
+- use cases are organized by entity folder and one action per file, for example `backend/src/application/use-cases/category/create.use-case.ts`
+- new code must not introduce aggregated files such as `backend/src/application/use-cases/category.use-cases.ts`
+- migrated slices should depend directly on repositories and domain rules instead of legacy service classes
+
 ### domain
 
 Location: `backend/src/domain`
@@ -258,6 +264,13 @@ Shared operational utilities such as the backend logger and Prometheus metrics r
 Location: `backend/tests`
 
 Purpose: backend automated quality gate.
+
+Current organization includes:
+
+- `tests/unit/domain` for pure domain logic
+- `tests/unit/application/use-cases` for use-case orchestration without PostgreSQL
+- `tests/integration/http` for end-to-end HTTP behavior
+- `tests/shared` for reusable helpers
 
 Responsibilities:
 

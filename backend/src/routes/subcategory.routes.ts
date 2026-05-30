@@ -4,13 +4,11 @@ import { DeleteSubcategoryController } from "../interfaces/http/controllers/subc
 import { GetSubcategoryByIdController } from "../interfaces/http/controllers/subcategory/get-by-id.controller";
 import { ListSubcategoriesByCategoryController } from "../interfaces/http/controllers/subcategory/list-by-category.controller";
 import { UpdateSubcategoryController } from "../interfaces/http/controllers/subcategory/update.controller";
-import {
-  CreateSubcategoryUseCase,
-  DeleteSubcategoryUseCase,
-  GetSubcategoryByIdUseCase,
-  ListSubcategoriesUseCase,
-  UpdateSubcategoryUseCase,
-} from "../application/use-cases/subcategory.use-cases";
+import { CreateSubcategoryUseCase } from "../application/use-cases/subcategory/create.use-case";
+import { DeleteSubcategoryUseCase } from "../application/use-cases/subcategory/delete.use-case";
+import { GetSubcategoryByIdUseCase } from "../application/use-cases/subcategory/get-by-id.use-case";
+import { ListSubcategoriesByCategoryUseCase } from "../application/use-cases/subcategory/list-by-category.use-case";
+import { UpdateSubcategoryUseCase } from "../application/use-cases/subcategory/update.use-case";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
 import {
   adaptExpressRoute,
@@ -24,7 +22,9 @@ const createSubcategoryController = new CreateSubcategoryController(
   new CreateSubcategoryUseCase(),
 );
 const listSubcategoriesByCategoryController =
-  new ListSubcategoriesByCategoryController(new ListSubcategoriesUseCase());
+  new ListSubcategoriesByCategoryController(
+    new ListSubcategoriesByCategoryUseCase(),
+  );
 const getSubcategoryByIdController = new GetSubcategoryByIdController(
   new GetSubcategoryByIdUseCase(),
 );

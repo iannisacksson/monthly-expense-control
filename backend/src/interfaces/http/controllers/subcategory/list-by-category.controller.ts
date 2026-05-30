@@ -1,4 +1,4 @@
-import { ListSubcategoriesUseCase } from "../../../../application/use-cases/subcategory.use-cases"
+import { ListSubcategoriesByCategoryUseCase } from "../../../../application/use-cases/subcategory/list-by-category.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
@@ -9,7 +9,7 @@ import type {
 export class ListSubcategoriesByCategoryController implements IController<
   AuthenticatedHttpRequest<unknown, { categoryId: string }>
 > {
-  constructor(private readonly useCase: ListSubcategoriesUseCase) {}
+  constructor(private readonly useCase: ListSubcategoriesByCategoryUseCase) {}
 
   async handle(
     request: AuthenticatedHttpRequest<unknown, { categoryId: string }>,

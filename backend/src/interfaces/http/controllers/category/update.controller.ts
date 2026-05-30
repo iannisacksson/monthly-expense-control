@@ -1,5 +1,5 @@
 import type { UpdateCategoryDTO } from "../../../../dtos/category.dto"
-import { UpdateCategoryUseCase } from "../../../../application/use-cases/category.use-cases"
+import { UpdateCategoryUseCase } from "../../../../application/use-cases/category/update.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

@@ -1,4 +1,4 @@
-import { DeleteUserUseCase } from "../../../../application/use-cases/user.use-cases"
+import { DeleteUserUseCase } from "../../../../application/use-cases/user/delete.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 

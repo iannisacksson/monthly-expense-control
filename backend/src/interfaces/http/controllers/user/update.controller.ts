@@ -1,5 +1,5 @@
 import type { UpdateUserDTO } from "../../../../dtos/user.dto";
-import { UpdateUserUseCase } from "../../../../application/use-cases/user.use-cases";
+import { UpdateUserUseCase } from "../../../../application/use-cases/user/update.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 

@@ -214,7 +214,19 @@ Generate the application use cases for this feature.
 Expected output:
 
 
-src/application/use-cases/<feature>.use-cases.ts
+src/application/use-cases/<entity>/<action>.use-case.ts
+
+Examples:
+
+- src/application/use-cases/category/create.use-case.ts
+- src/application/use-cases/category/list-by-user.use-case.ts
+- src/application/use-cases/category/get-by-id.use-case.ts
+
+Rules:
+
+- do not aggregate multiple actions in `<feature>.use-cases.ts`
+- do not route new application behavior through `src/services` when the use case can orchestrate repositories and domain rules directly
+- prefer one focused unit test group per migrated action or entity slice under `backend/tests/unit/application/use-cases`
 
 
 ---

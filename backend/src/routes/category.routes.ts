@@ -5,16 +5,14 @@ import { GetCategoryByIdController } from "../interfaces/http/controllers/catego
 import { ListCategoriesByUserController } from "../interfaces/http/controllers/category/list-by-user.controller";
 import { UpdateCategoryController } from "../interfaces/http/controllers/category/update.controller";
 import {
-  CreateCategoryUseCase,
-  DeleteCategoryUseCase,
-  GetCategoryByIdUseCase,
-  ListCategoriesUseCase,
-  UpdateCategoryUseCase,
-} from "../application/use-cases/category.use-cases";
-import {
   adaptExpressRoute,
   buildAuthenticatedHttpRequest,
 } from "../interfaces/http/express-route.adapter";
+import { CreateCategoryUseCase } from "../application/use-cases/category/create.use-case";
+import { DeleteCategoryUseCase } from "../application/use-cases/category/delete.use-case";
+import { GetCategoryByIdUseCase } from "../application/use-cases/category/get-by-id.use-case";
+import { ListCategoriesByUserUseCase } from "../application/use-cases/category/list-by-user.use-case";
+import { UpdateCategoryUseCase } from "../application/use-cases/category/update.use-case";
 
 const router = Router()
 
@@ -22,7 +20,7 @@ const createCategoryController = new CreateCategoryController(
   new CreateCategoryUseCase(),
 );
 const listCategoriesByUserController = new ListCategoriesByUserController(
-  new ListCategoriesUseCase(),
+  new ListCategoriesByUserUseCase(),
 );
 const getCategoryByIdController = new GetCategoryByIdController(
   new GetCategoryByIdUseCase(),

@@ -1,4 +1,4 @@
-import { GetSubcategoryByIdUseCase } from "../../../../application/use-cases/subcategory.use-cases"
+import { GetSubcategoryByIdUseCase } from "../../../../application/use-cases/subcategory/get-by-id.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

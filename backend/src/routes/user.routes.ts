@@ -3,12 +3,10 @@ import { CreateUserController } from "../interfaces/http/controllers/user/create
 import { DeleteUserController } from "../interfaces/http/controllers/user/delete.controller";
 import { GetUserByIdController } from "../interfaces/http/controllers/user/get-by-id.controller";
 import { UpdateUserController } from "../interfaces/http/controllers/user/update.controller";
-import {
-  CreateUserUseCase,
-  DeleteUserUseCase,
-  GetUserByIdUseCase,
-  UpdateUserUseCase,
-} from "../application/use-cases/user.use-cases";
+import { CreateUserUseCase } from "../application/use-cases/user/create.use-case";
+import { DeleteUserUseCase } from "../application/use-cases/user/delete.use-case";
+import { GetUserByIdUseCase } from "../application/use-cases/user/get-by-id.use-case";
+import { UpdateUserUseCase } from "../application/use-cases/user/update.use-case";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
 import {
   adaptExpressRoute,

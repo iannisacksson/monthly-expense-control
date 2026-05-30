@@ -45,6 +45,7 @@ The backend adopts a Clean Architecture inspired hybrid structure with these dec
    - `tests/integration/http`
    - `tests/shared`
 7. The HTTP boundary may continue evolving toward pure controllers plus thin framework adapters as the interface layer is made more explicit.
+8. Application use cases are organized one action per file under `src/application/use-cases/<entity>/<action>.use-case.ts`.
 
 ## Rationale
 
@@ -53,14 +54,17 @@ The backend adopts a Clean Architecture inspired hybrid structure with these dec
 - keeping repositories narrow preserves current persistence discipline
 - introducing the new architecture without a destructive rewrite reduces delivery risk
 - test taxonomy improves architectural clarity without discarding valuable integration coverage
+- action-scoped use-case files reduce hidden coupling and make service removal incremental by slice
 
 ## Consequences
 
 - new backend behavior should prefer `application/use-cases` as the runtime orchestration boundary
+- new backend behavior should prefer action-scoped files under `application/use-cases/<entity>/`
 - domain validations should preferentially live in rich entities or value objects when reusable and pure
 - controllers remain thin and HTTP-focused
 - repositories remain infrastructure-only and must not absorb business logic
 - legacy folders may coexist temporarily, but documentation must treat them as compatibility surfaces rather than the target architecture
+- grouped `src/application/use-cases/<entity>.use-cases.ts` files are migration leftovers and must not be used for new slices
 
 ## Related Documents
 

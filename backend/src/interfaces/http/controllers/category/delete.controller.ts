@@ -1,4 +1,4 @@
-import { DeleteCategoryUseCase } from "../../../../application/use-cases/category.use-cases"
+import { DeleteCategoryUseCase } from "../../../../application/use-cases/category/delete.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

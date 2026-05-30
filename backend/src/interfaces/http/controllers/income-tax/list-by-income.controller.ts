@@ -1,4 +1,4 @@
-import { ListIncomeTaxesUseCase } from "../../../../application/use-cases/income-tax.use-cases"
+import { ListIncomeTaxesByIncomeUseCase } from "../../../../application/use-cases/income-tax/list-by-income.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
@@ -9,7 +9,7 @@ import type {
 export class ListIncomeTaxesByIncomeController implements IController<
   AuthenticatedHttpRequest<unknown, { incomeId: string }>
 > {
-  constructor(private readonly useCase: ListIncomeTaxesUseCase) {}
+  constructor(private readonly useCase: ListIncomeTaxesByIncomeUseCase) {}
 
   async handle(
     request: AuthenticatedHttpRequest<unknown, { incomeId: string }>,

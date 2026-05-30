@@ -1,5 +1,5 @@
 import type { CreateUserDTO } from "../../../../dtos/user.dto";
-import { CreateUserUseCase } from "../../../../application/use-cases/user.use-cases";
+import { CreateUserUseCase } from "../../../../application/use-cases/user/create.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 

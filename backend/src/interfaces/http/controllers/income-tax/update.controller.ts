@@ -1,5 +1,5 @@
 import type { UpdateIncomeTaxDTO } from "../../../../dtos/income-tax.dto";
-import { UpdateIncomeTaxUseCase } from "../../../../application/use-cases/income-tax.use-cases";
+import { UpdateIncomeTaxUseCase } from "../../../../application/use-cases/income-tax/update.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

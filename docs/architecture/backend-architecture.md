@@ -248,6 +248,12 @@ Main architectural layers:
 - domain
 - infrastructure
 
+Application layer organization rule:
+
+- each application action lives in its own file under `src/application/use-cases/<entity>/<action>.use-case.ts`
+- new backend work must not aggregate multiple actions in `src/application/use-cases/<entity>.use-cases.ts`
+- migrated use cases should orchestrate repositories and domain rules directly instead of depending on legacy `src/services`
+
 ---
 
 # Backend Quality Gates
@@ -268,6 +274,8 @@ Mandatory rule:
 - every backend behavior-changing refactor
 
 must add or update automated backend tests for the affected behavior.
+
+For migrated application slices, prefer unit tests under `tests/unit/application/use-cases` in addition to any affected integration coverage.
 
 Changes without automated coverage for the affected backend behavior are incomplete.
 

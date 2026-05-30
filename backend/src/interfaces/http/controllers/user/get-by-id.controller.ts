@@ -1,4 +1,4 @@
-import { GetUserByIdUseCase } from "../../../../application/use-cases/user.use-cases"
+import { GetUserByIdUseCase } from "../../../../application/use-cases/user/get-by-id.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type { HttpRequest, HttpResponse, IController } from "../../http.types";
 

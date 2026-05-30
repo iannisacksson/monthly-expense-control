@@ -4,13 +4,11 @@ import { DeleteIncomeTaxController } from "../interfaces/http/controllers/income
 import { GetIncomeTaxByIdController } from "../interfaces/http/controllers/income-tax/get-by-id.controller";
 import { ListIncomeTaxesByIncomeController } from "../interfaces/http/controllers/income-tax/list-by-income.controller";
 import { UpdateIncomeTaxController } from "../interfaces/http/controllers/income-tax/update.controller";
-import {
-  CreateIncomeTaxUseCase,
-  DeleteIncomeTaxUseCase,
-  GetIncomeTaxByIdUseCase,
-  ListIncomeTaxesUseCase,
-  UpdateIncomeTaxUseCase,
-} from "../application/use-cases/income-tax.use-cases";
+import { CreateIncomeTaxUseCase } from "../application/use-cases/income-tax/create.use-case";
+import { DeleteIncomeTaxUseCase } from "../application/use-cases/income-tax/delete.use-case";
+import { GetIncomeTaxByIdUseCase } from "../application/use-cases/income-tax/get-by-id.use-case";
+import { ListIncomeTaxesByIncomeUseCase } from "../application/use-cases/income-tax/list-by-income.use-case";
+import { UpdateIncomeTaxUseCase } from "../application/use-cases/income-tax/update.use-case";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
 import {
   adaptExpressRoute,
@@ -24,7 +22,7 @@ const createIncomeTaxController = new CreateIncomeTaxController(
   new CreateIncomeTaxUseCase(),
 );
 const listIncomeTaxesByIncomeController = new ListIncomeTaxesByIncomeController(
-  new ListIncomeTaxesUseCase(),
+  new ListIncomeTaxesByIncomeUseCase(),
 );
 const getIncomeTaxByIdController = new GetIncomeTaxByIdController(
   new GetIncomeTaxByIdUseCase(),

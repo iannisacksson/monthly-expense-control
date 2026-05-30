@@ -1,5 +1,5 @@
 import type { CreateSubcategoryDTO } from "../../../../dtos/subcategory.dto";
-import { CreateSubcategoryUseCase } from "../../../../application/use-cases/subcategory.use-cases";
+import { CreateSubcategoryUseCase } from "../../../../application/use-cases/subcategory/create.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
