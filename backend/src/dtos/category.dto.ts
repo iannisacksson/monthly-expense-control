@@ -1,10 +1,12 @@
+import { CategoryType } from "../domain/entities/category.entity";
+
 export interface CreateCategoryDTO {
-  user_id?: string
-  name: string
-  type: string
+  userId?: string;
+  name: string;
+  type: CategoryType;
 }
 
 export interface UpdateCategoryDTO {
-  name?: string
-  type?: string
+  name?: string;
+  type?: CategoryType;
 }

@@ -1,32 +1,34 @@
-import { Category } from "../models/index"
+import { Category } from "../domain/entities/category.entity";
+import { ICategoryRepository } from "../domain/repositories/category.repository";
+import { CategoryModel } from "../models/category.model";
 
-export class CategoryRepository {
-  async create(data: { user_id?: string; name: string; type: string }) {
-    return Category.create(data)
+export class CategoryRepository implements ICategoryRepository {
+  async create(data: Category): Promise<Category> {
+    const category = await CategoryModel.create(data);
+    return category.toDomain();
   }
 
-  async findById(id: string) {
-    return Category.findByPk(id)
+  async findById(id: string): Promise<Category | null> {
+    return CategoryModel.findByPk(id);
   }
 
-  async findByUserId(userId: string) {
-    return Category.findAll({ where: { user_id: userId } })
+  async findByUserId(userId: string): Promise<Category[]> {
+    return CategoryModel.findAll({ where: { userId: userId } });
   }
 
-  async findAll() {
-    return Category.findAll()
+  async findAll(): Promise<Category[]> {
+    return CategoryModel.findAll();
   }
 
-  async update(id: string, data: Partial<{ name: string; type: string }>) {
-    const category = await Category.findByPk(id)
-    if (!category) return null
-    return category.update(data)
+  async update(data: Partial<Category>): Promise<Category> {
+    const category = await CategoryModel.update(data, {
+      where: { id: data.id },
+      returning: true,
+    });
+    return category[1][0].toDomain();
   }
 
-  async delete(id: string) {
-    const category = await Category.findByPk(id)
-    if (!category) return null
-    await category.destroy()
-    return category
+  async delete(data: Category): Promise<void> {
+    await CategoryModel.destroy({ where: { id: data.id } });
   }
 }

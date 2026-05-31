@@ -15,10 +15,11 @@ export class CreateCategoryController implements IController<
   async handle(
     request: AuthenticatedHttpRequest<CreateCategoryDTO>,
   ): Promise<HttpResponse> {
-    const { user_id: _ignored, ...body } = request.body;
+    const { name, type } = request.body;
     const result = await this.useCase.execute({
-      ...body,
-      user_id: request.userId,
+      name,
+      type,
+      userId: request.userId,
     });
 
     return {

@@ -13,23 +13,25 @@ import { DeleteCategoryUseCase } from "../application/use-cases/category/delete.
 import { GetCategoryByIdUseCase } from "../application/use-cases/category/get-by-id.use-case";
 import { ListCategoriesByUserUseCase } from "../application/use-cases/category/list-by-user.use-case";
 import { UpdateCategoryUseCase } from "../application/use-cases/category/update.use-case";
+import { CategoryRepository } from "../repositories/category.repository";
 
 const router = Router()
 
+const categoryRepository = new CategoryRepository();
 const createCategoryController = new CreateCategoryController(
-  new CreateCategoryUseCase(),
+  new CreateCategoryUseCase(categoryRepository),
 );
 const listCategoriesByUserController = new ListCategoriesByUserController(
-  new ListCategoriesByUserUseCase(),
+  new ListCategoriesByUserUseCase(categoryRepository),
 );
 const getCategoryByIdController = new GetCategoryByIdController(
-  new GetCategoryByIdUseCase(),
+  new GetCategoryByIdUseCase(categoryRepository),
 );
 const updateCategoryController = new UpdateCategoryController(
-  new UpdateCategoryUseCase(),
+  new UpdateCategoryUseCase(categoryRepository),
 );
 const deleteCategoryController = new DeleteCategoryController(
-  new DeleteCategoryUseCase(),
+  new DeleteCategoryUseCase(categoryRepository),
 );
 
 router.post(

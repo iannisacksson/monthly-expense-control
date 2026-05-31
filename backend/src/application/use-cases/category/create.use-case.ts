@@ -1,32 +1,32 @@
 import type { CreateCategoryDTO } from "../../../dtos/category.dto"
-import { CategoryEntity } from "../../../domain/entities/category.entity"
-import { CategoryRepository } from "../../../repositories/category.repository"
+import { CategoryEntity } from "../../../domain/entities/category.entity";
 import { UserRepository } from "../../../repositories/user.repository"
 import { BadRequestError } from "../../../utils/errors"
+import { ICategoryRepository } from "../../../domain/repositories/category.repository";
 
 export class CreateCategoryUseCase {
   constructor(
-    private readonly categoryRepository: Pick<CategoryRepository, "create"> = new CategoryRepository(),
-    private readonly userRepository: Pick<UserRepository, "findById"> = new UserRepository(),
+    private readonly categoryRepository: ICategoryRepository,
+    private readonly userRepository: Pick<
+      UserRepository,
+      "findById"
+    > = new UserRepository(),
   ) {}
 
   async execute(data: CreateCategoryDTO) {
-    CategoryEntity.validateName(data.name)
-    CategoryEntity.ensureUserOwnership(data.user_id)
-    const userId = data.user_id
-    if (!userId) {
-      throw new BadRequestError("Category must belong to a user")
-    }
-
-    const user = await this.userRepository.findById(userId)
-    if (!user) {
-      throw new BadRequestError("User not found")
-    }
-
-    return this.categoryRepository.create({
-      user_id: userId,
+    const category = new CategoryEntity({
+      user: { id: data.userId } as any, // Usar a entidade UserEntity apõs refatorar a User.
       name: data.name,
-      type: data.type,
-    })
+      type: data.type as CategoryEntity["type"],
+    });
+    category.validateName();
+    category.ensureUserOwnership();
+
+    const user = await this.userRepository.findById(category.user.id);
+    if (!user) {
+      throw new BadRequestError("User not found");
+    }
+
+    return this.categoryRepository.create(category);
   }
 }
