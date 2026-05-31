@@ -63,6 +63,7 @@ The backend adopts a Clean Architecture inspired hybrid structure with these dec
 - domain validations should preferentially live in rich entities or value objects when reusable and pure
 - controllers remain thin and HTTP-focused
 - repositories remain infrastructure-only and must not absorb business logic
+- use cases must inject the full repository interface or class as the constructor parameter type — do not narrow it with `Pick<IRepository, "method">`
 - legacy folders may coexist temporarily, but documentation must treat them as compatibility surfaces rather than the target architecture
 - grouped `src/application/use-cases/<entity>.use-cases.ts` files are migration leftovers and must not be used for new slices
 

@@ -2,13 +2,13 @@ import { UserRepository } from "../../../repositories/user.repository"
 
 export class DeleteUserUseCase {
   constructor(
-    private readonly userRepository: Pick<UserRepository, "delete"> = new UserRepository(),
+    private readonly userRepository: UserRepository = new UserRepository(),
   ) {}
 
   async execute(id: string) {
-    const deleted = await this.userRepository.delete(id)
+    const deleted = await this.userRepository.delete(id);
     if (!deleted) {
-      throw new Error("User not found")
+      throw new Error("User not found");
     }
   }
 }

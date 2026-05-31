@@ -1,11 +1,9 @@
-import { CategoryRepository } from "../../../repositories/category.repository"
+import { ICategoryRepository } from "../../../domain/repositories/category.repository";
 
 export class ListCategoriesByUserUseCase {
-  constructor(
-    private readonly categoryRepository: Pick<CategoryRepository, "findByUserId"> = new CategoryRepository(),
-  ) {}
+  constructor(private readonly categoryRepository: ICategoryRepository) {}
 
   async execute(userId: string) {
-    return this.categoryRepository.findByUserId(userId)
+    return this.categoryRepository.findByUserId(userId);
   }
 }

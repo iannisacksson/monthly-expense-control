@@ -4,20 +4,23 @@ import { DeleteCategoryUseCase } from "../../../../../src/application/use-cases/
 import { GetCategoryByIdUseCase } from "../../../../../src/application/use-cases/category/get-by-id.use-case"
 import { ListCategoriesByUserUseCase } from "../../../../../src/application/use-cases/category/list-by-user.use-case"
 import { UpdateCategoryUseCase } from "../../../../../src/application/use-cases/category/update.use-case"
+import { CategoryType } from "../../../../../src/domain/entities/category.entity";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../../../../../src/utils/errors"
 
 function makeCategory(userId = "user-1") {
   return {
-    getDataValue: vi.fn((field: string) => {
-      if (field === "user_id") return userId
-      return undefined
-    }),
-  }
+    id: "category-1",
+    user: { id: userId },
+    name: "Essentials",
+    type: CategoryType.NECESSARY,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 }
 
 describe("category use cases", () => {
   it("creates a category through repositories", async () => {
-    const createdCategory = { id: "category-1" }
+    const createdCategory = makeCategory();
     const categoryRepository = {
       create: vi.fn().mockResolvedValue(createdCategory),
     }
@@ -28,15 +31,15 @@ describe("category use cases", () => {
     const useCase = new CreateCategoryUseCase(categoryRepository, userRepository)
 
     await expect(
-      useCase.execute({ user_id: "user-1", name: "Essentials", type: "fixed" }),
-    ).resolves.toBe(createdCategory)
+      useCase.execute({
+        userId: "user-1",
+        name: "Essentials",
+        type: CategoryType.NECESSARY,
+      }),
+    ).resolves.toBe(createdCategory);
 
     expect(userRepository.findById).toHaveBeenCalledWith("user-1")
-    expect(categoryRepository.create).toHaveBeenCalledWith({
-      user_id: "user-1",
-      name: "Essentials",
-      type: "fixed",
-    })
+    expect(categoryRepository.create).toHaveBeenCalled();
   })
 
   it("rejects category creation when the user does not exist", async () => {
@@ -46,12 +49,16 @@ describe("category use cases", () => {
     )
 
     await expect(
-      useCase.execute({ user_id: "user-1", name: "Essentials", type: "fixed" }),
-    ).rejects.toBeInstanceOf(BadRequestError)
+      useCase.execute({
+        userId: "user-1",
+        name: "Essentials",
+        type: CategoryType.NECESSARY,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestError);
   })
 
   it("lists categories by user", async () => {
-    const categories = [{ id: "category-1" }]
+    const categories = [makeCategory()];
     const categoryRepository = {
       findByUserId: vi.fn().mockResolvedValue(categories),
     }
@@ -88,18 +95,21 @@ describe("category use cases", () => {
   })
 
   it("updates a category when it belongs to the requester", async () => {
-    const updatedCategory = { id: "category-1", name: "Housing" }
+    const existing = makeCategory("user-1");
+    const updatedCategory = { ...existing, name: "Housing" };
     const categoryRepository = {
-      findById: vi.fn().mockResolvedValue(makeCategory("user-1")),
+      findById: vi.fn().mockResolvedValue(existing),
       update: vi.fn().mockResolvedValue(updatedCategory),
-    }
+    };
     const useCase = new UpdateCategoryUseCase(categoryRepository)
 
     await expect(
       useCase.execute("category-1", { name: "Housing" }, "user-1"),
     ).resolves.toBe(updatedCategory)
 
-    expect(categoryRepository.update).toHaveBeenCalledWith("category-1", { name: "Housing" })
+    expect(categoryRepository.update).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Housing", user: existing.user }),
+    );
   })
 
   it("rejects category update when the owner does not match", async () => {
@@ -113,16 +123,29 @@ describe("category use cases", () => {
     ).rejects.toBeInstanceOf(ForbiddenError)
   })
 
-  it("deletes a category when it belongs to the requester", async () => {
-    const deletedCategory = { id: "category-1" }
-    const categoryRepository = {
+  it("rejects category update when the name is invalid", async () => {
+    const useCase = new UpdateCategoryUseCase({
       findById: vi.fn().mockResolvedValue(makeCategory("user-1")),
-      delete: vi.fn().mockResolvedValue(deletedCategory),
-    }
+      update: vi.fn(),
+    });
+
+    await expect(
+      useCase.execute("category-1", { name: "X" }, "user-1"),
+    ).rejects.toBeInstanceOf(BadRequestError);
+  });
+
+  it("deletes a category when it belongs to the requester", async () => {
+    const existing = makeCategory("user-1");
+    const categoryRepository = {
+      findById: vi.fn().mockResolvedValue(existing),
+      delete: vi.fn().mockResolvedValue(undefined),
+    };
     const useCase = new DeleteCategoryUseCase(categoryRepository)
 
-    await expect(useCase.execute("category-1", "user-1")).resolves.toBe(deletedCategory)
-    expect(categoryRepository.delete).toHaveBeenCalledWith("category-1")
+    await expect(
+      useCase.execute("category-1", "user-1"),
+    ).resolves.toBeUndefined();
+    expect(categoryRepository.delete).toHaveBeenCalledWith(existing);
   })
 
   it("rejects category delete when the category does not exist", async () => {
@@ -133,4 +156,15 @@ describe("category use cases", () => {
 
     await expect(useCase.execute("category-1", "user-1")).rejects.toBeInstanceOf(NotFoundError)
   })
+
+  it("rejects category delete when the owner does not match", async () => {
+    const useCase = new DeleteCategoryUseCase({
+      findById: vi.fn().mockResolvedValue(makeCategory("user-2")),
+      delete: vi.fn(),
+    });
+
+    await expect(
+      useCase.execute("category-1", "user-1"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+  });
 })

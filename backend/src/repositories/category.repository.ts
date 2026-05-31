@@ -9,18 +9,21 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   async findById(id: string): Promise<Category | null> {
-    return CategoryModel.findByPk(id);
+    const model = await CategoryModel.findByPk(id);
+    return model ? model.toDomain() : null;
   }
 
   async findByUserId(userId: string): Promise<Category[]> {
-    return CategoryModel.findAll({ where: { userId: userId } });
+    const models = await CategoryModel.findAll({ where: { userId: userId } });
+    return models.map((m) => m.toDomain());
   }
 
   async findAll(): Promise<Category[]> {
-    return CategoryModel.findAll();
+    const models = await CategoryModel.findAll();
+    return models.map((m) => m.toDomain());
   }
 
-  async update(data: Partial<Category>): Promise<Category> {
+  async update(data: Category): Promise<Category> {
     const category = await CategoryModel.update(data, {
       where: { id: data.id },
       returning: true,

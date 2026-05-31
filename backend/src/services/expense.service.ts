@@ -50,7 +50,7 @@ export class ExpenseService {
       throw new Error("Category not found")
     }
 
-    const categoryUserId = category.getDataValue("user_id") as string | null
+    const categoryUserId = category.user?.id ?? null;
     const isSameOwner = !!params.userId && categoryUserId === params.userId
 
     if (!isSameOwner) {

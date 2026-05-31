@@ -8,11 +8,10 @@ import { ForbiddenError } from "../../../../../src/utils/errors"
 
 function makeCategory(userId = "user-1") {
   return {
-    getDataValue: vi.fn((field: string) => {
-      if (field === "user_id") return userId
-      return undefined
-    }),
-  }
+    id: "category-1",
+    user: { id: userId },
+    name: "Essentials",
+  };
 }
 
 function makeSubcategory(categoryId = "category-1") {

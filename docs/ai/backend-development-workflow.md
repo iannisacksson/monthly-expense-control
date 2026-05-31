@@ -226,6 +226,7 @@ Rules:
 
 - do not aggregate multiple actions in `<feature>.use-cases.ts`
 - do not route new application behavior through `src/services` when the use case can orchestrate repositories and domain rules directly
+- inject the full repository interface or class as the constructor parameter type — do not use `Pick<IRepository, "method">` to narrow dependencies
 - prefer one focused unit test group per migrated action or entity slice under `backend/tests/unit/application/use-cases`
 
 

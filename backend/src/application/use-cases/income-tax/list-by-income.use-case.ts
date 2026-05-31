@@ -4,16 +4,16 @@ import { ForbiddenError } from "../../../utils/errors"
 
 export class ListIncomeTaxesByIncomeUseCase {
   constructor(
-    private readonly incomeTaxRepository: Pick<IncomeTaxRepository, "findByMonthlyIncomeId"> = new IncomeTaxRepository(),
-    private readonly monthlyIncomeRepository: Pick<MonthlyIncomeRepository, "findById"> = new MonthlyIncomeRepository(),
+    private readonly incomeTaxRepository: IncomeTaxRepository = new IncomeTaxRepository(),
+    private readonly monthlyIncomeRepository: MonthlyIncomeRepository = new MonthlyIncomeRepository(),
   ) {}
 
   async execute(monthlyIncomeId: string, requestingUserId: string) {
-    const income = await this.monthlyIncomeRepository.findById(monthlyIncomeId)
+    const income = await this.monthlyIncomeRepository.findById(monthlyIncomeId);
     if (!income || income.getDataValue("user_id") !== requestingUserId) {
-      throw new ForbiddenError()
+      throw new ForbiddenError();
     }
 
-    return this.incomeTaxRepository.findByMonthlyIncomeId(monthlyIncomeId)
+    return this.incomeTaxRepository.findByMonthlyIncomeId(monthlyIncomeId);
   }
 }

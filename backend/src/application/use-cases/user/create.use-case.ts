@@ -4,18 +4,18 @@ import { UserRepository } from "../../../repositories/user.repository"
 
 export class CreateUserUseCase {
   constructor(
-    private readonly userRepository: Pick<UserRepository, "findByEmail" | "create"> = new UserRepository(),
+    private readonly userRepository: UserRepository = new UserRepository(),
   ) {}
 
   async execute(data: CreateUserDTO) {
-    UserEntity.validateName(data.name)
-    UserEntity.validateEmail(data.email)
+    UserEntity.validateName(data.name);
+    UserEntity.validateEmail(data.email);
 
-    const existing = await this.userRepository.findByEmail(data.email)
+    const existing = await this.userRepository.findByEmail(data.email);
     if (existing) {
-      throw new Error("Email already in use")
+      throw new Error("Email already in use");
     }
 
-    return this.userRepository.create(data)
+    return this.userRepository.create(data);
   }
 }

@@ -1,26 +1,19 @@
-import { CategoryRepository } from "../../../repositories/category.repository"
-import { ForbiddenError, NotFoundError } from "../../../utils/errors"
+import { ICategoryRepository } from "../../../domain/repositories/category.repository";
+import { ForbiddenError, NotFoundError } from "../../../utils/errors";
 
 export class DeleteCategoryUseCase {
-  constructor(
-    private readonly categoryRepository: Pick<CategoryRepository, "findById" | "delete"> = new CategoryRepository(),
-  ) {}
+  constructor(private readonly categoryRepository: ICategoryRepository) {}
 
-  async execute(id: string, requestingUserId: string) {
-    const existing = await this.categoryRepository.findById(id)
+  async execute(id: string, requestingUserId: string): Promise<void> {
+    const existing = await this.categoryRepository.findById(id);
     if (!existing) {
-      throw new NotFoundError("Category not found")
+      throw new NotFoundError("Category not found");
     }
 
-    if (existing.getDataValue("user_id") !== requestingUserId) {
-      throw new ForbiddenError()
+    if (existing.user.id !== requestingUserId) {
+      throw new ForbiddenError();
     }
 
-    const category = await this.categoryRepository.delete(id)
-    if (!category) {
-      throw new NotFoundError("Category not found")
-    }
-
-    return category
+    await this.categoryRepository.delete(existing);
   }
 }

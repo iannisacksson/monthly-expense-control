@@ -20,7 +20,7 @@ export class BudgetService {
       throw new Error("Category not found")
     }
 
-    const categoryUserId = category.getDataValue("user_id") as string | null
+    const categoryUserId = category.user?.id ?? null;
     const ruleUserId = rule.getDataValue("user_id") as string | null
     const isSameOwner = !!categoryUserId && !!ruleUserId && categoryUserId === ruleUserId
 
