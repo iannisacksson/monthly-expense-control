@@ -4,13 +4,12 @@ import { GetMonthlyIncomeByIdController } from "../interfaces/http/controllers/m
 import { ListMonthlyIncomesByMonthController } from "../interfaces/http/controllers/monthly-income/list-by-month.controller";
 import { RegisterMonthlyIncomeController } from "../interfaces/http/controllers/monthly-income/register.controller";
 import { UpdateMonthlyIncomeController } from "../interfaces/http/controllers/monthly-income/update.controller";
-import {
-  DeleteMonthlyIncomeUseCase,
-  GetMonthlyIncomeByIdUseCase,
-  ListMonthlyIncomesUseCase,
-  RegisterMonthlyIncomeUseCase,
-  UpdateMonthlyIncomeUseCase,
-} from "../application/use-cases/monthly-income.use-cases";
+import { DeleteMonthlyIncomeUseCase } from "../application/use-cases/monthly-income/delete.use-case";
+import { GetMonthlyIncomeByIdUseCase } from "../application/use-cases/monthly-income/get-by-id.use-case";
+import { ListMonthlyIncomesByMonthUseCase } from "../application/use-cases/monthly-income/list-by-month.use-case";
+import { RegisterMonthlyIncomeUseCase } from "../application/use-cases/monthly-income/register.use-case";
+import { UpdateMonthlyIncomeUseCase } from "../application/use-cases/monthly-income/update.use-case";
+import { MonthlyIncomeRepository } from "../repositories/monthly-income.repository";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
 import {
   adaptExpressRoute,
@@ -20,19 +19,23 @@ import {
 
 const router = Router()
 
+const monthlyIncomeRepository = new MonthlyIncomeRepository();
+
 const registerMonthlyIncomeController = new RegisterMonthlyIncomeController(
-  new RegisterMonthlyIncomeUseCase(),
+  new RegisterMonthlyIncomeUseCase(monthlyIncomeRepository),
 );
 const listMonthlyIncomesByMonthController =
-  new ListMonthlyIncomesByMonthController(new ListMonthlyIncomesUseCase());
+  new ListMonthlyIncomesByMonthController(
+    new ListMonthlyIncomesByMonthUseCase(monthlyIncomeRepository),
+  );
 const getMonthlyIncomeByIdController = new GetMonthlyIncomeByIdController(
-  new GetMonthlyIncomeByIdUseCase(),
+  new GetMonthlyIncomeByIdUseCase(monthlyIncomeRepository),
 );
 const updateMonthlyIncomeController = new UpdateMonthlyIncomeController(
-  new UpdateMonthlyIncomeUseCase(),
+  new UpdateMonthlyIncomeUseCase(monthlyIncomeRepository),
 );
 const deleteMonthlyIncomeController = new DeleteMonthlyIncomeController(
-  new DeleteMonthlyIncomeUseCase(),
+  new DeleteMonthlyIncomeUseCase(monthlyIncomeRepository),
 );
 
 router.post(

@@ -1,6 +1,6 @@
 import { User } from "./user.model";
 import { Month } from "./month.model";
-import { MonthlyIncome } from "./monthly-income.model";
+import { MonthlyIncomeModel } from "./monthly-income.model";
 import { RecurringIncome } from "./recurring-income.model";
 import { IncomeTax } from "./income-tax.model";
 import { CategoryModel } from "./category.model";
@@ -19,25 +19,25 @@ import { AuthAuditLog } from "./auth-audit-log.model";
 User.hasMany(Month, { foreignKey: "user_id" });
 Month.belongsTo(User, { foreignKey: "user_id" });
 
-// Month -> MonthlyIncome
-Month.hasMany(MonthlyIncome, { foreignKey: "month_id" });
-MonthlyIncome.belongsTo(Month, { foreignKey: "month_id" });
+// Month -> MonthlyIncomeModel
+Month.hasMany(MonthlyIncomeModel, { foreignKey: "month_id" });
+MonthlyIncomeModel.belongsTo(Month, { foreignKey: "month_id" });
 
-// User -> MonthlyIncome
-User.hasMany(MonthlyIncome, { foreignKey: "user_id" });
-MonthlyIncome.belongsTo(User, { foreignKey: "user_id" });
+// User -> MonthlyIncomeModel
+User.hasMany(MonthlyIncomeModel, { foreignKey: "user_id" });
+MonthlyIncomeModel.belongsTo(User, { foreignKey: "user_id" });
 
-// RecurringIncome -> MonthlyIncome
-RecurringIncome.hasMany(MonthlyIncome, { foreignKey: "recurring_income_id" });
-MonthlyIncome.belongsTo(RecurringIncome, { foreignKey: "recurring_income_id" });
+// RecurringIncome -> MonthlyIncomeModel
+RecurringIncome.hasMany(MonthlyIncomeModel, { foreignKey: "recurring_income_id" });
+MonthlyIncomeModel.belongsTo(RecurringIncome, { foreignKey: "recurring_income_id" });
 
 // User -> RecurringIncome
 User.hasMany(RecurringIncome, { foreignKey: "user_id" });
 RecurringIncome.belongsTo(User, { foreignKey: "user_id" });
 
-// MonthlyIncome -> IncomeTax
-MonthlyIncome.hasMany(IncomeTax, { foreignKey: "monthly_income_id" });
-IncomeTax.belongsTo(MonthlyIncome, { foreignKey: "monthly_income_id" });
+// MonthlyIncomeModel -> IncomeTax
+MonthlyIncomeModel.hasMany(IncomeTax, { foreignKey: "monthly_income_id" });
+IncomeTax.belongsTo(MonthlyIncomeModel, { foreignKey: "monthly_income_id" });
 
 // User -> Category
 User.hasMany(CategoryModel, { foreignKey: "user_id" });
@@ -128,7 +128,7 @@ AuthAuditLog.belongsTo(AuthSession, { foreignKey: "session_id" });
 export {
   User,
   Month,
-  MonthlyIncome,
+  MonthlyIncomeModel,
   RecurringIncome,
   IncomeTax,
   CategoryModel,

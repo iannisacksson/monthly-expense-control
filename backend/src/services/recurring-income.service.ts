@@ -115,28 +115,31 @@ export class RecurringIncomeService {
       }
 
       const income = await monthlyIncomeRepository.create({
-        user_id: data.userId,
-        month_id: monthId,
-        recurring_income_id: data.recurringIncomeId,
-        gross_income: data.grossIncome,
-        income_type: data.incomeType,
-        taxation_mode: normalizedTaxation.mode,
-        taxation_profile: normalizedTaxation.profile,
-        taxation_parameters: normalizedTaxation.parameters,
+        userId: data.userId,
+        monthId,
+        recurringIncomeId: data.recurringIncomeId,
+        grossIncome: data.grossIncome,
+        incomeType: data.incomeType,
+        taxationMode: normalizedTaxation.mode,
+        taxationProfile: normalizedTaxation.profile,
+        taxationParameters: normalizedTaxation.parameters as Record<
+          string,
+          unknown
+        > | null,
         notes: data.description,
-      })
+      });
 
       const automaticTaxes = incomeTaxationService.calculateAutomaticTaxes(data.grossIncome, normalizedTaxation)
 
       if (automaticTaxes.length > 0) {
         await incomeTaxRepository.createMany(
           automaticTaxes.map((tax) => ({
-            monthly_income_id: income.getDataValue("id") as string,
+            monthly_income_id: income.id,
             tax_type: tax.tax_type,
             value: tax.value,
             is_auto: true,
-          }))
-        )
+          })),
+        );
       }
     }
   }

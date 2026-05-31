@@ -20,18 +20,18 @@ export interface IncomeTaxationDTO {
 }
 
 export interface CreateMonthlyIncomeDTO {
-  user_id: string
-  month_id: string
-  recurring_income_id?: string
-  gross_income: number
-  income_type: string
-  notes?: string
-  taxation?: IncomeTaxationDTO
+  userId: string;
+  monthId: string;
+  recurringIncomeId?: string;
+  grossIncome: number;
+  incomeType: string;
+  notes?: string;
+  taxation?: IncomeTaxationDTO;
 }
 
 export interface UpdateMonthlyIncomeDTO {
-  gross_income?: number
-  income_type?: string
-  notes?: string
-  taxation?: IncomeTaxationDTO
+  grossIncome?: number;
+  incomeType?: string;
+  notes?: string;
+  taxation?: IncomeTaxationDTO;
 }

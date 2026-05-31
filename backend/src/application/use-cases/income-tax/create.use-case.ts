@@ -1,7 +1,7 @@
-import type { CreateIncomeTaxDTO } from "../../../dtos/income-tax.dto"
-import { IncomeTaxRepository } from "../../../repositories/income-tax.repository"
-import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository"
-import { ForbiddenError } from "../../../utils/errors"
+import type { CreateIncomeTaxDTO } from "../../../dtos/income-tax.dto";
+import { IncomeTaxRepository } from "../../../repositories/income-tax.repository";
+import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository";
+import { ForbiddenError } from "../../../utils/errors";
 
 export class CreateIncomeTaxUseCase {
   constructor(
@@ -27,7 +27,7 @@ export class CreateIncomeTaxUseCase {
       throw new Error("Monthly income not found");
     }
 
-    if (income.getDataValue("user_id") !== requestingUserId) {
+    if (income.userId !== requestingUserId) {
       throw new ForbiddenError();
     }
 

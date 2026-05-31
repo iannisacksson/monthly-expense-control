@@ -1,10 +1,11 @@
-import { GetMonthlyIncomeByIdUseCase } from "../../../../application/use-cases/monthly-income.use-cases"
+import { GetMonthlyIncomeByIdUseCase } from "../../../../application/use-cases/monthly-income/get-by-id.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
   HttpResponse,
   IController,
 } from "../../http.types";
+import { serializeMonthlyIncome } from "./monthly-income.serializer";
 
 export class GetMonthlyIncomeByIdController implements IController<
   AuthenticatedHttpRequest<unknown, { id: string }>
@@ -21,7 +22,7 @@ export class GetMonthlyIncomeByIdController implements IController<
 
     return {
       statusCode: HttpStatusCode.OK,
-      body: result,
+      body: serializeMonthlyIncome(result),
     };
   }
 }

@@ -1,15 +1,16 @@
-import { ListMonthlyIncomesUseCase } from "../../../../application/use-cases/monthly-income.use-cases"
+import { ListMonthlyIncomesByMonthUseCase } from "../../../../application/use-cases/monthly-income/list-by-month.use-case";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
   HttpResponse,
   IController,
 } from "../../http.types";
+import { serializeMonthlyIncome } from "./monthly-income.serializer";
 
 export class ListMonthlyIncomesByMonthController implements IController<
   AuthenticatedHttpRequest<unknown, { monthId: string }>
 > {
-  constructor(private readonly useCase: ListMonthlyIncomesUseCase) {}
+  constructor(private readonly useCase: ListMonthlyIncomesByMonthUseCase) {}
 
   async handle(
     request: AuthenticatedHttpRequest<unknown, { monthId: string }>,
@@ -21,7 +22,7 @@ export class ListMonthlyIncomesByMonthController implements IController<
 
     return {
       statusCode: HttpStatusCode.OK,
-      body: result,
+      body: result.map(serializeMonthlyIncome),
     };
   }
 }

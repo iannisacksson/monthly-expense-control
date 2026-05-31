@@ -8,11 +8,17 @@ import { ForbiddenError } from "../../../../../src/utils/errors"
 
 function makeIncome(userId = "user-1") {
   return {
-    getDataValue: vi.fn((field: string) => {
-      if (field === "user_id") return userId
-      return undefined
-    }),
-  }
+    id: "income-1",
+    userId,
+    monthId: "month-1",
+    grossIncome: 5000,
+    incomeType: "salary",
+    taxationMode: "manual" as const,
+    taxationProfile: null,
+    taxationParameters: null,
+    notes: null,
+    createdAt: new Date(),
+  };
 }
 
 function makeTax(monthlyIncomeId = "income-1", isAuto = false) {

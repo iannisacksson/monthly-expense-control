@@ -22,7 +22,7 @@ export class UpdateIncomeTaxUseCase {
     const income = await this.monthlyIncomeRepository.findById(
       existingTax.getDataValue("monthly_income_id") as string,
     );
-    if (!income || income.getDataValue("user_id") !== requestingUserId) {
+    if (!income || income.userId !== requestingUserId) {
       throw new ForbiddenError();
     }
 
