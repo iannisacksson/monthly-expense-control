@@ -1,12 +1,14 @@
 import type { CreateIncomeTaxDTO } from "../../../dtos/income-tax.dto";
+import type { IIncomeTaxRepository } from "../../../domain/repositories/income-tax.repository";
+import type { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-income.repository";
 import { IncomeTaxRepository } from "../../../repositories/income-tax.repository";
 import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository";
 import { ForbiddenError } from "../../../utils/errors";
 
 export class CreateIncomeTaxUseCase {
   constructor(
-    private readonly incomeTaxRepository: IncomeTaxRepository = new IncomeTaxRepository(),
-    private readonly monthlyIncomeRepository: MonthlyIncomeRepository = new MonthlyIncomeRepository(),
+    private readonly incomeTaxRepository: IIncomeTaxRepository = new IncomeTaxRepository(),
+    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository = new MonthlyIncomeRepository(),
   ) {}
 
   async execute(data: CreateIncomeTaxDTO, requestingUserId: string) {
@@ -27,7 +29,7 @@ export class CreateIncomeTaxUseCase {
       throw new Error("Monthly income not found");
     }
 
-    if (income.userId !== requestingUserId) {
+    if (income.user.id !== requestingUserId) {
       throw new ForbiddenError();
     }
 
@@ -38,8 +40,10 @@ export class CreateIncomeTaxUseCase {
     }
 
     return this.incomeTaxRepository.create({
-      ...data,
-      tax_type: taxType,
+      monthlyIncomeId: data.monthly_income_id,
+      taxType: taxType,
+      value: data.value,
+      isAuto: false,
     });
   }
 }

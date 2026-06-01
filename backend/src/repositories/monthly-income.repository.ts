@@ -1,4 +1,4 @@
-import type { Transaction } from "sequelize"
+import type { Transaction } from "sequelize";
 import type { MonthlyIncome } from "../domain/entities/monthly-income.entity";
 import type { IMonthlyIncomeRepository } from "../domain/repositories/monthly-income.repository";
 import { MonthlyIncomeModel } from "../models/monthly-income.model";
@@ -10,9 +10,9 @@ export class MonthlyIncomeRepository implements IMonthlyIncomeRepository {
   ): Promise<MonthlyIncome> {
     const model = await MonthlyIncomeModel.create(
       {
-        userId: income.userId,
-        monthId: income.monthId,
-        recurringIncomeId: income.recurringIncomeId,
+        userId: income.user?.id,
+        monthId: income.month?.id,
+        recurringIncomeId: income.recurringIncome?.id,
         grossIncome: income.grossIncome,
         incomeType: income.incomeType,
         taxationMode: income.taxationMode,

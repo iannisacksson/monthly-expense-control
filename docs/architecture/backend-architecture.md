@@ -32,7 +32,6 @@ This prevents AI tools from generating inconsistent backend code.
 
 The backend uses the following stack:
 
-
 Runtime: Node.js
 Language: TypeScript
 Framework: Express
@@ -43,7 +42,6 @@ Password hashing: bcrypt (12 rounds)
 Environment config: dotenv
 Security middleware: cookie-parser, helmet, express-rate-limit, cors
 Backend automated testing: Vitest + Supertest + PostgreSQL test database
-
 
 ---
 
@@ -135,10 +133,10 @@ The class `ForbiddenError` (`src/utils/errors.ts`) is thrown by the service when
 
 ```ts
 export class ForbiddenError extends Error {
-  readonly statusCode = 403
+  readonly statusCode = 403;
   constructor(message = "Forbidden") {
-    super(message)
-    this.name = "ForbiddenError"
+    super(message);
+    this.name = "ForbiddenError";
   }
 }
 ```
@@ -146,7 +144,8 @@ export class ForbiddenError extends Error {
 Controllers catch `ForbiddenError` and return `HTTP 403`:
 
 ```ts
-if (error instanceof ForbiddenError) return res.status(403).json({ error: error.message })
+if (error instanceof ForbiddenError)
+  return res.status(403).json({ error: error.message });
 ```
 
 Two ownership patterns exist:
@@ -154,36 +153,38 @@ Two ownership patterns exist:
 **Direct** — resources with a `user_id` column (months, expenses, categories, monthly incomes, recurring incomes, recurring expenses, installment groups, budget rules):
 
 ```ts
-if (resource.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+if (resource.getDataValue("user_id") !== requestingUserId)
+  throw new ForbiddenError();
 ```
 
 **Traversal** — resources without a direct `user_id` (subcategories, income taxes, budget allocations, expense items, expense adjustments):
 
 ```ts
-const parent = await parentRepository.findById(resource.parent_id)
-if (parent.getDataValue("user_id") !== requestingUserId) throw new ForbiddenError()
+const parent = await parentRepository.findById(resource.parent_id);
+if (parent.getDataValue("user_id") !== requestingUserId)
+  throw new ForbiddenError();
 ```
 
 All service methods that operate on a single resource accept `requestingUserId: string` as a parameter. Controllers always pass `req.user!.id`.
 
 ## Environment variables
 
-| variable | purpose |
-|----------|---------|
-| ACCESS_TOKEN_SECRET | signing secret for the access JWT (required; `JWT_SECRET` remains legacy fallback only) |
-| ACCESS_TOKEN_TTL_MINUTES | access token lifetime in minutes (optional, defaults to 15) |
-| REFRESH_TOKEN_TTL_DAYS | refresh session lifetime in days (optional, defaults to 30) |
-| ACCESS_TOKEN_COOKIE_NAME | access token cookie name (optional, defaults to `fc_access_token`) |
-| REFRESH_TOKEN_COOKIE_NAME | refresh token cookie name (optional, defaults to `fc_refresh_token`) |
-| COOKIE_DOMAIN | optional cookie domain for deployed environments |
-| FRONTEND_ORIGIN | single allowed frontend origin; usable as production allowlist input |
-| CORS_ALLOWED_ORIGINS | comma-separated allowed origins for production |
-| TRUST_PROXY | reverse proxy setting for Express/rate limiting |
-| AUTH_LOGIN_RATE_LIMIT_MAX | max login attempts per rate-limit window (optional, defaults to 5) |
-| AUTH_REFRESH_RATE_LIMIT_MAX | max refresh attempts per rate-limit window (optional, defaults to 20) |
-| APP_NAME | logical service name used in structured logs and metrics labels |
-| LOG_LEVEL | backend log level override (`silent`, `error`, `warn`, `info`, `debug`) |
-| METRICS_ENABLED | enables Prometheus metrics collection when not set to `false` |
+| variable                    | purpose                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| ACCESS_TOKEN_SECRET         | signing secret for the access JWT (required; `JWT_SECRET` remains legacy fallback only) |
+| ACCESS_TOKEN_TTL_MINUTES    | access token lifetime in minutes (optional, defaults to 15)                             |
+| REFRESH_TOKEN_TTL_DAYS      | refresh session lifetime in days (optional, defaults to 30)                             |
+| ACCESS_TOKEN_COOKIE_NAME    | access token cookie name (optional, defaults to `fc_access_token`)                      |
+| REFRESH_TOKEN_COOKIE_NAME   | refresh token cookie name (optional, defaults to `fc_refresh_token`)                    |
+| COOKIE_DOMAIN               | optional cookie domain for deployed environments                                        |
+| FRONTEND_ORIGIN             | single allowed frontend origin; usable as production allowlist input                    |
+| CORS_ALLOWED_ORIGINS        | comma-separated allowed origins for production                                          |
+| TRUST_PROXY                 | reverse proxy setting for Express/rate limiting                                         |
+| AUTH_LOGIN_RATE_LIMIT_MAX   | max login attempts per rate-limit window (optional, defaults to 5)                      |
+| AUTH_REFRESH_RATE_LIMIT_MAX | max refresh attempts per rate-limit window (optional, defaults to 20)                   |
+| APP_NAME                    | logical service name used in structured logs and metrics labels                         |
+| LOG_LEVEL                   | backend log level override (`silent`, `error`, `warn`, `info`, `debug`)                 |
+| METRICS_ENABLED             | enables Prometheus metrics collection when not set to `false`                           |
 
 ## Operational observability baseline
 
@@ -227,7 +228,6 @@ The backend now follows a **Clean Architecture inspired hybrid structure**.
 
 Runtime direction:
 
-
 Interfaces HTTP
 ↓
 Application Use Cases
@@ -237,7 +237,6 @@ Domain Entities / Domain Rules
 Repositories / Infrastructure
 ↓
 Sequelize / PostgreSQL
-
 
 The repository still contains legacy folders from the previous layered organization, but the official runtime entrypoint now flows through the explicit application layer.
 
@@ -285,7 +284,6 @@ Changes without automated coverage for the affected backend behavior are incompl
 
 Typical request lifecycle:
 
-
 HTTP Request
 ↓
 Interface Controller
@@ -298,9 +296,7 @@ Repository
 ↓
 Database (Sequelize / PostgreSQL)
 
-
 Response:
-
 
 Database
 ↓
@@ -312,13 +308,11 @@ Interface Controller
 ↓
 HTTP Response
 
-
 ---
 
 # Folder Structure
 
 The backend project now uses this architectural structure:
-
 
 src/
 
@@ -332,27 +326,25 @@ config
 database
 utils
 
-
 Example:
-
 
 src/
 ├ application
 │ └ use-cases
-│   └ expense.use-cases.ts
+│ └ expense.use-cases.ts
 │
 ├ domain
 │ ├ entities
 │ │ └ budget-allocation.entity.ts
 │ └ value-objects
-│   └ month-period.ts
+│ └ month-period.ts
 │
 ├ interfaces
 │ └ http
-│   ├ controllers
-│   │ └ expense.controller.ts
-│   └ routes
-│     └ index.ts
+│ ├ controllers
+│ │ └ expense.controller.ts
+│ └ routes
+│ └ index.ts
 │
 ├ repositories
 │ └ expense.repository.ts
@@ -372,11 +364,11 @@ src/
 ├ database
 │ ├ connection.ts
 │ └ migrations
-│    └ 20260430000034-create-auth-sessions.js
+│ └ 20260430000034-create-auth-sessions.js
 │
 └ utils
-  ├ auth-cookies.ts
-  └ request-context.ts
+├ auth-cookies.ts
+└ request-context.ts
 
 ## Current compatibility note
 
@@ -399,7 +391,6 @@ Backend automated tests are now organized by level:
 - `backend/tests/unit` for pure domain or utility tests
 - `backend/tests/integration/http` for Express + Supertest + PostgreSQL integration tests
 - `backend/tests/shared` for reusable helpers
-
 
 ---
 
@@ -429,12 +420,10 @@ Current adapter baseline:
 
 Example responsibility:
 
-
 Request parsing
 Validation
 Calling service
 Formatting response
-
 
 Example pattern:
 
@@ -443,12 +432,12 @@ export async function createExpenseController(request) {
   const result = await createExpenseUseCase.execute({
     ...request.body,
     user_id: request.userId,
-  })
+  });
 
   return {
     statusCode: 201,
     body: result,
-  }
+  };
 }
 ```
 
@@ -457,8 +446,10 @@ Express adapter example:
 ```ts
 router.post(
   "/",
-  adaptExpressRoute(createExpenseController, (req) => buildAuthenticatedHttpRequest(req)),
-)
+  adaptExpressRoute(createExpenseController, (req) =>
+    buildAuthenticatedHttpRequest(req),
+  ),
+);
 ```
 
 Services
@@ -490,9 +481,9 @@ Example pattern:
 
 async createExpense(data: CreateExpenseDTO) {
 
-   const expense = await expenseRepository.create(data)
+const expense = await expenseRepository.create(data)
 
-   return expense
+return expense
 }
 Repositories
 
@@ -523,7 +514,7 @@ findExpensesByCategory
 Example pattern:
 
 async create(data) {
-   return ExpenseModel.create(data)
+return ExpenseModel.create(data)
 }
 Models
 
@@ -542,14 +533,14 @@ Example model:
 
 export const Expense = sequelize.define('Expense', {
 
-  id: {
-    type: DataTypes.UUID,
-    primaryKey: true
-  },
+id: {
+type: DataTypes.UUID,
+primaryKey: true
+},
 
-  value: {
-    type: DataTypes.DECIMAL
-  }
+value: {
+type: DataTypes.DECIMAL
+}
 
 })
 
@@ -583,11 +574,11 @@ Example:
 
 export interface CreateExpenseDTO {
 
-  userId: string
-  monthId: string
-  categoryId: string
-  value: number
-  description?: string
+userId: string
+monthId: string
+categoryId: string
+value: number
+description?: string
 
 }
 Routes
@@ -603,8 +594,8 @@ GET /expenses/month/:monthId
 Example route file:
 
 router.post(
-  "/expenses",
-  expenseController.createExpense
+"/expenses",
+expenseController.createExpense
 )
 Database Layer
 
@@ -638,8 +629,8 @@ return standardized responses
 Example response:
 
 {
-  "error": "ValidationError",
-  "message": "Invalid expense value"
+"error": "ValidationError",
+"message": "Invalid expense value"
 }
 Authentication (Future)
 
@@ -704,6 +695,7 @@ Separation of concerns
 Layered architecture
 Explicit domain modeling
 AI-friendly documentation
+
 ---
 
 ## Padrão de Model Sequelize
@@ -747,18 +739,34 @@ export class XxxModel
 
 XxxModel.init(
   {
-    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
     fkId: { type: DataTypes.UUID, allowNull: false },
     association: {
       type: DataTypes.VIRTUAL,
-      get() { return new AssocEntity({ id: this.getDataValue("fkId") }); },
+      get() {
+        return new AssocEntity({ id: this.getDataValue("fkId") });
+      },
     },
     methodFromInterface: {
       type: DataTypes.VIRTUAL,
-      get() { return this.methodFromInterface; },
+      get() {
+        return this.methodFromInterface;
+      },
     },
-    createdAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
-    updatedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
   },
   { sequelize, tableName: "table_name", underscored: true, timestamps: true },
 );
@@ -772,3 +780,86 @@ XxxModel.init(
 - **Conflitos de nome**: quando o campo na entity tem o mesmo nome que o FK mas tipos diferentes (ex: `paidBy?: User` e coluna `paid_by`), usar `paidById` com `field: 'paid_by'` e um VIRTUAL `paidBy`.
 - **Métodos da interface**: delegados via `toDomain()` e também declarados como `VIRTUAL` no `init()`.
 - **Referências**: `budget-allocation.model.ts` e `category.model.ts`.
+
+---
+
+## Padrão de Repository
+
+### Visão Geral
+
+Todo repositório segue a separação em três camadas:
+
+1. **Interface de domínio** — `backend/src/domain/repositories/xxx.repository.ts`
+2. **Implementação** — `backend/src/repositories/xxx.repository.ts`
+3. **Uso nos use-cases** — construtores tipados com a interface, instanciados com a implementação concreta como default
+
+### Interface de Domínio
+
+Fica em `domain/repositories/` e define o contrato usando tipos de domínio (entities), nunca tipos Sequelize:
+
+```typescript
+// domain/repositories/subcategory.repository.ts
+import { Subcategory } from "../entities/subcategory.entity";
+import { Category } from "../entities/category.entity";
+
+export interface ISubcategoryRepository {
+  create(
+    data: Omit<Subcategory, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Subcategory>;
+  findById(id: string): Promise<Subcategory | null>;
+  findByCategoryId(categoryId: string): Promise<Subcategory[]>;
+  update(
+    id: string,
+    data: Partial<Pick<Subcategory, "name">>,
+  ): Promise<Subcategory | null>;
+  delete(subcategory: Subcategory): Promise<void>;
+}
+```
+
+### Implementação
+
+Fica em `repositories/` e importa o model diretamente do arquivo (nunca de `models/index.ts`). Implementa a interface declarada no domínio:
+
+```typescript
+// repositories/subcategory.repository.ts
+import { SubcategoryModel } from "../models/subcategory.model";
+import type { ISubcategoryRepository } from "../domain/repositories/subcategory.repository";
+import type { Subcategory } from "../domain/entities/subcategory.entity";
+
+export class SubcategoryRepository implements ISubcategoryRepository {
+  async create(
+    data: Omit<Subcategory, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Subcategory> {
+    const record = await SubcategoryModel.create({
+      categoryId: data.category.id,
+      name: data.name,
+    });
+    return record.toDomain();
+  }
+  // ...demais métodos
+}
+```
+
+### Convenções de Mapeamento
+
+- **Parâmetros**: use-cases passam objetos de domínio completos (ex: `category: Category`). O repositório extrai os IDs necessários (ex: `categoryId: data.category.id`).
+- **camelCase**: Sequelize com `underscored: true` armazena snake_case no banco, mas todos os campos no TypeScript são camelCase. Nunca usar `getDataValue("snake_case_field")` nos use-cases.
+- **toDomain()**: todo resultado de query deve passar por `model.toDomain()` antes de ser retornado. Nunca retornar instâncias Sequelize fora dos repositórios.
+- **delete entity-based**: o método `delete` recebe a entity (não o ID), garantindo que o use-case já tenha verificado a existência antes de deletar.
+- **FKs compostos**: quando o model tem FK com nome diferente do campo da entity (ex: `installmentGroupFkId` ≠ `installmentGroupId`), as queries WHERE devem usar o nome do campo no model.
+
+### Uso nos Use-Cases
+
+```typescript
+// application/use-cases/subcategory/create.use-case.ts
+import type { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
+import { SubcategoryRepository } from "../../../repositories/subcategory.repository";
+
+export class CreateSubcategoryUseCase {
+  constructor(
+    private readonly subcategoryRepository: ISubcategoryRepository = new SubcategoryRepository(),
+  ) {}
+}
+```
+
+O tipo do construtor é a **interface**. O default é a **implementação concreta**. Isso permite injeção de mocks nos testes unitários sem framework de DI.

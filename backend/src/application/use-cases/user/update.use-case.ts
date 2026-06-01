@@ -1,42 +1,43 @@
 import type { UpdateUserDTO } from "../../../dtos/user.dto";
-import { User, UserEntity } from "../../../domain/entities/user.entity";
+import type { User } from "../../../domain/entities/user.entity";
+import type { IUserRepository } from "../../../domain/repositories/user.repository";
 import { UserRepository } from "../../../repositories/user.repository";
 import { NotFoundError } from "../../../utils/errors";
 
 export class UpdateUserUseCase {
   constructor(
-    private readonly userRepository: UserRepository = new UserRepository(),
+    private readonly userRepository: IUserRepository = new UserRepository(),
   ) {}
 
-  async execute(user: User): Promise<User> {
-    const existingUser = await this.userRepository.findById(user.id);
+  async execute(id: string, data: UpdateUserDTO): Promise<User> {
+    const existingUser = await this.userRepository.findById(id);
     if (!existingUser) {
       throw new NotFoundError("User not found");
     }
 
-    if (
-      user.name !== undefined &&
-      user.name !== existingUser.getDataValue("name")
-    ) {
-      user.validateName(user.name);
+    if (data.name !== undefined && data.name !== existingUser.name) {
+      existingUser.validateName(data.name);
     }
 
-    if (user.email !== undefined) {
-      user.validateEmail(user.email);
+    if (data.email !== undefined) {
+      existingUser.validateEmail(data.email);
     }
 
-    if (user.email) {
-      const existing = await this.userRepository.findByEmail(user.email);
-      if (existing && existing.getDataValue("id") !== user.id) {
+    if (data.email) {
+      const existing = await this.userRepository.findByEmail(data.email);
+      if (existing && existing.id !== id) {
         throw new Error("Email already in use");
       }
     }
 
-    if (user.password_hash) {
+    if (data.password_hash) {
       throw new Error("Use updateUserPassword to change the password");
     }
 
-    const updatedUser = await this.userRepository.update(user.id, user);
+    const updatedUser = await this.userRepository.update(id, {
+      name: data.name,
+      email: data.email,
+    });
     if (!updatedUser) {
       throw new Error("User not found");
     }

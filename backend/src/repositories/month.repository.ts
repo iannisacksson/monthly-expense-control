@@ -1,32 +1,58 @@
-import { Month } from "../models/index"
+import type { BudgetRule } from "../domain/entities/budget-rule.entity";
+import type { Month, MonthStatus } from "../domain/entities/month.entity";
+import type { IMonthRepository } from "../domain/repositories/month.repository";
+import { MonthModel } from "../models/month.model";
 
-export class MonthRepository {
-  async create(data: { user_id: string; year: number; month: number; status: string; budget_rule_id?: string | null }) {
-    return Month.create(data)
+export class MonthRepository implements IMonthRepository {
+  async create(
+    data: Omit<Month, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Month> {
+    const model = await MonthModel.create({
+      user: data.user,
+      year: data.year,
+      month: data.month,
+      status: data.status,
+      budgetRule: data.budgetRule,
+    });
+    return model.toDomain();
   }
 
-  async findById(id: string) {
-    return Month.findByPk(id)
+  async findById(id: string): Promise<Month | null> {
+    const model = await MonthModel.findByPk(id);
+    return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string) {
-    return Month.findAll({ where: { user_id: userId } })
+  async findByUserId(userId: string): Promise<Month[]> {
+    const models = await MonthModel.findAll({ where: { userId } });
+    return models.map((m) => m.toDomain());
   }
 
-  async findByUserAndPeriod(userId: string, year: number, month: number) {
-    return Month.findOne({ where: { user_id: userId, year, month } })
+  async findByUserAndPeriod(
+    userId: string,
+    year: number,
+    month: number,
+  ): Promise<Month | null> {
+    const model = await MonthModel.findOne({ where: { userId, year, month } });
+    return model ? model.toDomain() : null;
   }
 
-  async update(id: string, data: Partial<{ status: string; budget_rule_id: string | null }>) {
-    const record = await Month.findByPk(id)
-    if (!record) return null
-    return record.update(data)
+  async update(
+    id: string,
+    data: Partial<{ status: MonthStatus; budgetRule: BudgetRule | null }>,
+  ): Promise<Month | null> {
+    const model = await MonthModel.findByPk(id);
+    if (!model) return null;
+    const updateData: Record<string, unknown> = {};
+    if (data.status !== undefined) updateData.status = data.status;
+    if ("budgetRule" in data)
+      updateData.budgetRuleId = data.budgetRule?.id ?? null;
+    await model.update(updateData);
+    return model.toDomain();
   }
 
-  async delete(id: string) {
-    const record = await Month.findByPk(id)
-    if (!record) return null
-    await record.destroy()
-    return record
+  async delete(month: Month): Promise<void> {
+    const model = await MonthModel.findByPk(month.id);
+    if (!model) return;
+    await model.destroy();
   }
 }

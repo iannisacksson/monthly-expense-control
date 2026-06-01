@@ -1,8 +1,9 @@
-import { UserRepository } from "../../../repositories/user.repository"
+import type { IUserRepository } from "../../../domain/repositories/user.repository";
+import { UserRepository } from "../../../repositories/user.repository";
 
 export class GetUserByIdUseCase {
   constructor(
-    private readonly userRepository: UserRepository = new UserRepository(),
+    private readonly userRepository: IUserRepository = new UserRepository(),
   ) {}
 
   async execute(id: string) {

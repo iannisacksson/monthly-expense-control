@@ -28,7 +28,7 @@ describe("user use cases", () => {
     expect(userRepository.create).toHaveBeenCalledWith({
       name: "Maria",
       email: "maria@example.com",
-      password_hash: "hash",
+      passwordHash: "hash",
     });
   });
 
@@ -65,11 +65,17 @@ describe("user use cases", () => {
   });
 
   it("updates a user when the email remains unique", async () => {
+    const existingUser = {
+      id: "user-1",
+      name: "Maria",
+      email: "maria@example.com",
+      validateName: vi.fn(),
+      validateEmail: vi.fn(),
+    };
     const updatedUser = { id: "user-1", email: "maria@example.com" };
     const userRepository = {
-      findByEmail: vi
-        .fn()
-        .mockResolvedValue({ getDataValue: vi.fn().mockReturnValue("user-1") }),
+      findById: vi.fn().mockResolvedValue(existingUser),
+      findByEmail: vi.fn().mockResolvedValue({ id: "user-1" }),
       update: vi.fn().mockResolvedValue(updatedUser),
     };
     const useCase = new UpdateUserUseCase(userRepository);
@@ -80,10 +86,16 @@ describe("user use cases", () => {
   });
 
   it("rejects user update when another user already owns the email", async () => {
+    const existingUser = {
+      id: "user-1",
+      name: "Maria",
+      email: "old@example.com",
+      validateName: vi.fn(),
+      validateEmail: vi.fn(),
+    };
     const useCase = new UpdateUserUseCase({
-      findByEmail: vi
-        .fn()
-        .mockResolvedValue({ getDataValue: vi.fn().mockReturnValue("user-2") }),
+      findById: vi.fn().mockResolvedValue(existingUser),
+      findByEmail: vi.fn().mockResolvedValue({ id: "user-2" }),
       update: vi.fn(),
     });
 
@@ -93,7 +105,15 @@ describe("user use cases", () => {
   });
 
   it("rejects password_hash updates through the generic update use case", async () => {
+    const existingUser = {
+      id: "user-1",
+      name: "Maria",
+      email: "maria@example.com",
+      validateName: vi.fn(),
+      validateEmail: vi.fn(),
+    };
     const useCase = new UpdateUserUseCase({
+      findById: vi.fn().mockResolvedValue(existingUser),
       findByEmail: vi.fn(),
       update: vi.fn(),
     });
@@ -104,18 +124,21 @@ describe("user use cases", () => {
   });
 
   it("deletes an existing user", async () => {
+    const existingUser = { id: "user-1" };
     const userRepository = {
-      delete: vi.fn().mockResolvedValue(true),
+      findById: vi.fn().mockResolvedValue(existingUser),
+      delete: vi.fn().mockResolvedValue(undefined),
     };
     const useCase = new DeleteUserUseCase(userRepository);
 
     await expect(useCase.execute("user-1")).resolves.toBeUndefined();
-    expect(userRepository.delete).toHaveBeenCalledWith("user-1");
+    expect(userRepository.delete).toHaveBeenCalledWith(existingUser);
   });
 
   it("rejects user deletion when the user does not exist", async () => {
     const useCase = new DeleteUserUseCase({
-      delete: vi.fn().mockResolvedValue(null),
+      findById: vi.fn().mockResolvedValue(null),
+      delete: vi.fn(),
     });
 
     await expect(useCase.execute("user-1")).rejects.toThrow("User not found");

@@ -1,14 +1,17 @@
-import { UserRepository } from "../../../repositories/user.repository"
+import type { IUserRepository } from "../../../domain/repositories/user.repository";
+import { UserRepository } from "../../../repositories/user.repository";
+import { NotFoundError } from "../../../utils/errors";
 
 export class DeleteUserUseCase {
   constructor(
-    private readonly userRepository: UserRepository = new UserRepository(),
+    private readonly userRepository: IUserRepository = new UserRepository(),
   ) {}
 
   async execute(id: string) {
-    const deleted = await this.userRepository.delete(id);
-    if (!deleted) {
-      throw new Error("User not found");
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundError("User not found");
     }
+    await this.userRepository.delete(user);
   }
 }

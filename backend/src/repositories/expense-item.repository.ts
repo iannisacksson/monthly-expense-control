@@ -1,40 +1,50 @@
-import { ExpenseItem } from "../models"
+import type { ExpenseItem } from "../domain/entities/expense-item.entity";
+import type { IExpenseItemRepository } from "../domain/repositories/expense-item.repository";
+import { ExpenseItemModel } from "../models/expense-item.model";
 
-export class ExpenseItemRepository {
-  async create(data: {
-    expense_id: string
-    description: string
-    amount: number
-  }) {
-    return ExpenseItem.create(data)
+export class ExpenseItemRepository implements IExpenseItemRepository {
+  async create(
+    data: Omit<ExpenseItem, "id" | "createdAt">,
+  ): Promise<ExpenseItem> {
+    const model = await ExpenseItemModel.create({
+      expense: data.expense,
+      description: data.description,
+      amount: data.amount,
+    });
+    return model.toDomain();
   }
 
-  async findById(id: string) {
-    return ExpenseItem.findByPk(id)
+  async findById(id: string): Promise<ExpenseItem | null> {
+    const model = await ExpenseItemModel.findByPk(id);
+    return model ? model.toDomain() : null;
   }
 
-  async findByExpenseId(expenseId: string) {
-    return ExpenseItem.findAll({ where: { expense_id: expenseId }, order: [["created_at", "DESC"]] })
+  async findByExpenseId(expenseId: string): Promise<ExpenseItem[]> {
+    const models = await ExpenseItemModel.findAll({
+      where: { expenseId },
+      order: [["createdAt", "DESC"]],
+    });
+    return models.map((m) => m.toDomain());
   }
 
-  async update(id: string, data: Partial<{
-    description: string
-    amount: number
-  }>) {
-    const expenseItem = await ExpenseItem.findByPk(id)
-    if (!expenseItem) return null
-    return expenseItem.update(data)
+  async update(
+    id: string,
+    data: Partial<{ description: string; amount: number }>,
+  ): Promise<ExpenseItem | null> {
+    const model = await ExpenseItemModel.findByPk(id);
+    if (!model) return null;
+    await model.update(data);
+    return model.toDomain();
   }
 
-  async delete(id: string) {
-    const expenseItem = await ExpenseItem.findByPk(id)
-    if (!expenseItem) return null
-    await expenseItem.destroy()
-    return expenseItem
+  async delete(item: ExpenseItem): Promise<void> {
+    const model = await ExpenseItemModel.findByPk(item.id);
+    if (!model) return;
+    await model.destroy();
   }
 
-  async sumAmountByExpenseId(expenseId: string) {
-    const items = await this.findByExpenseId(expenseId)
-    return items.reduce((sum, item) => sum + Number(item.getDataValue("amount")), 0)
+  async sumAmountByExpenseId(expenseId: string): Promise<number> {
+    const items = await this.findByExpenseId(expenseId);
+    return items.reduce((sum, item) => sum + Number(item.amount), 0);
   }
 }

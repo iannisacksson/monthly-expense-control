@@ -1,12 +1,14 @@
-import type { UpdateIncomeTaxDTO } from "../../../dtos/income-tax.dto"
-import { IncomeTaxRepository } from "../../../repositories/income-tax.repository"
-import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository"
-import { ForbiddenError } from "../../../utils/errors"
+import type { UpdateIncomeTaxDTO } from "../../../dtos/income-tax.dto";
+import type { IIncomeTaxRepository } from "../../../domain/repositories/income-tax.repository";
+import type { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-income.repository";
+import { IncomeTaxRepository } from "../../../repositories/income-tax.repository";
+import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository";
+import { ForbiddenError } from "../../../utils/errors";
 
 export class UpdateIncomeTaxUseCase {
   constructor(
-    private readonly incomeTaxRepository: IncomeTaxRepository = new IncomeTaxRepository(),
-    private readonly monthlyIncomeRepository: MonthlyIncomeRepository = new MonthlyIncomeRepository(),
+    private readonly incomeTaxRepository: IIncomeTaxRepository = new IncomeTaxRepository(),
+    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository = new MonthlyIncomeRepository(),
   ) {}
 
   async execute(
@@ -20,13 +22,13 @@ export class UpdateIncomeTaxUseCase {
     }
 
     const income = await this.monthlyIncomeRepository.findById(
-      existingTax.getDataValue("monthly_income_id") as string,
+      existingTax.monthlyIncome.id,
     );
-    if (!income || income.userId !== requestingUserId) {
+    if (!income || income.user.id !== requestingUserId) {
       throw new ForbiddenError();
     }
 
-    if (existingTax.getDataValue("is_auto") as boolean) {
+    if (existingTax.isAuto) {
       throw new Error("Automatic income taxes cannot be edited manually");
     }
 
@@ -43,9 +45,9 @@ export class UpdateIncomeTaxUseCase {
     }
 
     const tax = await this.incomeTaxRepository.update(id, {
-      ...data,
-      is_auto: false,
-      tax_type: normalizedTaxType,
+      isAuto: false,
+      taxType: normalizedTaxType,
+      value: data.value,
     });
     if (!tax) {
       throw new Error("Income tax not found");

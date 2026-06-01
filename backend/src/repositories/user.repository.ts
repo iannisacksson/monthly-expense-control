@@ -1,39 +1,45 @@
-import { User } from "../models/index"
+import { UserModel } from "../models/user.model";
+import type { User } from "../domain/entities/user.entity";
+import type { IUserRepository } from "../domain/repositories/user.repository";
 
-const PUBLIC_ATTRIBUTES = ["id", "name", "email", "created_at", "updated_at"]
-
-export class UserRepository {
-  async create(data: { name: string; email: string; password_hash: string }) {
-    return User.create(data)
+export class UserRepository implements IUserRepository {
+  async create(data: {
+    name: string;
+    email: string;
+    passwordHash: string;
+  }): Promise<User> {
+    const model = await UserModel.create(data);
+    return model.toDomain();
   }
 
-  async findById(id: string) {
-    return User.findByPk(id, { attributes: PUBLIC_ATTRIBUTES })
+  async findById(id: string): Promise<User | null> {
+    const model = await UserModel.findByPk(id);
+    return model ? model.toDomain() : null;
   }
 
+  /** Not part of IUserRepository — kept for auth.service compatibility. */
   async findByIdWithHash(id: string) {
-    return User.findByPk(id)
+    return UserModel.findByPk(id);
   }
 
-  async findByEmail(email: string) {
-    return User.findOne({ where: { email } })
+  async findByEmail(email: string): Promise<User | null> {
+    const model = await UserModel.findOne({ where: { email } });
+    return model ? model.toDomain() : null;
   }
 
-  async findAll() {
-    return User.findAll({ attributes: PUBLIC_ATTRIBUTES })
+  async update(
+    id: string,
+    data: Partial<{ name: string; email: string; passwordHash: string }>,
+  ): Promise<User | null> {
+    const model = await UserModel.findByPk(id);
+    if (!model) return null;
+    await model.update(data);
+    return model.toDomain();
   }
 
-  async update(id: string, data: Partial<{ name: string; email: string; password_hash: string }>) {
-    const user = await User.findByPk(id)
-    if (!user) return null
-    await user.update(data)
-    return User.findByPk(id, { attributes: PUBLIC_ATTRIBUTES })
-  }
-
-  async delete(id: string) {
-    const user = await User.findByPk(id)
-    if (!user) return null
-    await user.destroy()
-    return true
+  async delete(user: User): Promise<void> {
+    const model = await UserModel.findByPk(user.id);
+    if (!model) return;
+    await model.destroy();
   }
 }

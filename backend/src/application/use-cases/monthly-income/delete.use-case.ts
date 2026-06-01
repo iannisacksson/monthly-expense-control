@@ -9,7 +9,7 @@ export class DeleteMonthlyIncomeUseCase {
   async execute(id: string, requestingUserId: string): Promise<void> {
     const existing = await this.monthlyIncomeRepository.findById(id);
     if (!existing) throw new NotFoundError("Monthly income not found");
-    if (existing.userId !== requestingUserId) throw new ForbiddenError();
+    if (existing.user.id !== requestingUserId) throw new ForbiddenError();
     await this.monthlyIncomeRepository.delete(existing);
   }
 }

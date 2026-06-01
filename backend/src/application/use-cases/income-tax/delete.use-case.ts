@@ -1,11 +1,13 @@
-import { IncomeTaxRepository } from "../../../repositories/income-tax.repository"
-import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository"
-import { ForbiddenError } from "../../../utils/errors"
+import type { IIncomeTaxRepository } from "../../../domain/repositories/income-tax.repository";
+import type { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-income.repository";
+import { IncomeTaxRepository } from "../../../repositories/income-tax.repository";
+import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository";
+import { ForbiddenError } from "../../../utils/errors";
 
 export class DeleteIncomeTaxUseCase {
   constructor(
-    private readonly incomeTaxRepository: IncomeTaxRepository = new IncomeTaxRepository(),
-    private readonly monthlyIncomeRepository: MonthlyIncomeRepository = new MonthlyIncomeRepository(),
+    private readonly incomeTaxRepository: IIncomeTaxRepository = new IncomeTaxRepository(),
+    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository = new MonthlyIncomeRepository(),
   ) {}
 
   async execute(id: string, requestingUserId: string) {
@@ -15,21 +17,17 @@ export class DeleteIncomeTaxUseCase {
     }
 
     const income = await this.monthlyIncomeRepository.findById(
-      existingTax.getDataValue("monthly_income_id") as string,
+      existingTax.monthlyIncome.id,
     );
-    if (!income || income.userId !== requestingUserId) {
+    if (!income || income.user.id !== requestingUserId) {
       throw new ForbiddenError();
     }
 
-    if (existingTax.getDataValue("is_auto") as boolean) {
+    if (existingTax.isAuto) {
       throw new Error("Automatic income taxes cannot be deleted manually");
     }
 
-    const tax = await this.incomeTaxRepository.delete(id);
-    if (!tax) {
-      throw new Error("Income tax not found");
-    }
-
-    return tax;
+    await this.incomeTaxRepository.delete(existingTax);
+    return existingTax;
   }
 }

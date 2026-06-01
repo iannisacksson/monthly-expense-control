@@ -9,7 +9,7 @@ export class GetMonthlyIncomeByIdUseCase {
   async execute(id: string, requestingUserId: string) {
     const income = await this.monthlyIncomeRepository.findById(id);
     if (!income) throw new NotFoundError("Monthly income not found");
-    if (income.userId !== requestingUserId) throw new ForbiddenError();
+    if (income.user.id !== requestingUserId) throw new ForbiddenError();
     return income;
   }
 }
