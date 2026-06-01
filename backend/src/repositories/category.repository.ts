@@ -1,4 +1,5 @@
 import { Category } from "../domain/entities/category.entity";
+import { User } from "../domain/entities/user.entity";
 import { ICategoryRepository } from "../domain/repositories/category.repository";
 import { CategoryModel } from "../models/category.model";
 
@@ -13,8 +14,8 @@ export class CategoryRepository implements ICategoryRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string): Promise<Category[]> {
-    const models = await CategoryModel.findAll({ where: { userId: userId } });
+  async findByUser(user: User): Promise<Category[]> {
+    const models = await CategoryModel.findAll({ where: { userId: user.id } });
     return models.map((m) => m.toDomain());
   }
 

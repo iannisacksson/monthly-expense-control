@@ -606,3 +606,51 @@ The main aggregate roots of the target model are:
 - RecurringIncome as an income series boundary
 
 The system must no longer treat Family as the aggregate root for financial ownership.
+
+---
+
+## Estrutura de Entidade de Domínio
+
+Toda entidade de domínio segue o padrão de interface + classe de implementação.
+
+### Interface
+
+Define o contrato do aggregate/entidade:
+
+```ts
+export interface XxxEntity {
+  id: string;
+  // campos de valor
+  // associações como tipos de domínio (não IDs)
+  user: User;
+  // métodos de validação/comportamento
+  validateSomething(): void;
+}
+```
+
+### Classe
+
+Implementa a interface. Aceita dados parciais no constructor via `Object.assign`:
+
+```ts
+export class XxxEntityImpl implements XxxEntity {
+  id: string;
+  user: User;
+
+  constructor(data: Partial<XxxEntity>) {
+    Object.assign(this, data);
+  }
+
+  validateSomething() {
+    // lógica de negócio aqui
+  }
+}
+```
+
+### Regras
+
+- **A interface é a fonte da verdade** para campos e comportamentos do domínio.
+- **Validações pertencem à entidade**, não ao model Sequelize nem ao controller.
+- **Associações são sempre tipadas como entidades de domínio** (`User`, `Month`, etc.), nunca como IDs (`userId: string`).
+- **IDs de FK** existem apenas no Sequelize model, para mapeamento de banco.
+- **A classe entity não depende de Sequelize**; é puramente de domínio.

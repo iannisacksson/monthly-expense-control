@@ -1,10 +1,14 @@
 import { BuildOptions, DataTypes, Model } from "sequelize";
 import { sequelize } from "../database/connection";
-import { Category, CategoryType } from "../domain/entities/category.entity";
-import { UserEntity } from "../domain/entities/user.entity";
+import {
+  Category,
+  CategoryEntity,
+  CategoryType,
+} from "../domain/entities/category.entity";
+import { User, UserEntity } from "../domain/entities/user.entity";
 
 type CategoryAttributes = Category & {
-  userId?: string; // Armazenar user_id no banco, mas usar a associação com UserEntity na aplicação.
+  userId?: string;
 };
 type CategoryCreationAttributes = Omit<CategoryAttributes, "id">;
 
@@ -13,12 +17,10 @@ export class CategoryModel
   implements CategoryAttributes
 {
   id!: string;
-  user!: UserEntity; // Usar a entidade UserEntity apõs refatorar a User.
+  user!: User;
   userId?: string;
   name!: string;
   type!: CategoryType;
-
-  // timestamps!
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -28,15 +30,11 @@ export class CategoryModel
   }
 
   toDomain(): Category {
-    const { userId, ...rest } = this.get(); // Extrair userId para não expor diretamente, mas manter a associação com UserEntity na aplicação.
-    return {
-      id: this.id,
-      user: { id: this.userId } as any, // Usar a entidade UserEntity apõs refatorar a User.
-      name: this.name,
-      type: this.type,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-    };
+    const { userId, ...rest } = this.get();
+    return new CategoryEntity({
+      ...rest,
+      user: new UserEntity({ id: this.userId }),
+    });
   }
 }
 
@@ -52,11 +50,11 @@ CategoryModel.init(
       allowNull: true,
     },
     user: {
-      type: DataTypes.VIRTUAL, // Associação com UserEntity na aplicação, mas armazenar user_id no banco.
+      type: DataTypes.VIRTUAL,
       get() {
-        return { id: this.getDataValue("userId") };
+        return new UserEntity({ id: this.getDataValue("userId") });
       },
-    }, // Associação com UserEntity na aplicação, mas armazenar user_id no banco.
+    },
     name: {
       type: DataTypes.TEXT,
       allowNull: false,

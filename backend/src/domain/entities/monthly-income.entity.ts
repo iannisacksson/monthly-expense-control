@@ -1,31 +1,51 @@
 import { BadRequestError } from "../../utils/errors";
+import { Month } from "./month.entity";
+import { RecurringIncome } from "./recurring-income.entity";
+import { User } from "./user.entity";
+
+export enum IncomeType {
+  SALARY = "salary",
+  BUSINESS = "business",
+  INVESTMENT = "investment",
+  OTHER = "other",
+}
+
+export enum TaxationModeType {
+  MANUAL = "manual",
+  AUTOMATIC = "automatic",
+}
 
 export interface MonthlyIncome {
   id: string;
-  userId: string;
-  monthId: string;
-  recurringIncomeId?: string | null;
+  user: User;
+  month: Month;
+  recurringIncome?: RecurringIncome;
   grossIncome: number;
-  incomeType: string;
-  taxationMode: "manual" | "automatic";
-  taxationProfile?: string | null;
-  taxationParameters?: Record<string, unknown> | null;
-  notes?: string | null;
+  incomeType: IncomeType;
+  taxationMode: TaxationModeType;
+  taxationProfile?: string; // todo: identificr valores.
+  taxationParameters?: Record<string, unknown>;
+  notes?: string;
   createdAt: Date;
+  updatedAt: Date;
+
+  validateGrossIncome(): void;
+  validateNotes(): void;
 }
 
 export class MonthlyIncomeEntity implements MonthlyIncome {
-  id!: string;
-  userId!: string;
-  monthId!: string;
-  recurringIncomeId?: string | null;
-  grossIncome!: number;
-  incomeType!: string;
-  taxationMode!: "manual" | "automatic";
-  taxationProfile?: string | null;
-  taxationParameters?: Record<string, unknown> | null;
-  notes?: string | null;
-  createdAt!: Date;
+  id: string;
+  user: User;
+  month: Month;
+  recurringIncome?: RecurringIncome;
+  grossIncome: number;
+  incomeType: IncomeType;
+  taxationMode: TaxationModeType;
+  taxationProfile?: string; // todo: identificr valores.
+  taxationParameters?: Record<string, unknown>;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
 
   constructor(data: Partial<MonthlyIncome>) {
     Object.assign(this, data);

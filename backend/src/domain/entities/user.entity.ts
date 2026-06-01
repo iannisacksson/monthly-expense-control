@@ -1,22 +1,28 @@
-export class UserEntity {
+export interface User {
   id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
 
-  constructor(
-    readonly name: string,
-    readonly email: string,
-  ) {}
+  validateName(name: string): void;
+  validateEmail(email: string): void;
+  validatePasswordStrength(password: string): void;
+}
 
-  static create(params: { name: string; email: string }) {
-    this.validateName(params.name);
-    this.validateEmail(params.email);
+export class UserEntity implements User {
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: Date;
+  updatedAt: Date;
 
-    return new UserEntity(
-      params.name.trim(),
-      params.email.trim().toLowerCase(),
-    );
+  constructor(data: Partial<User>) {
+    Object.assign(this, data);
   }
 
-  static validateName(name: string) {
+  validateName(name: string) {
     const normalizedName = name?.trim();
 
     if (
@@ -28,7 +34,7 @@ export class UserEntity {
     }
   }
 
-  static validateEmail(email: string) {
+  validateEmail(email: string) {
     const normalizedEmail = email?.trim().toLowerCase();
 
     if (
@@ -39,7 +45,7 @@ export class UserEntity {
     }
   }
 
-  static validatePasswordStrength(password: string) {
+  validatePasswordStrength(password: string) {
     if (!password || password.length < 8) {
       throw new Error("Password must be at least 8 characters");
     }

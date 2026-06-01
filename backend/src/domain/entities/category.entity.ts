@@ -1,5 +1,5 @@
 import { BadRequestError } from "../../utils/errors";
-import { UserEntity } from "./user.entity";
+import { User } from "./user.entity";
 
 export enum CategoryType {
   NECESSARY = "necessary",
@@ -10,7 +10,7 @@ export enum CategoryType {
 
 export interface Category {
   id: string;
-  user: UserEntity; // Association to User interface quando criado, mas armazenar user_id no banco.
+  user: User;
   name: string;
   type: CategoryType;
   createdAt: Date;
@@ -19,7 +19,7 @@ export interface Category {
 
 export class CategoryEntity implements Category {
   id: string;
-  user: UserEntity;
+  user: User;
   name: string;
   type: CategoryType;
   createdAt: Date;

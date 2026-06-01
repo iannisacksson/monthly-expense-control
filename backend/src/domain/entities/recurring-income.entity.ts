@@ -1,29 +1,79 @@
-export class RecurringIncomeEntity {
-  static validateBaseFields(params: {
-    description: string
-    grossIncome: number
-    incomeType: string
-    kind: string
-    status: string
-  }) {
-    if (!params.description || params.description.length > 255) {
-      throw new Error("Description is required and must be at most 255 characters")
+import { Month } from "./month.entity";
+import { IncomeType, TaxationModeType } from "./monthly-income.entity";
+import { User } from "./user.entity";
+
+export enum RecurringIncomeKind {
+  FIXED_SALARY = "fixed_salary",
+  RECURRING_EXTRA = "recurring_extra",
+}
+
+export enum RecurringIncomeStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+}
+
+export interface RecurringIncome {
+  id: string;
+  user: User;
+  description: string;
+  grossIncome: number;
+  incomeType: IncomeType;
+  kind: RecurringIncomeKind;
+  startMonth: Month;
+  occurrences?: number;
+  status: RecurringIncomeStatus;
+  taxationMode: TaxationModeType;
+  taxationProfile?: string; // todo: identificr valores.
+  taxationParameters?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+
+  validateBaseFields(): void;
+}
+
+export class RecurringIncomeEntity implements RecurringIncome {
+  id: string;
+  user: User;
+  description: string;
+  grossIncome: number;
+  incomeType: IncomeType;
+  kind: RecurringIncomeKind;
+  startMonth: Month;
+  occurrences?: number;
+  status: RecurringIncomeStatus;
+  taxationMode: TaxationModeType;
+  taxationProfile?: string; // todo: identificr valores.
+  taxationParameters?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+
+  constructor(data: Partial<RecurringIncome>) {
+    Object.assign(this, data);
+  }
+
+  validateBaseFields() {
+    if (!this.description || this.description.length > 255) {
+      throw new Error(
+        "Description is required and must be at most 255 characters",
+      );
     }
 
-    if (params.grossIncome <= 0) {
-      throw new Error("Recurring income amount must be greater than zero")
+    if (this.grossIncome <= 0) {
+      throw new Error("Recurring income amount must be greater than zero");
     }
 
-    if (!params.incomeType) {
-      throw new Error("Income type is required")
+    if (!this.incomeType) {
+      throw new Error("Income type is required");
     }
 
-    if (!["fixed_salary", "recurring_extra"].includes(params.kind)) {
-      throw new Error("Recurring income kind must be fixed_salary or recurring_extra")
+    if (!Object.values(RecurringIncomeKind).includes(this.kind)) {
+      throw new Error(
+        "Recurring income kind must be fixed_salary or recurring_extra",
+      );
     }
 
-    if (!["active", "inactive"].includes(params.status)) {
-      throw new Error("Status must be active or inactive")
+    if (!Object.values(RecurringIncomeStatus).includes(this.status)) {
+      throw new Error("Status must be active or inactive");
     }
   }
 }

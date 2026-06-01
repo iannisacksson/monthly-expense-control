@@ -704,3 +704,71 @@ Separation of concerns
 Layered architecture
 Explicit domain modeling
 AI-friendly documentation
+---
+
+## Padrão de Model Sequelize
+
+Todos os models Sequelize devem seguir o padrão de classe, conforme implementado em `budget-allocation.model.ts` e `category.model.ts`.
+
+### Estrutura obrigatória
+
+```ts
+type XxxAttributes = XxxEntityInterface & { fkId?: string };
+type XxxCreationAttributes = Omit<XxxAttributes, "id" | "methodNames">;
+
+export class XxxModel
+  extends Model<XxxAttributes, XxxCreationAttributes>
+  implements XxxAttributes
+{
+  // fields declarados com !
+  id!: string;
+  fkId?: string;
+  association!: AssocType; // VIRTUAL
+
+  constructor(data?: XxxCreationAttributes, options?: BuildOptions) {
+    super(data, options);
+    // resolve FK a partir de nested object ou ID direto
+    this.fkId = data?.fkId ?? data?.association?.id;
+  }
+
+  toDomain(): XxxEntity {
+    const { fkId, ...rest } = this.get();
+    return new XxxEntityImpl({
+      ...rest,
+      association: new AssocEntity({ id: fkId }),
+    });
+  }
+
+  // delega métodos da interface via toDomain()
+  methodFromInterface() {
+    return this.toDomain().methodFromInterface();
+  }
+}
+
+XxxModel.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    fkId: { type: DataTypes.UUID, allowNull: false },
+    association: {
+      type: DataTypes.VIRTUAL,
+      get() { return new AssocEntity({ id: this.getDataValue("fkId") }); },
+    },
+    methodFromInterface: {
+      type: DataTypes.VIRTUAL,
+      get() { return this.methodFromInterface; },
+    },
+    createdAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+    updatedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+  },
+  { sequelize, tableName: "table_name", underscored: true, timestamps: true },
+);
+```
+
+### Regras
+
+- **Nunca usar `sequelize.define(...)`**. Sempre `class XxxModel extends Model`.
+- **`toDomain()`** é obrigatório em todo model. Retorna uma instância da entity, não um objeto literal.
+- **FKs** são campos reais (`fkId: DataTypes.UUID`). O objeto de domínio associado é exposto via campo `VIRTUAL`.
+- **Conflitos de nome**: quando o campo na entity tem o mesmo nome que o FK mas tipos diferentes (ex: `paidBy?: User` e coluna `paid_by`), usar `paidById` com `field: 'paid_by'` e um VIRTUAL `paidBy`.
+- **Métodos da interface**: delegados via `toDomain()` e também declarados como `VIRTUAL` no `init()`.
+- **Referências**: `budget-allocation.model.ts` e `category.model.ts`.

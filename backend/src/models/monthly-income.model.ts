@@ -1,11 +1,26 @@
-import { DataTypes, Model } from "sequelize";
+import { BuildOptions, DataTypes, Model } from "sequelize";
 import { sequelize } from "../database/connection";
-import type { MonthlyIncome } from "../domain/entities/monthly-income.entity";
+import {
+  MonthlyIncome,
+  MonthlyIncomeEntity,
+  IncomeType,
+  TaxationModeType,
+} from "../domain/entities/monthly-income.entity";
+import { Month, MonthEntity } from "../domain/entities/month.entity";
+import {
+  RecurringIncome,
+  RecurringIncomeEntity,
+} from "../domain/entities/recurring-income.entity";
+import { User, UserEntity } from "../domain/entities/user.entity";
 
-type MonthlyIncomeAttributes = MonthlyIncome;
+type MonthlyIncomeAttributes = MonthlyIncome & {
+  userId?: string;
+  monthId?: string;
+  recurringIncomeId?: string | null;
+};
 type MonthlyIncomeCreationAttributes = Omit<
   MonthlyIncomeAttributes,
-  "id" | "createdAt"
+  "id" | "validateGrossIncome" | "validateNotes"
 >;
 
 export class MonthlyIncomeModel
@@ -13,31 +28,47 @@ export class MonthlyIncomeModel
   implements MonthlyIncomeAttributes
 {
   id!: string;
-  userId!: string;
-  monthId!: string;
+  userId?: string;
+  user!: User;
+  monthId?: string;
+  month!: Month;
   recurringIncomeId?: string | null;
+  recurringIncome?: RecurringIncome;
   grossIncome!: number;
-  incomeType!: string;
-  taxationMode!: "manual" | "automatic";
+  incomeType!: IncomeType;
+  taxationMode!: TaxationModeType;
   taxationProfile?: string | null;
   taxationParameters?: Record<string, unknown> | null;
   notes?: string | null;
   createdAt!: Date;
+  updatedAt!: Date;
+
+  constructor(data?: MonthlyIncomeCreationAttributes, options?: BuildOptions) {
+    super(data, options);
+    this.userId = data?.userId ?? data?.user?.id;
+    this.monthId = data?.monthId ?? data?.month?.id;
+    this.recurringIncomeId =
+      data?.recurringIncomeId ?? data?.recurringIncome?.id;
+  }
 
   toDomain(): MonthlyIncome {
-    return {
-      id: this.id,
-      userId: this.userId,
-      monthId: this.monthId,
-      recurringIncomeId: this.recurringIncomeId,
-      grossIncome: Number(this.grossIncome),
-      incomeType: this.incomeType,
-      taxationMode: this.taxationMode,
-      taxationProfile: this.taxationProfile,
-      taxationParameters: this.taxationParameters,
-      notes: this.notes,
-      createdAt: this.createdAt,
-    };
+    const { userId, monthId, recurringIncomeId, ...rest } = this.get();
+    return new MonthlyIncomeEntity({
+      ...rest,
+      user: new UserEntity({ id: userId }),
+      month: new MonthEntity({ id: monthId }),
+      recurringIncome: recurringIncomeId
+        ? new RecurringIncomeEntity({ id: recurringIncomeId })
+        : undefined,
+    });
+  }
+
+  validateGrossIncome() {
+    this.toDomain().validateGrossIncome();
+  }
+
+  validateNotes() {
+    this.toDomain().validateNotes();
   }
 }
 
@@ -52,13 +83,32 @@ MonthlyIncomeModel.init(
       type: DataTypes.UUID,
       allowNull: false,
     },
+    user: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return new UserEntity({ id: this.getDataValue("userId") });
+      },
+    },
     monthId: {
       type: DataTypes.UUID,
       allowNull: false,
     },
+    month: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return new MonthEntity({ id: this.getDataValue("monthId") });
+      },
+    },
     recurringIncomeId: {
       type: DataTypes.UUID,
       allowNull: true,
+    },
+    recurringIncome: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const id = this.getDataValue("recurringIncomeId");
+        return id ? new RecurringIncomeEntity({ id }) : undefined;
+      },
     },
     grossIncome: {
       type: DataTypes.DECIMAL,
@@ -89,6 +139,18 @@ MonthlyIncomeModel.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    validateGrossIncome: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.validateGrossIncome;
+      },
+    },
+    validateNotes: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.validateNotes;
+      },
     },
   },
   {

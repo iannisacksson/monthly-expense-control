@@ -1,4 +1,5 @@
 import { Category } from "../entities/category.entity";
+import { User } from "../entities/user.entity";
 
 export interface ICategoryRepository {
   /**
@@ -17,10 +18,10 @@ export interface ICategoryRepository {
 
   /**
    * Finds all categories belonging to a specific user.
-   * @param userId The ID of the user to find categories for.
+   * @param user The user to find categories for.
    * @return An array of categories belonging to the user.
    */
-  findByUserId(userId: string): Promise<Category[]>;
+  findByUser(user: User): Promise<Category[]>;
 
   /**
    * Finds all categories.
