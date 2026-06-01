@@ -1,18 +1,25 @@
-import type { UpdateCategoryDTO } from "../../../dtos/category.dto"
-import { CategoryEntity } from "../../../domain/entities/category.entity"
+import {
+  Category,
+  CategoryEntity,
+  CategoryType,
+} from "../../../domain/entities/category.entity";
 import { ICategoryRepository } from "../../../domain/repositories/category.repository";
-import { ForbiddenError, NotFoundError } from "../../../utils/errors"
+import { ForbiddenError, NotFoundError } from "../../../utils/errors";
 
 export class UpdateCategoryUseCase {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
 
-  async execute(id: string, data: UpdateCategoryDTO, requestingUserId: string) {
+  async execute(
+    id: string,
+    data: { name?: string; type?: CategoryType },
+    userId: string,
+  ): Promise<Category> {
     const existing = await this.categoryRepository.findById(id);
     if (!existing) {
       throw new NotFoundError("Category not found");
     }
 
-    if (existing.user.id !== requestingUserId) {
+    if (existing.user.id !== userId) {
       throw new ForbiddenError();
     }
 

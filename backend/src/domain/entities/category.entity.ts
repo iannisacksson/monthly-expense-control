@@ -15,6 +15,9 @@ export interface Category {
   type: CategoryType;
   createdAt: Date;
   updatedAt: Date;
+
+  validateName(): void;
+  ensureUserOwnership(): void;
 }
 
 export class CategoryEntity implements Category {

@@ -863,3 +863,144 @@ export class CreateSubcategoryUseCase {
 ```
 
 O tipo do construtor é a **interface**. O default é a **implementação concreta**. Isso permite injeção de mocks nos testes unitários sem framework de DI.
+
+---
+
+## Padrão de Controller (Camada HTTP)
+
+### Responsabilidades
+
+Controllers implementam `IController<TRequest, TResponse>` e são responsáveis por:
+
+1. **Validar entrada** com `class-validator` antes de chamar o use-case
+2. **Extrair userId do JWT** via `request.userId` — nunca do body da requisição
+3. **Chamar o use-case** com assinatura escalar `(id, data, userId)`
+4. **Converter a resposta** para snake_case antes de retornar
+
+### Assinatura de Use-Cases
+
+Use-cases recebem parâmetros escalares, não entidades de domínio:
+
+```typescript
+// ✅ Correto — escalares
+async execute(id: string, data: { name?: string; type?: CategoryType }, userId: string): Promise<Category>
+
+// ❌ Errado — entidades como parâmetro de entrada
+async execute(category: Category, requestingUser: User): Promise<Category>
+```
+
+### Validação com class-validator
+
+Controllers usam `class-validator` + `class-transformer` para validar o corpo da requisição antes de chamar o use-case:
+
+```typescript
+class CreateCategoryBody {
+  @IsString()
+  @MinLength(2, { message: "Category name must be between 2 and 100 characters" })
+  @MaxLength(100, { message: "Category name must be between 2 and 100 characters" })
+  name: string;
+
+  @IsEnum(CategoryType, { message: "Invalid category type" })
+  type: CategoryType;
+}
+
+async handle(request) {
+  const body = plainToInstance(CreateCategoryBody, request.body);
+  const errors = await validate(body);
+  if (errors.length > 0) {
+    const message = Object.values(errors[0].constraints ?? {})[0];
+    throw new BadRequestError(message);
+  }
+  // ...
+}
+```
+
+### Conversão snake_case ↔ camelCase (Estratégia: controller-level)
+
+A conversão é feita **no controller**, não no adapter, middleware ou use-case. Cada controller converte explicitamente a resposta para snake_case:
+
+```typescript
+// ✅ Resposta sempre snake_case
+return {
+  statusCode: 200,
+  body: {
+    id: result.id,
+    name: result.name,
+    type: result.type,
+    user_id: result.user.id,
+    created_at: result.createdAt,
+    updated_at: result.updatedAt,
+  },
+};
+```
+
+**Justificativa**: converter no adapter quebraria todos os flows existentes de uma vez. Converter no controller é explícito, isolado e progressivo.
+
+### userId vem sempre do JWT
+
+```typescript
+// ✅ userId do token autenticado
+const result = await this.useCase.execute(
+  request.params.id,
+  body,
+  request.userId,
+);
+
+// ❌ userId nunca vem do body
+const { user_id } = request.body; // PROIBIDO para autorização
+```
+
+---
+
+## Padrão de Composer (Injeção de Dependência)
+
+Cada flow tem um arquivo `index.ts` na pasta do controller que instancia e conecta todos os objetos:
+
+```typescript
+// src/interfaces/http/controllers/category/index.ts
+const categoryRepository = new CategoryRepository();
+const userRepository = new UserRepository();
+
+export const categoryComposer = {
+  create: new CreateCategoryController(
+    new CreateCategoryUseCase(categoryRepository, userRepository),
+  ),
+  // ...
+};
+```
+
+O router importa apenas o composer — sem DI inline:
+
+```typescript
+// routes/category.routes.ts
+import { categoryComposer } from "../interfaces/http/controllers/category";
+
+router.post(
+  "/",
+  adaptExpressRoute(
+    categoryComposer.create.handle.bind(categoryComposer.create),
+    (req) => buildAuthenticatedHttpRequest(req),
+  ),
+);
+```
+
+---
+
+## Regras de Teste de Controller
+
+- **Unitários**: cada controller tem um arquivo de teste em `tests/unit/interfaces/http/controllers/{flow}/`
+- Controllers são testados com mocks do use-case (sem DB, sem HTTP real)
+- Verificar: status code, shape snake_case da resposta, propagação de erros do use-case
+- Verificar: `BadRequestError` para inputs inválidos (class-validator)
+
+```typescript
+it("returns 201 with snake_case response on success", async () => {
+  const useCase = { execute: vi.fn().mockResolvedValue(category) };
+  const controller = new CreateCategoryController(useCase as any);
+  const response = await controller.handle(
+    makeAuthRequest({ body: { name: "Essentials", type: "necessary" } }) as any,
+  );
+  expect(response.statusCode).toBe(201);
+  expect(response.body).toMatchObject({ user_id: category.user.id });
+});
+```

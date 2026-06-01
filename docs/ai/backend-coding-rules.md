@@ -75,7 +75,7 @@ Runtime: Node.js
 Language: TypeScript  
 Framework: Express  
 ORM: Sequelize  
-Database: PostgreSQL  
+Database: PostgreSQL
 
 Do not introduce other frameworks unless explicitly requested.
 
@@ -98,7 +98,7 @@ Controller
 Service  
 Repository  
 Model  
-DTO  
+DTO
 
 Each layer has strict responsibilities.
 
@@ -125,11 +125,11 @@ Correct flow:
 
 HTTP Request  
 → Controller  
-→ Service  
+→ Service
 
 Example pattern:
 
-```ts
+````ts
 export const createExpense = async (req, res) => {
 
   const data = req.body
@@ -404,5 +404,68 @@ Sequelize
 PostgreSQL
 
 Key principle:
+
+---
+
+## Regras de Camada HTTP (Controller Layer)
+
+### Use-Case: assinatura escalar
+
+Use-cases recebem escalares, não entidades:
+
+```typescript
+// ✅
+execute(id: string, data: { name?: string; type?: CategoryType }, userId: string)
+// ❌
+execute(entity: Category, requestingUser: User)
+````
+
+### Controller: validação com class-validator
+
+- Instalar: `npm install class-validator class-transformer`
+- Habilitar: `"experimentalDecorators": true` no tsconfig.json
+- Padrão: `plainToInstance(BodyClass, request.body)` → `validate(instance)` → `BadRequestError(message)`
+- Mensagens de erro explícitas: `{ message: "..." }` no decorator
+
+### Controller: snake_case na resposta
+
+A conversão camelCase → snake_case é feita **no controller**:
+
+```typescript
+body: {
+  id: result.id,
+  user_id: result.user.id,
+  created_at: result.createdAt,
+  updated_at: result.updatedAt,
+}
+```
+
+Nunca converter no adapter ou no middleware (quebraria outros flows).
+
+### userId sempre do JWT
+
+```typescript
+// ✅ Token autenticado
+request.userId;
+
+// ❌ Proibido para autorização
+request.body.user_id;
+```
+
+### Composer Pattern
+
+Cada flow tem `interfaces/http/controllers/{flow}/index.ts` que instancia e exporta controllers pré-configurados. O router importa apenas do composer.
+
+```typescript
+export const categoryComposer = {
+  create: new CreateCategoryController(new CreateCategoryUseCase(...)),
+};
+```
+
+### Testes de Controller
+
+- Criar em: `tests/unit/interfaces/http/controllers/{flow}/{flow}.controllers.unit.test.ts`
+- Mockar o use-case, não DB
+- Verificar: statusCode, snake_case do body, propagação de erros
 
 Strict separation of responsibilities.

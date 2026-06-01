@@ -24,6 +24,13 @@ export interface ICategoryRepository {
   findByUser(user: User): Promise<Category[]>;
 
   /**
+   * Finds all categories belonging to a user by their ID.
+   * @param userId The ID of the user.
+   * @return An array of categories belonging to the user.
+   */
+  findByUserId(userId: string): Promise<Category[]>;
+
+  /**
    * Finds all categories.
    * @return An array of all categories.
    */

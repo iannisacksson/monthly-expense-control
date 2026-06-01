@@ -1,73 +1,46 @@
-import { Router } from "express"
-import { CreateCategoryController } from "../interfaces/http/controllers/category/create.controller";
-import { DeleteCategoryController } from "../interfaces/http/controllers/category/delete.controller";
-import { GetCategoryByIdController } from "../interfaces/http/controllers/category/get-by-id.controller";
-import { ListCategoriesByUserController } from "../interfaces/http/controllers/category/list-by-user.controller";
-import { UpdateCategoryController } from "../interfaces/http/controllers/category/update.controller";
+import { Router } from "express";
 import {
   adaptExpressRoute,
   buildAuthenticatedHttpRequest,
 } from "../interfaces/http/express-route.adapter";
-import { CreateCategoryUseCase } from "../application/use-cases/category/create.use-case";
-import { DeleteCategoryUseCase } from "../application/use-cases/category/delete.use-case";
-import { GetCategoryByIdUseCase } from "../application/use-cases/category/get-by-id.use-case";
-import { ListCategoriesByUserUseCase } from "../application/use-cases/category/list-by-user.use-case";
-import { UpdateCategoryUseCase } from "../application/use-cases/category/update.use-case";
-import { CategoryRepository } from "../repositories/category.repository";
+import { categoryComposer } from "../interfaces/http/controllers/category";
 
-const router = Router()
-
-const categoryRepository = new CategoryRepository();
-const createCategoryController = new CreateCategoryController(
-  new CreateCategoryUseCase(categoryRepository),
-);
-const listCategoriesByUserController = new ListCategoriesByUserController(
-  new ListCategoriesByUserUseCase(categoryRepository),
-);
-const getCategoryByIdController = new GetCategoryByIdController(
-  new GetCategoryByIdUseCase(categoryRepository),
-);
-const updateCategoryController = new UpdateCategoryController(
-  new UpdateCategoryUseCase(categoryRepository),
-);
-const deleteCategoryController = new DeleteCategoryController(
-  new DeleteCategoryUseCase(categoryRepository),
-);
+const router = Router();
 
 router.post(
   "/",
   adaptExpressRoute(
-    createCategoryController.handle.bind(createCategoryController),
+    categoryComposer.create.handle.bind(categoryComposer.create),
     (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.get(
   "/user/:userId",
   adaptExpressRoute(
-    listCategoriesByUserController.handle.bind(listCategoriesByUserController),
+    categoryComposer.listByUser.handle.bind(categoryComposer.listByUser),
     (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.get(
   "/:id",
   adaptExpressRoute(
-    getCategoryByIdController.handle.bind(getCategoryByIdController),
+    categoryComposer.getById.handle.bind(categoryComposer.getById),
     (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.put(
   "/:id",
   adaptExpressRoute(
-    updateCategoryController.handle.bind(updateCategoryController),
+    categoryComposer.update.handle.bind(categoryComposer.update),
     (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 router.delete(
   "/:id",
   adaptExpressRoute(
-    deleteCategoryController.handle.bind(deleteCategoryController),
+    categoryComposer.delete.handle.bind(categoryComposer.delete),
     (req) => buildAuthenticatedHttpRequest(req),
   ),
 );
 
-export default router
+export default router;

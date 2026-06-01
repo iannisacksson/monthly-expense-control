@@ -7,6 +7,8 @@ export interface CreateCategoryDTO {
 }
 
 export interface UpdateCategoryDTO {
+  id: string;
   name?: string;
   type?: CategoryType;
+  userId?: string;
 }

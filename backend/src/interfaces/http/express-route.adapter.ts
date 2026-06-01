@@ -1,20 +1,33 @@
-import type { NextFunction, Request, RequestHandler, Response } from "express"
-import { clearAuthCookies, setAuthCookies } from "../../utils/auth-cookies"
-import { AppError, ForbiddenError, UnauthorizedError } from "../../utils/errors"
-import type { AuthenticatedHttpRequest, HttpRequest, HttpResponse } from "./http.types"
+import type { NextFunction, Request, RequestHandler, Response } from "express";
+import { clearAuthCookies, setAuthCookies } from "../../utils/auth-cookies";
+import {
+  AppError,
+  ForbiddenError,
+  UnauthorizedError,
+} from "../../utils/errors";
+import type {
+  AuthenticatedHttpRequest,
+  HttpRequest,
+  HttpResponse,
+} from "./http.types";
 
-type HttpController<TRequest, TResponse> = (request: TRequest) => Promise<HttpResponse<TResponse>> | HttpResponse<TResponse>
-type HttpErrorNormalizer = (error: unknown) => unknown
+type HttpController<TRequest, TResponse> = (
+  request: TRequest,
+) => Promise<HttpResponse<TResponse>> | HttpResponse<TResponse>;
+type HttpErrorNormalizer = (error: unknown) => unknown;
 
 export function requireAuthenticatedUserId(req: Request): string {
   if (!req.user?.id) {
-    throw new UnauthorizedError("Missing authenticated user")
+    throw new UnauthorizedError("Missing authenticated user");
   }
 
-  return req.user.id
+  return req.user.id;
 }
 
-export function buildAuthenticatedHttpRequest<TBody = unknown, TParams extends Record<string, string> = Record<string, string>>(
+export function buildAuthenticatedHttpRequest<
+  TBody = unknown,
+  TParams extends Record<string, string> = Record<string, string>,
+>(
   req: Request,
   overrides?: Partial<AuthenticatedHttpRequest<TBody, TParams>>,
 ): AuthenticatedHttpRequest<TBody, TParams> {
@@ -22,17 +35,20 @@ export function buildAuthenticatedHttpRequest<TBody = unknown, TParams extends R
     body: (overrides?.body ?? req.body) as TBody,
     params: (overrides?.params ?? req.params) as TParams,
     userId: overrides?.userId ?? requireAuthenticatedUserId(req),
-  }
+  };
 }
 
-export function buildHttpRequest<TBody = unknown, TParams extends Record<string, string> = Record<string, string>>(
+export function buildHttpRequest<
+  TBody = unknown,
+  TParams extends Record<string, string> = Record<string, string>,
+>(
   req: Request,
   overrides?: Partial<HttpRequest<TBody, TParams>>,
 ): HttpRequest<TBody, TParams> {
   return {
     body: (overrides?.body ?? req.body) as TBody,
     params: (overrides?.params ?? req.params) as TParams,
-  }
+  };
 }
 
 export function adaptExpressRoute<TRequest, TResponse>(
@@ -45,31 +61,35 @@ export function adaptExpressRoute<TRequest, TResponse>(
     Promise.resolve(controller(mapRequest(req)))
       .then((response) => {
         if (response.clearAuthCookies) {
-          clearAuthCookies(res)
+          clearAuthCookies(res);
         }
 
         if (response.authCookies) {
-          setAuthCookies(res, response.authCookies.accessToken, response.authCookies.refreshToken)
+          setAuthCookies(
+            res,
+            response.authCookies.accessToken,
+            response.authCookies.refreshToken,
+          );
         }
 
         if (response.headers) {
           for (const [name, value] of Object.entries(response.headers)) {
-            res.setHeader(name, value)
+            res.setHeader(name, value);
           }
         }
 
         if (response.bodyType === "text") {
-          res.status(response.statusCode).send(response.body)
-          return
+          res.status(response.statusCode).send(response.body);
+          return;
         }
 
-        res.status(response.statusCode).json(response.body)
+        res.status(response.statusCode).json(response.body);
       })
       .catch((error) => {
-        onError?.(res, error)
-        next(normalizeError ? normalizeError(error) : error)
-      })
-  }
+        onError?.(res, error);
+        next(normalizeError ? normalizeError(error) : error);
+      });
+  };
 }
 
 export function withFallbackErrorStatus(
@@ -77,15 +97,22 @@ export function withFallbackErrorStatus(
   overrides: Record<string, number> = {},
 ): HttpErrorNormalizer {
   return (error: unknown) => {
-    if (error instanceof AppError || error instanceof ForbiddenError || error instanceof UnauthorizedError) {
-      return error
+    if (
+      error instanceof AppError ||
+      error instanceof ForbiddenError ||
+      error instanceof UnauthorizedError
+    ) {
+      return error;
     }
 
     if (!(error instanceof Error)) {
-      return error
+      return error;
     }
 
-    const overrideStatusCode = overrides[error.message]
-    return new AppError(error.message, overrideStatusCode ?? fallbackStatusCode)
-  }
+    const overrideStatusCode = overrides[error.message];
+    return new AppError(
+      error.message,
+      overrideStatusCode ?? fallbackStatusCode,
+    );
+  };
 }

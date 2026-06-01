@@ -6,7 +6,8 @@
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules", "tests", "vitest.config.ts"]

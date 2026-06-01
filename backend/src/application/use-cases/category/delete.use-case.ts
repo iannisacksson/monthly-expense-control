@@ -4,13 +4,13 @@ import { ForbiddenError, NotFoundError } from "../../../utils/errors";
 export class DeleteCategoryUseCase {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
 
-  async execute(id: string, requestingUserId: string): Promise<void> {
+  async execute(id: string, userId: string): Promise<void> {
     const existing = await this.categoryRepository.findById(id);
     if (!existing) {
       throw new NotFoundError("Category not found");
     }
 
-    if (existing.user.id !== requestingUserId) {
+    if (existing.user.id !== userId) {
       throw new ForbiddenError();
     }
 
