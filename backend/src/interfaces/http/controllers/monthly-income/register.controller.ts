@@ -1,5 +1,16 @@
-import type { CreateMonthlyIncomeDTO } from "../../../../dtos/monthly-income.dto";
+import { plainToInstance } from "class-transformer";
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+  validate,
+} from "class-validator";
 import { RegisterMonthlyIncomeUseCase } from "../../../../application/use-cases/monthly-income/register.use-case";
+import type { CreateMonthlyIncomeDTO } from "../../../../dtos/monthly-income.dto";
+import { BadRequestError } from "../../../../utils/errors";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
@@ -8,14 +19,28 @@ import type {
 } from "../../http.types";
 import { serializeMonthlyIncome } from "./monthly-income.serializer";
 
-type RegisterBody = {
+class RegisterBody {
+  @IsUUID()
   month_id: string;
+
+  @IsOptional()
+  @IsUUID()
   recurring_income_id?: string;
+
+  @IsNumber()
+  @Min(0.01, { message: "Income amount must be greater than zero" })
   gross_income: number;
+
+  @IsString()
   income_type: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255, { message: "Income notes must be at most 255 characters" })
   notes?: string;
+
   taxation?: CreateMonthlyIncomeDTO["taxation"];
-};
+}
 
 export class RegisterMonthlyIncomeController implements IController<
   AuthenticatedHttpRequest<RegisterBody>
@@ -25,6 +50,14 @@ export class RegisterMonthlyIncomeController implements IController<
   async handle(
     request: AuthenticatedHttpRequest<RegisterBody>,
   ): Promise<HttpResponse> {
+    const body = plainToInstance(RegisterBody, request.body);
+    const errors = await validate(body);
+
+    if (errors.length > 0) {
+      const message = Object.values(errors[0].constraints ?? {})[0];
+      throw new BadRequestError(message);
+    }
+
     const {
       month_id,
       recurring_income_id,
@@ -32,7 +65,7 @@ export class RegisterMonthlyIncomeController implements IController<
       income_type,
       notes,
       taxation,
-    } = request.body;
+    } = body;
 
     const result = await this.useCase.execute(
       {

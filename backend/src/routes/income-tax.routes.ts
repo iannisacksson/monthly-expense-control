@@ -1,15 +1,6 @@
 import { Router } from "express"
-import { CreateIncomeTaxController } from "../interfaces/http/controllers/income-tax/create.controller";
-import { DeleteIncomeTaxController } from "../interfaces/http/controllers/income-tax/delete.controller";
-import { GetIncomeTaxByIdController } from "../interfaces/http/controllers/income-tax/get-by-id.controller";
-import { ListIncomeTaxesByIncomeController } from "../interfaces/http/controllers/income-tax/list-by-income.controller";
-import { UpdateIncomeTaxController } from "../interfaces/http/controllers/income-tax/update.controller";
-import { CreateIncomeTaxUseCase } from "../application/use-cases/income-tax/create.use-case";
-import { DeleteIncomeTaxUseCase } from "../application/use-cases/income-tax/delete.use-case";
-import { GetIncomeTaxByIdUseCase } from "../application/use-cases/income-tax/get-by-id.use-case";
-import { ListIncomeTaxesByIncomeUseCase } from "../application/use-cases/income-tax/list-by-income.use-case";
-import { UpdateIncomeTaxUseCase } from "../application/use-cases/income-tax/update.use-case";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
+import { incomeTaxComposer } from "../interfaces/http/controllers/income-tax";
 import {
   adaptExpressRoute,
   buildAuthenticatedHttpRequest,
@@ -18,26 +9,10 @@ import {
 
 const router = Router()
 
-const createIncomeTaxController = new CreateIncomeTaxController(
-  new CreateIncomeTaxUseCase(),
-);
-const listIncomeTaxesByIncomeController = new ListIncomeTaxesByIncomeController(
-  new ListIncomeTaxesByIncomeUseCase(),
-);
-const getIncomeTaxByIdController = new GetIncomeTaxByIdController(
-  new GetIncomeTaxByIdUseCase(),
-);
-const updateIncomeTaxController = new UpdateIncomeTaxController(
-  new UpdateIncomeTaxUseCase(),
-);
-const deleteIncomeTaxController = new DeleteIncomeTaxController(
-  new DeleteIncomeTaxUseCase(),
-);
-
 router.post(
   "/",
   adaptExpressRoute(
-    createIncomeTaxController.handle.bind(createIncomeTaxController),
+    incomeTaxComposer.create.handle.bind(incomeTaxComposer.create),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
   ),
@@ -45,8 +20,8 @@ router.post(
 router.get(
   "/income/:incomeId",
   adaptExpressRoute(
-    listIncomeTaxesByIncomeController.handle.bind(
-      listIncomeTaxesByIncomeController,
+    incomeTaxComposer.listByIncome.handle.bind(
+      incomeTaxComposer.listByIncome,
     ),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.INTERNAL_SERVER_ERROR),
@@ -55,7 +30,7 @@ router.get(
 router.get(
   "/:id",
   adaptExpressRoute(
-    getIncomeTaxByIdController.handle.bind(getIncomeTaxByIdController),
+    incomeTaxComposer.getById.handle.bind(incomeTaxComposer.getById),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.NOT_FOUND),
   ),
@@ -63,7 +38,7 @@ router.get(
 router.put(
   "/:id",
   adaptExpressRoute(
-    updateIncomeTaxController.handle.bind(updateIncomeTaxController),
+    incomeTaxComposer.update.handle.bind(incomeTaxComposer.update),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
   ),
@@ -71,7 +46,7 @@ router.put(
 router.delete(
   "/:id",
   adaptExpressRoute(
-    deleteIncomeTaxController.handle.bind(deleteIncomeTaxController),
+    incomeTaxComposer.delete.handle.bind(incomeTaxComposer.delete),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.NOT_FOUND),
   ),

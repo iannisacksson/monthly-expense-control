@@ -1,16 +1,6 @@
 import { Router } from "express"
-import { DeleteMonthlyIncomeController } from "../interfaces/http/controllers/monthly-income/delete.controller";
-import { GetMonthlyIncomeByIdController } from "../interfaces/http/controllers/monthly-income/get-by-id.controller";
-import { ListMonthlyIncomesByMonthController } from "../interfaces/http/controllers/monthly-income/list-by-month.controller";
-import { RegisterMonthlyIncomeController } from "../interfaces/http/controllers/monthly-income/register.controller";
-import { UpdateMonthlyIncomeController } from "../interfaces/http/controllers/monthly-income/update.controller";
-import { DeleteMonthlyIncomeUseCase } from "../application/use-cases/monthly-income/delete.use-case";
-import { GetMonthlyIncomeByIdUseCase } from "../application/use-cases/monthly-income/get-by-id.use-case";
-import { ListMonthlyIncomesByMonthUseCase } from "../application/use-cases/monthly-income/list-by-month.use-case";
-import { RegisterMonthlyIncomeUseCase } from "../application/use-cases/monthly-income/register.use-case";
-import { UpdateMonthlyIncomeUseCase } from "../application/use-cases/monthly-income/update.use-case";
-import { MonthlyIncomeRepository } from "../repositories/monthly-income.repository";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
+import { monthlyIncomeComposer } from "../interfaces/http/controllers/monthly-income";
 import {
   adaptExpressRoute,
   buildAuthenticatedHttpRequest,
@@ -19,31 +9,10 @@ import {
 
 const router = Router()
 
-const monthlyIncomeRepository = new MonthlyIncomeRepository();
-
-const registerMonthlyIncomeController = new RegisterMonthlyIncomeController(
-  new RegisterMonthlyIncomeUseCase(monthlyIncomeRepository),
-);
-const listMonthlyIncomesByMonthController =
-  new ListMonthlyIncomesByMonthController(
-    new ListMonthlyIncomesByMonthUseCase(monthlyIncomeRepository),
-  );
-const getMonthlyIncomeByIdController = new GetMonthlyIncomeByIdController(
-  new GetMonthlyIncomeByIdUseCase(monthlyIncomeRepository),
-);
-const updateMonthlyIncomeController = new UpdateMonthlyIncomeController(
-  new UpdateMonthlyIncomeUseCase(monthlyIncomeRepository),
-);
-const deleteMonthlyIncomeController = new DeleteMonthlyIncomeController(
-  new DeleteMonthlyIncomeUseCase(monthlyIncomeRepository),
-);
-
 router.post(
   "/",
   adaptExpressRoute(
-    registerMonthlyIncomeController.handle.bind(
-      registerMonthlyIncomeController,
-    ),
+    monthlyIncomeComposer.register.handle.bind(monthlyIncomeComposer.register),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
   ),
@@ -51,8 +20,8 @@ router.post(
 router.get(
   "/month/:monthId",
   adaptExpressRoute(
-    listMonthlyIncomesByMonthController.handle.bind(
-      listMonthlyIncomesByMonthController,
+    monthlyIncomeComposer.listByMonth.handle.bind(
+      monthlyIncomeComposer.listByMonth,
     ),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.INTERNAL_SERVER_ERROR),
@@ -61,7 +30,7 @@ router.get(
 router.get(
   "/:id",
   adaptExpressRoute(
-    getMonthlyIncomeByIdController.handle.bind(getMonthlyIncomeByIdController),
+    monthlyIncomeComposer.getById.handle.bind(monthlyIncomeComposer.getById),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.NOT_FOUND),
   ),
@@ -69,7 +38,7 @@ router.get(
 router.put(
   "/:id",
   adaptExpressRoute(
-    updateMonthlyIncomeController.handle.bind(updateMonthlyIncomeController),
+    monthlyIncomeComposer.update.handle.bind(monthlyIncomeComposer.update),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
   ),
@@ -77,7 +46,7 @@ router.put(
 router.delete(
   "/:id",
   adaptExpressRoute(
-    deleteMonthlyIncomeController.handle.bind(deleteMonthlyIncomeController),
+    monthlyIncomeComposer.delete.handle.bind(monthlyIncomeComposer.delete),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.NOT_FOUND),
   ),

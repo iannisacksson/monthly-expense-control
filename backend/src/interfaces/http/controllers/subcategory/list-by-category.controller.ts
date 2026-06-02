@@ -5,15 +5,20 @@ import type {
   HttpResponse,
   IController,
 } from "../../http.types";
+import {
+  SubcategoryResponse,
+  toSubcategoryResponse,
+} from "./subcategory.response";
 
 export class ListSubcategoriesByCategoryController implements IController<
-  AuthenticatedHttpRequest<unknown, { categoryId: string }>
+  AuthenticatedHttpRequest<unknown, { categoryId: string }>,
+  SubcategoryResponse[]
 > {
   constructor(private readonly useCase: ListSubcategoriesByCategoryUseCase) {}
 
   async handle(
     request: AuthenticatedHttpRequest<unknown, { categoryId: string }>,
-  ): Promise<HttpResponse> {
+  ): Promise<HttpResponse<SubcategoryResponse[]>> {
     const result = await this.useCase.execute(
       request.params.categoryId,
       request.userId,
@@ -21,7 +26,7 @@ export class ListSubcategoriesByCategoryController implements IController<
 
     return {
       statusCode: HttpStatusCode.OK,
-      body: result,
+      body: result.map(toSubcategoryResponse),
     };
   }
 }

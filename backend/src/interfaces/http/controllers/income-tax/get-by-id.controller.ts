@@ -5,15 +5,20 @@ import type {
   HttpResponse,
   IController,
 } from "../../http.types";
+import {
+  IncomeTaxResponse,
+  toIncomeTaxResponse,
+} from "./income-tax.response";
 
 export class GetIncomeTaxByIdController implements IController<
-  AuthenticatedHttpRequest<unknown, { id: string }>
+  AuthenticatedHttpRequest<unknown, { id: string }>,
+  IncomeTaxResponse
 > {
   constructor(private readonly useCase: GetIncomeTaxByIdUseCase) {}
 
   async handle(
     request: AuthenticatedHttpRequest<unknown, { id: string }>,
-  ): Promise<HttpResponse> {
+  ): Promise<HttpResponse<IncomeTaxResponse>> {
     const result = await this.useCase.execute(
       request.params.id,
       request.userId,
@@ -21,7 +26,7 @@ export class GetIncomeTaxByIdController implements IController<
 
     return {
       statusCode: HttpStatusCode.OK,
-      body: result,
+      body: toIncomeTaxResponse(result),
     };
   }
 }

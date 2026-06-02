@@ -1,15 +1,6 @@
 import { Router } from "express"
-import { CreateSubcategoryController } from "../interfaces/http/controllers/subcategory/create.controller";
-import { DeleteSubcategoryController } from "../interfaces/http/controllers/subcategory/delete.controller";
-import { GetSubcategoryByIdController } from "../interfaces/http/controllers/subcategory/get-by-id.controller";
-import { ListSubcategoriesByCategoryController } from "../interfaces/http/controllers/subcategory/list-by-category.controller";
-import { UpdateSubcategoryController } from "../interfaces/http/controllers/subcategory/update.controller";
-import { CreateSubcategoryUseCase } from "../application/use-cases/subcategory/create.use-case";
-import { DeleteSubcategoryUseCase } from "../application/use-cases/subcategory/delete.use-case";
-import { GetSubcategoryByIdUseCase } from "../application/use-cases/subcategory/get-by-id.use-case";
-import { ListSubcategoriesByCategoryUseCase } from "../application/use-cases/subcategory/list-by-category.use-case";
-import { UpdateSubcategoryUseCase } from "../application/use-cases/subcategory/update.use-case";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
+import { subcategoryComposer } from "../interfaces/http/controllers/subcategory";
 import {
   adaptExpressRoute,
   buildAuthenticatedHttpRequest,
@@ -18,27 +9,10 @@ import {
 
 const router = Router()
 
-const createSubcategoryController = new CreateSubcategoryController(
-  new CreateSubcategoryUseCase(),
-);
-const listSubcategoriesByCategoryController =
-  new ListSubcategoriesByCategoryController(
-    new ListSubcategoriesByCategoryUseCase(),
-  );
-const getSubcategoryByIdController = new GetSubcategoryByIdController(
-  new GetSubcategoryByIdUseCase(),
-);
-const updateSubcategoryController = new UpdateSubcategoryController(
-  new UpdateSubcategoryUseCase(),
-);
-const deleteSubcategoryController = new DeleteSubcategoryController(
-  new DeleteSubcategoryUseCase(),
-);
-
 router.post(
   "/",
   adaptExpressRoute(
-    createSubcategoryController.handle.bind(createSubcategoryController),
+    subcategoryComposer.create.handle.bind(subcategoryComposer.create),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
   ),
@@ -46,8 +20,8 @@ router.post(
 router.get(
   "/category/:categoryId",
   adaptExpressRoute(
-    listSubcategoriesByCategoryController.handle.bind(
-      listSubcategoriesByCategoryController,
+    subcategoryComposer.listByCategory.handle.bind(
+      subcategoryComposer.listByCategory,
     ),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.INTERNAL_SERVER_ERROR),
@@ -56,7 +30,7 @@ router.get(
 router.get(
   "/:id",
   adaptExpressRoute(
-    getSubcategoryByIdController.handle.bind(getSubcategoryByIdController),
+    subcategoryComposer.getById.handle.bind(subcategoryComposer.getById),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.NOT_FOUND),
   ),
@@ -64,7 +38,7 @@ router.get(
 router.put(
   "/:id",
   adaptExpressRoute(
-    updateSubcategoryController.handle.bind(updateSubcategoryController),
+    subcategoryComposer.update.handle.bind(subcategoryComposer.update),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.BAD_REQUEST),
   ),
@@ -72,7 +46,7 @@ router.put(
 router.delete(
   "/:id",
   adaptExpressRoute(
-    deleteSubcategoryController.handle.bind(deleteSubcategoryController),
+    subcategoryComposer.delete.handle.bind(subcategoryComposer.delete),
     (req) => buildAuthenticatedHttpRequest(req),
     withFallbackErrorStatus(HttpStatusCode.NOT_FOUND),
   ),
