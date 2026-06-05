@@ -6,7 +6,7 @@ export interface IExpenseItemRepository {
    * @param data Expense item fields excluding generated identifiers and timestamps.
    * @returns The created expense item.
    */
-  create(data: Omit<ExpenseItem, "id" | "createdAt">): Promise<ExpenseItem>;
+  create(data: ExpenseItem): Promise<ExpenseItem>;
 
   /**
    * Finds an expense item by its ID.
@@ -23,14 +23,10 @@ export interface IExpenseItemRepository {
 
   /**
    * Updates an expense item.
-   * @param id The expense item's ID.
-   * @param data Fields to update.
-   * @returns The updated expense item, or null if not found.
+   * @param expenseItem The expense item entity to update.
+   * @returns The updated expense item.
    */
-  update(
-    id: string,
-    data: Partial<{ description: string; amount: number }>,
-  ): Promise<ExpenseItem | null>;
+  update(expenseItem: ExpenseItem): Promise<ExpenseItem>;
 
   /**
    * Deletes an expense item.

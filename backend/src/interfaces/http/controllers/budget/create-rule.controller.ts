@@ -1,5 +1,5 @@
-import type { CreateBudgetRuleDTO } from "../../../../dtos/budget-rule.dto"
-import { CreateBudgetRuleUseCase } from "../../../../application/use-cases/budget.use-cases"
+import type { CreateBudgetRuleDTO } from "../../../../dtos/budget-rule.dto";
+import { CreateBudgetRuleUseCase } from "../../../../application/use-cases/budget-rule/budget.use-cases";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

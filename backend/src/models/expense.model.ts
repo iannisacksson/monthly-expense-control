@@ -64,7 +64,7 @@ export class ExpenseModel
   description!: string;
   value!: number;
   expenseDate!: Date;
-  paymentDate!: Date;
+  paymentDate?: Date;
   createdAt!: Date;
   updatedAt!: Date;
 

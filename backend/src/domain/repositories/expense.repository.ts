@@ -11,9 +11,7 @@ export interface IExpenseRepository {
    * @param data Expense fields excluding generated identifiers and timestamps.
    * @returns The created expense.
    */
-  create(
-    data: Omit<Expense, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Expense>;
+  create(data: Expense): Promise<Expense>;
 
   /**
    * Finds an expense by its ID.
@@ -86,27 +84,10 @@ export interface IExpenseRepository {
 
   /**
    * Updates an expense.
-   * @param id The expense's ID.
-   * @param data Fields to update.
-   * @returns The updated expense, or null if not found.
+   * @param expense The expense entity to update.
+   * @returns The updated expense.
    */
-  update(
-    id: string,
-    data: Partial<{
-      category: Category;
-      subcategory: Subcategory | null;
-      paidBy: User | null;
-      responsibleUser: User | null;
-      recurringExpenseId: RecurringExpense | null;
-      expenseKind: ExpenseKindType;
-      plannedAmount: number | null;
-      isPaid: boolean;
-      description: string;
-      value: number;
-      expenseDate: Date;
-      paymentDate: Date | null;
-    }>,
-  ): Promise<Expense | null>;
+  update(expense: Expense): Promise<Expense>;
 
   /**
    * Updates multiple expenses by their IDs.
@@ -130,18 +111,18 @@ export interface IExpenseRepository {
   delete(expense: Expense): Promise<void>;
 
   /**
-   * Deletes multiple expenses by their IDs.
-   * @param ids Array of expense IDs.
+   * Deletes multiple expenses.
+   * @param expenses Array of expense entities to delete.
    * @returns The number of deleted records.
    */
-  deleteManyByIds(ids: string[]): Promise<number>;
+  deleteMany(expenses: Expense[]): Promise<number>;
 
   /**
    * Deletes all expenses belonging to an installment group.
-   * @param installmentGroupId The installment group's ID.
+   * @param installmentGroup The installment group entity.
    * @returns The number of deleted records.
    */
-  deleteByInstallmentGroupId(installmentGroupId: string): Promise<number>;
+  deleteByInstallmentGroup(installmentGroup: InstallmentGroup): Promise<void>;
 
   /**
    * Deletes all expenses of an installment group on or after a given date.

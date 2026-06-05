@@ -1,4 +1,5 @@
 import type { ExpenseAdjustment } from "../entities/expense-adjustment.entity";
+import { Expense } from "../entities/expense.entity";
 
 export interface IExpenseAdjustmentRepository {
   /**
@@ -6,13 +7,11 @@ export interface IExpenseAdjustmentRepository {
    * @param data Adjustment fields excluding generated identifiers and timestamps.
    * @returns The created expense adjustment.
    */
-  create(
-    data: Omit<ExpenseAdjustment, "id" | "createdAt" | "updatedAt">,
-  ): Promise<ExpenseAdjustment>;
+  create(data: ExpenseAdjustment): Promise<ExpenseAdjustment>;
 
   /**
    * Returns all adjustment records for a given expense.
-   * @param expenseId The expense's ID.
+   * @param expense The expense entity.
    */
-  findByExpenseId(expenseId: string): Promise<ExpenseAdjustment[]>;
+  findByExpense(expense: Expense): Promise<ExpenseAdjustment[]>;
 }

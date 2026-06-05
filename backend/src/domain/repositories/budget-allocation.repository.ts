@@ -7,16 +7,7 @@ export interface IBudgetAllocationRepository {
    * @param data Allocation fields excluding generated identifiers, timestamps and validation methods.
    * @returns The created budget allocation.
    */
-  create(
-    data: Omit<
-      BudgetAllocation,
-      | "id"
-      | "createdAt"
-      | "updatedAt"
-      | "validatePercentage"
-      | "ensureTotalPercentageWithinLimit"
-    >,
-  ): Promise<BudgetAllocation>;
+  create(data: BudgetAllocation): Promise<BudgetAllocation>;
 
   /**
    * Finds a budget allocation by its ID.
@@ -37,10 +28,7 @@ export interface IBudgetAllocationRepository {
    * @param data Fields to update.
    * @returns The updated allocation, or null if not found.
    */
-  update(
-    id: string,
-    data: Partial<{ category: Category; percentage: number }>,
-  ): Promise<BudgetAllocation | null>;
+  update(budgetAllocation: BudgetAllocation): Promise<BudgetAllocation>;
 
   /**
    * Deletes a budget allocation.

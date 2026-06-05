@@ -50,7 +50,7 @@ export class InstallmentGroupModel
   responsibleUserId?: string;
   responsibleUser?: User;
   startMonthId?: string;
-  startMonth?: Month;
+  startMonth: Month;
   createdAt!: Date;
   updatedAt!: Date;
 

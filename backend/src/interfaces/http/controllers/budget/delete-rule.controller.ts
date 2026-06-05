@@ -1,4 +1,4 @@
-import { DeleteBudgetRuleUseCase } from "../../../../application/use-cases/budget.use-cases"
+import { DeleteBudgetRuleUseCase } from "../../../../application/use-cases/budget-rule/budget.use-cases";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

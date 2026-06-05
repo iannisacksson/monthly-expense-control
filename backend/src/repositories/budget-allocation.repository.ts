@@ -4,21 +4,8 @@ import type { IBudgetAllocationRepository } from "../domain/repositories/budget-
 import { BudgetAllocationModel } from "../models/budget-allocation.model";
 
 export class BudgetAllocationRepository implements IBudgetAllocationRepository {
-  async create(
-    data: Omit<
-      BudgetAllocation,
-      | "id"
-      | "createdAt"
-      | "updatedAt"
-      | "validatePercentage"
-      | "ensureTotalPercentageWithinLimit"
-    >,
-  ): Promise<BudgetAllocation> {
-    const model = await BudgetAllocationModel.create({
-      budgetRule: data.budgetRule,
-      categoryId: data.category.id,
-      percentage: data.percentage,
-    });
+  async create(data: BudgetAllocation): Promise<BudgetAllocation> {
+    const model = await BudgetAllocationModel.create(data);
     return model.toDomain();
   }
 
@@ -34,16 +21,11 @@ export class BudgetAllocationRepository implements IBudgetAllocationRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async update(
-    id: string,
-    data: Partial<{ category: Category; percentage: number }>,
-  ): Promise<BudgetAllocation | null> {
-    const model = await BudgetAllocationModel.findByPk(id);
-    if (!model) return null;
-    const updateData: Record<string, unknown> = {};
-    if (data.category !== undefined) updateData.categoryId = data.category.id;
-    if (data.percentage !== undefined) updateData.percentage = data.percentage;
-    await model.update(updateData);
+  async update(budgetAllocation: BudgetAllocation): Promise<BudgetAllocation> {
+    const [_, [model]] = await BudgetAllocationModel.update(budgetAllocation, {
+      where: { id: budgetAllocation.id },
+      returning: true,
+    });
     return model.toDomain();
   }
 

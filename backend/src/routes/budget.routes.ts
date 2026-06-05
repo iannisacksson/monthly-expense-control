@@ -1,4 +1,4 @@
-import { Router } from "express"
+import { Router } from "express";
 import { CreateBudgetAllocationController } from "../interfaces/http/controllers/budget/create-allocation.controller";
 import { CreateBudgetRuleController } from "../interfaces/http/controllers/budget/create-rule.controller";
 import { DeleteBudgetAllocationController } from "../interfaces/http/controllers/budget/delete-allocation.controller";
@@ -18,7 +18,7 @@ import {
   ListBudgetRulesUseCase,
   UpdateBudgetAllocationUseCase,
   UpdateBudgetRuleUseCase,
-} from "../application/use-cases/budget.use-cases";
+} from "../application/use-cases/budget-rule/budget.use-cases";
 import { HttpStatusCode } from "../interfaces/http/http-status-code";
 import {
   adaptExpressRoute,
@@ -26,7 +26,7 @@ import {
   withFallbackErrorStatus,
 } from "../interfaces/http/express-route.adapter";
 
-const router = Router()
+const router = Router();
 
 const createBudgetRuleController = new CreateBudgetRuleController(
   new CreateBudgetRuleUseCase(),
@@ -139,4 +139,4 @@ router.delete(
   ),
 );
 
-export default router
+export default router;

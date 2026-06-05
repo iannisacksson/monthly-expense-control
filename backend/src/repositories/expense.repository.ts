@@ -1,35 +1,16 @@
 import { Op } from "sequelize";
-import type { Category } from "../domain/entities/category.entity";
 import type {
   Expense,
   ExpenseKindType,
 } from "../domain/entities/expense.entity";
-import type { RecurringExpense } from "../domain/entities/recurring-expense.entity";
-import type { Subcategory } from "../domain/entities/subcategory.entity";
 import type { User } from "../domain/entities/user.entity";
 import type { IExpenseRepository } from "../domain/repositories/expense.repository";
 import { ExpenseModel } from "../models/expense.model";
+import { InstallmentGroup } from "../domain/entities/installment-group.entity";
 
 export class ExpenseRepository implements IExpenseRepository {
-  async create(
-    data: Omit<Expense, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Expense> {
-    const model = await ExpenseModel.create({
-      month: data.month,
-      category: data.category,
-      subcategory: data.subcategory,
-      paidBy: data.paidBy,
-      responsibleUser: data.responsibleUser,
-      installmentGroupId: data.installmentGroupId,
-      recurringExpenseId: data.recurringExpenseId,
-      expenseKind: data.expenseKind,
-      plannedAmount: data.plannedAmount,
-      isPaid: data.isPaid,
-      description: data.description,
-      value: data.value,
-      expenseDate: data.expenseDate,
-      paymentDate: data.paymentDate,
-    });
+  async create(data: Expense): Promise<Expense> {
+    const model = await ExpenseModel.create(data);
     return model.toDomain();
   }
 
@@ -101,49 +82,12 @@ export class ExpenseRepository implements IExpenseRepository {
     return model ? model.toDomain() : null;
   }
 
-  async update(
-    id: string,
-    data: Partial<{
-      category: Category;
-      subcategory: Subcategory | null;
-      paidBy: User | null;
-      responsibleUser: User | null;
-      recurringExpenseId: RecurringExpense | null;
-      expenseKind: ExpenseKindType;
-      plannedAmount: number | null;
-      isPaid: boolean;
-      description: string;
-      value: number;
-      expenseDate: Date;
-      paymentDate: Date | null;
-    }>,
-  ): Promise<Expense | null> {
-    const model = await ExpenseModel.findByPk(id);
-    if (!model) return null;
-    const updateData: Record<string, unknown> = {};
-    if (data.category !== undefined) updateData.categoryId = data.category.id;
-    if (data.subcategory !== undefined)
-      updateData.subcategoryId = data.subcategory?.id ?? null;
-    if (data.paidBy !== undefined)
-      updateData.paidById = data.paidBy?.id ?? null;
-    if (data.responsibleUser !== undefined)
-      updateData.responsibleUserId = data.responsibleUser?.id ?? null;
-    if (data.recurringExpenseId !== undefined)
-      updateData.recurringExpenseFkId = data.recurringExpenseId?.id ?? null;
-    if (data.expenseKind !== undefined)
-      updateData.expenseKind = data.expenseKind;
-    if (data.plannedAmount !== undefined)
-      updateData.plannedAmount = data.plannedAmount;
-    if (data.isPaid !== undefined) updateData.isPaid = data.isPaid;
-    if (data.description !== undefined)
-      updateData.description = data.description;
-    if (data.value !== undefined) updateData.value = data.value;
-    if (data.expenseDate !== undefined)
-      updateData.expenseDate = data.expenseDate;
-    if (data.paymentDate !== undefined)
-      updateData.paymentDate = data.paymentDate;
-    await model.update(updateData);
-    return model.toDomain();
+  async update(expense: Expense): Promise<Expense> {
+    const [_, [updatedModel]] = await ExpenseModel.update(expense, {
+      where: { id: expense.id },
+      returning: true,
+    });
+    return updatedModel.toDomain();
   }
 
   async updateManyByIds(
@@ -167,20 +111,18 @@ export class ExpenseRepository implements IExpenseRepository {
   }
 
   async delete(expense: Expense): Promise<void> {
-    const model = await ExpenseModel.findByPk(expense.id);
-    if (!model) return;
-    await model.destroy();
+    await ExpenseModel.destroy({ where: { id: expense.id } });
   }
 
-  async deleteManyByIds(ids: string[]): Promise<number> {
-    return ExpenseModel.destroy({ where: { id: ids } });
+  async deleteMany(expenses: Expense[]): Promise<number> {
+    return ExpenseModel.destroy({ where: { id: expenses.map((e) => e.id) } });
   }
 
-  async deleteByInstallmentGroupId(
-    installmentGroupId: string,
-  ): Promise<number> {
-    return ExpenseModel.destroy({
-      where: { installmentGroupFkId: installmentGroupId },
+  async deleteByInstallmentGroup(
+    installmentGroup: InstallmentGroup,
+  ): Promise<void> {
+    await ExpenseModel.destroy({
+      where: { installmentGroupFkId: installmentGroup.id },
     });
   }
 

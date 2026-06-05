@@ -1,5 +1,5 @@
-import type { CreateBudgetAllocationDTO } from "../../../../dtos/budget-allocation.dto"
-import { CreateBudgetAllocationUseCase } from "../../../../application/use-cases/budget.use-cases"
+import type { CreateBudgetAllocationDTO } from "../../../../dtos/budget-allocation.dto";
+import { CreateBudgetAllocationUseCase } from "../../../../application/use-cases/budget-rule/budget.use-cases";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,

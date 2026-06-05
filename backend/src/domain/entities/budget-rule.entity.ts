@@ -7,7 +7,7 @@ export interface BudgetRule {
   createdAt: Date;
   updatedAt: Date;
 
-  validateName(name: string): void;
+  validateName(): void;
 }
 
 export class BudgetRuleEntity implements BudgetRule {
@@ -21,8 +21,8 @@ export class BudgetRuleEntity implements BudgetRule {
     Object.assign(this, data);
   }
 
-  validateName(name: string): void {
-    const normalizedName = name?.trim();
+  validateName(): void {
+    const normalizedName = this.name?.trim();
 
     if (
       !normalizedName ||
@@ -31,5 +31,7 @@ export class BudgetRuleEntity implements BudgetRule {
     ) {
       throw new Error("Budget rule name must be between 2 and 100 characters");
     }
+
+    this.name = normalizedName;
   }
 }

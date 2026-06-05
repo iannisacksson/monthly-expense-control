@@ -3,14 +3,8 @@ import type { IExpenseItemRepository } from "../domain/repositories/expense-item
 import { ExpenseItemModel } from "../models/expense-item.model";
 
 export class ExpenseItemRepository implements IExpenseItemRepository {
-  async create(
-    data: Omit<ExpenseItem, "id" | "createdAt">,
-  ): Promise<ExpenseItem> {
-    const model = await ExpenseItemModel.create({
-      expense: data.expense,
-      description: data.description,
-      amount: data.amount,
-    });
+  async create(data: ExpenseItem): Promise<ExpenseItem> {
+    const model = await ExpenseItemModel.create(data);
     return model.toDomain();
   }
 
@@ -27,13 +21,11 @@ export class ExpenseItemRepository implements IExpenseItemRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async update(
-    id: string,
-    data: Partial<{ description: string; amount: number }>,
-  ): Promise<ExpenseItem | null> {
-    const model = await ExpenseItemModel.findByPk(id);
-    if (!model) return null;
-    await model.update(data);
+  async update(expenseItem: ExpenseItem): Promise<ExpenseItem> {
+    const [_, [model]] = await ExpenseItemModel.update(expenseItem, {
+      where: { id: expenseItem.id },
+      returning: true,
+    });
     return model.toDomain();
   }
 

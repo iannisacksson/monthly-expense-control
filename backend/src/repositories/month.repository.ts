@@ -4,16 +4,8 @@ import type { IMonthRepository } from "../domain/repositories/month.repository";
 import { MonthModel } from "../models/month.model";
 
 export class MonthRepository implements IMonthRepository {
-  async create(
-    data: Omit<Month, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Month> {
-    const model = await MonthModel.create({
-      user: data.user,
-      year: data.year,
-      month: data.month,
-      status: data.status,
-      budgetRule: data.budgetRule,
-    });
+  async create(data: Month): Promise<Month> {
+    const model = await MonthModel.create(data);
     return model.toDomain();
   }
 
@@ -36,18 +28,12 @@ export class MonthRepository implements IMonthRepository {
     return model ? model.toDomain() : null;
   }
 
-  async update(
-    id: string,
-    data: Partial<{ status: MonthStatus; budgetRule: BudgetRule | null }>,
-  ): Promise<Month | null> {
-    const model = await MonthModel.findByPk(id);
-    if (!model) return null;
-    const updateData: Record<string, unknown> = {};
-    if (data.status !== undefined) updateData.status = data.status;
-    if ("budgetRule" in data)
-      updateData.budgetRuleId = data.budgetRule?.id ?? null;
-    await model.update(updateData);
-    return model.toDomain();
+  async update(month: Month): Promise<Month> {
+    const [, [updatedModel]] = await MonthModel.update(month, {
+      where: { id: month.id },
+      returning: true,
+    });
+    return updatedModel.toDomain();
   }
 
   async delete(month: Month): Promise<void> {

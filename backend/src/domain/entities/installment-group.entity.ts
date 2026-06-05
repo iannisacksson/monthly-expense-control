@@ -3,6 +3,12 @@ import { Month } from "./month.entity";
 import { Subcategory } from "./subcategory.entity";
 import { User } from "./user.entity";
 
+export enum InstallmentGroupScope {
+  SINGLE_OCCURRENCE = "single_occurrence",
+  FUTURE_OCCURRENCES = "future_occurrences",
+  WHOLE_SERIES = "whole_series",
+}
+
 export interface InstallmentGroup {
   id: string;
   user: User;
@@ -14,7 +20,7 @@ export interface InstallmentGroup {
   subcategory?: Subcategory;
   paidBy?: User;
   responsibleUser?: User;
-  startMonth?: Month;
+  startMonth: Month;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,7 +36,7 @@ export class InstallmentGroupEntity implements InstallmentGroup {
   subcategory?: Subcategory;
   paidBy?: User;
   responsibleUser?: User;
-  startMonth?: Month;
+  startMonth: Month;
   createdAt: Date;
   updatedAt: Date;
 

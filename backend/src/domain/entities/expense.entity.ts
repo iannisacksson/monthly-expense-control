@@ -7,7 +7,7 @@ import { User } from "./user.entity";
 
 export enum ExpenseKindType {
   STANDARD = "standard",
-  INSTALLMENT = "envelope",
+  ENVELOPE = "envelope",
 }
 
 export interface Expense {
@@ -25,7 +25,7 @@ export interface Expense {
   description: string;
   value: number;
   expenseDate: Date;
-  paymentDate: Date;
+  paymentDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +45,7 @@ export class ExpenseEntity implements Expense {
   description: string;
   value: number;
   expenseDate: Date;
-  paymentDate: Date;
+  paymentDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 

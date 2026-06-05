@@ -15,6 +15,11 @@ export interface Month {
   budgetRule?: BudgetRule;
   createdAt: Date;
   updatedAt: Date;
+
+  isClosed(): boolean;
+  validatePeriod(year: number, month: number): void;
+  validateStatus(status: MonthStatus): void;
+  ensureDeletionAllowed(): void;
 }
 
 export class MonthEntity implements Month {
@@ -31,7 +36,11 @@ export class MonthEntity implements Month {
     Object.assign(this, data);
   }
 
-  static validatePeriod(year: number, month: number) {
+  isClosed(): boolean {
+    return this.status === MonthStatus.CLOSED;
+  }
+
+  validatePeriod(year: number, month: number) {
     if (month < 1 || month > 12) {
       throw new Error("Month must be between 1 and 12");
     }
@@ -41,13 +50,13 @@ export class MonthEntity implements Month {
     }
   }
 
-  static validateStatus(status: MonthStatus) {
+  validateStatus(status: MonthStatus) {
     if (!Object.values(MonthStatus).includes(status)) {
       throw new Error("Status must be open or closed");
     }
   }
 
-  static ensureDeletionAllowed() {
+  ensureDeletionAllowed() {
     throw new Error("Month deletion is not allowed");
   }
 }

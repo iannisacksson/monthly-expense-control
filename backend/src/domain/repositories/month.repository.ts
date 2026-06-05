@@ -7,7 +7,7 @@ export interface IMonthRepository {
    * @param data Month fields excluding generated identifiers and timestamps.
    * @returns The created month.
    */
-  create(data: Omit<Month, "id" | "createdAt" | "updatedAt">): Promise<Month>;
+  create(data: Month): Promise<Month>;
 
   /**
    * Finds a month by its ID.
@@ -37,14 +37,10 @@ export interface IMonthRepository {
 
   /**
    * Updates a month's status or budget rule.
-   * @param id The month's ID.
-   * @param data Fields to update.
-   * @returns The updated month, or null if not found.
+   * @param month The month entity to update.
+   * @returns The updated month.
    */
-  update(
-    id: string,
-    data: Partial<{ status: MonthStatus; budgetRule: BudgetRule | null }>,
-  ): Promise<Month | null>;
+  update(month: Month): Promise<Month>;
 
   /**
    * Deletes a month.
