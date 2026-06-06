@@ -230,7 +230,7 @@ export class CreateMonthUseCase {
         subcategory: recurringExpense.subcategory,
         paidBy: recurringExpense.paidBy,
         responsibleUser: recurringExpense.responsibleUser,
-        recurringExpenseId: new RecurringExpenseEntity({
+        recurringExpense: new RecurringExpenseEntity({
           id: recurringExpense.id,
         }),
         expenseKind: recurringExpense.expenseKind ?? ExpenseKindType.STANDARD,
