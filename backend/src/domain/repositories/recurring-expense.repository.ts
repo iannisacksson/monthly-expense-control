@@ -1,7 +1,4 @@
-import type { Category } from "../entities/category.entity";
 import type { RecurringExpense } from "../entities/recurring-expense.entity";
-import type { Subcategory } from "../entities/subcategory.entity";
-import type { User } from "../entities/user.entity";
 
 export interface IRecurringExpenseRepository {
   /**
@@ -9,12 +6,7 @@ export interface IRecurringExpenseRepository {
    * @param data Recurring expense fields excluding generated identifiers, timestamps and validation methods.
    * @returns The created recurring expense.
    */
-  create(
-    data: Omit<
-      RecurringExpense,
-      "id" | "createdAt" | "updatedAt" | "validateBaseFields"
-    >,
-  ): Promise<RecurringExpense>;
+  create(data: RecurringExpense): Promise<RecurringExpense>;
 
   /**
    * Finds a recurring expense entry by its ID.
@@ -31,25 +23,10 @@ export interface IRecurringExpenseRepository {
 
   /**
    * Updates a recurring expense entry.
-   * @param id The recurring expense's ID.
-   * @param data Fields to update.
-   * @returns The updated recurring expense, or null if not found.
+   * @param recurringExpense The recurring expense entity to update.
+   * @returns The updated recurring expense.
    */
-  update(
-    id: string,
-    data: Partial<{
-      description: string;
-      value: number;
-      expenseKind: string;
-      plannedAmount: number | null;
-      category: Category;
-      subcategory: Subcategory | null;
-      paidBy: User | null;
-      responsibleUser: User | null;
-      occurrences: number | null;
-      status: string;
-    }>,
-  ): Promise<RecurringExpense | null>;
+  update(recurringExpense: RecurringExpense): Promise<RecurringExpense>;
 
   /**
    * Deletes a recurring expense entry.

@@ -21,21 +21,14 @@ import {
 } from "../domain/entities/subcategory.entity";
 import { User, UserEntity } from "../domain/entities/user.entity";
 
-type ExpenseAttributes = Omit<
-  Expense,
-  "paidBy" | "responsibleUser" | "installmentGroupId" | "recurringExpenseId"
-> & {
+type ExpenseAttributes = Expense & {
   monthId?: string;
   categoryId?: string;
   subcategoryId?: string;
   paidById?: string;
-  paidBy?: User;
   responsibleUserId?: string;
-  responsibleUser?: User;
-  installmentGroupFkId?: string;
-  installmentGroupId?: InstallmentGroup;
-  recurringExpenseFkId?: string;
-  recurringExpenseId?: RecurringExpense;
+  installmentGroupId?: string;
+  recurringExpenseId?: string;
 };
 type ExpenseCreationAttributes = Omit<ExpenseAttributes, "id">;
 
@@ -54,10 +47,10 @@ export class ExpenseModel
   paidBy?: User;
   responsibleUserId?: string;
   responsibleUser?: User;
-  installmentGroupFkId?: string;
-  installmentGroupId?: InstallmentGroup;
-  recurringExpenseFkId?: string;
-  recurringExpenseId?: RecurringExpense;
+  installmentGroupId?: string;
+  installmentGroup?: InstallmentGroup;
+  recurringExpenseId?: string;
+  recurringExpense?: RecurringExpense;
   expenseKind!: ExpenseKindType;
   plannedAmount!: number;
   isPaid!: boolean;
@@ -76,10 +69,10 @@ export class ExpenseModel
     this.paidById = data?.paidById ?? data?.paidBy?.id;
     this.responsibleUserId =
       data?.responsibleUserId ?? data?.responsibleUser?.id;
-    this.installmentGroupFkId =
-      data?.installmentGroupFkId ?? data?.installmentGroupId?.id;
-    this.recurringExpenseFkId =
-      data?.recurringExpenseFkId ?? data?.recurringExpenseId?.id;
+    this.installmentGroupId =
+      data?.installmentGroupId ?? data?.installmentGroup?.id;
+    this.recurringExpenseId =
+      data?.recurringExpenseId ?? data?.recurringExpense?.id;
   }
 
   toDomain(): Expense {
@@ -89,8 +82,8 @@ export class ExpenseModel
       subcategoryId,
       paidById,
       responsibleUserId,
-      installmentGroupFkId,
-      recurringExpenseFkId,
+      installmentGroupId,
+      recurringExpenseId,
       ...rest
     } = this.get();
     return new ExpenseEntity({
@@ -104,11 +97,11 @@ export class ExpenseModel
       responsibleUser: responsibleUserId
         ? new UserEntity({ id: responsibleUserId })
         : undefined,
-      installmentGroupId: installmentGroupFkId
-        ? new InstallmentGroupEntity({ id: installmentGroupFkId })
+      installmentGroup: installmentGroupId
+        ? new InstallmentGroupEntity({ id: installmentGroupId })
         : undefined,
-      recurringExpenseId: recurringExpenseFkId
-        ? new RecurringExpenseEntity({ id: recurringExpenseFkId })
+      recurringExpense: recurringExpenseId
+        ? new RecurringExpenseEntity({ id: recurringExpenseId })
         : undefined,
     });
   }
@@ -175,27 +168,27 @@ ExpenseModel.init(
         return id ? new UserEntity({ id }) : undefined;
       },
     },
-    installmentGroupFkId: {
+    installmentGroupId: {
       type: DataTypes.UUID,
       allowNull: true,
       field: "installment_group_id",
     },
-    installmentGroupId: {
+    installmentGroup: {
       type: DataTypes.VIRTUAL,
       get() {
-        const id = this.getDataValue("installmentGroupFkId");
+        const id = this.getDataValue("installmentGroupId");
         return id ? new InstallmentGroupEntity({ id }) : undefined;
       },
     },
-    recurringExpenseFkId: {
+    recurringExpenseId: {
       type: DataTypes.UUID,
       allowNull: true,
       field: "recurring_expense_id",
     },
-    recurringExpenseId: {
+    recurringExpense: {
       type: DataTypes.VIRTUAL,
       get() {
-        const id = this.getDataValue("recurringExpenseFkId");
+        const id = this.getDataValue("recurringExpenseId");
         return id ? new RecurringExpenseEntity({ id }) : undefined;
       },
     },

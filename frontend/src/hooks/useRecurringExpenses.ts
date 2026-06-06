@@ -44,7 +44,8 @@ export function useRecurringExpenseExpenses(id: string) {
 export function useCreateRecurringExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreateRecurringExpenseDTO) => recurringExpenseService.create(dto),
+    mutationFn: (dto: CreateRecurringExpenseDTO) =>
+      recurringExpenseService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RECURRING_EXPENSES_KEY });
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -55,7 +56,8 @@ export function useCreateRecurringExpense() {
 export function useUpdateRecurringExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: UpdateRecurringExpenseDTO }) => recurringExpenseService.update(id, dto),
+    mutationFn: ({ id, dto }: { id: string; dto: UpdateRecurringExpenseDTO }) =>
+      recurringExpenseService.update(id, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RECURRING_EXPENSES_KEY });
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -66,7 +68,13 @@ export function useUpdateRecurringExpense() {
 export function useDeleteRecurringExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto?: DeleteRecurringExpenseDTO }) => recurringExpenseService.delete(id, dto),
+    mutationFn: ({
+      id,
+      dto,
+    }: {
+      id: string;
+      dto?: DeleteRecurringExpenseDTO;
+    }) => recurringExpenseService.delete(id, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RECURRING_EXPENSES_KEY });
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
@@ -77,7 +85,13 @@ export function useDeleteRecurringExpense() {
 export function useRestoreRecurringExpenseOccurrence() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: RestoreRecurringExpenseOccurrenceDTO }) => recurringExpenseService.restoreOccurrence(id, dto),
+    mutationFn: ({
+      id,
+      dto,
+    }: {
+      id: string;
+      dto: RestoreRecurringExpenseOccurrenceDTO;
+    }) => recurringExpenseService.restoreOccurrence(id, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RECURRING_EXPENSES_KEY });
       queryClient.invalidateQueries({ queryKey: ["expenses"] });

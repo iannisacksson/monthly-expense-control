@@ -17,8 +17,8 @@ export interface Expense {
   subcategory?: Subcategory;
   paidBy?: User;
   responsibleUser?: User;
-  installmentGroupId?: InstallmentGroup;
-  recurringExpenseId?: RecurringExpense;
+  installmentGroup?: InstallmentGroup;
+  recurringExpense?: RecurringExpense;
   expenseKind: ExpenseKindType;
   plannedAmount: number;
   isPaid: boolean;
@@ -37,8 +37,8 @@ export class ExpenseEntity implements Expense {
   subcategory?: Subcategory;
   paidBy?: User;
   responsibleUser?: User;
-  installmentGroupId?: InstallmentGroup;
-  recurringExpenseId?: RecurringExpense;
+  installmentGroup?: InstallmentGroup;
+  recurringExpense?: RecurringExpense;
   expenseKind: ExpenseKindType;
   plannedAmount: number;
   isPaid: boolean;
