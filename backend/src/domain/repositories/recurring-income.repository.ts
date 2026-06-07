@@ -6,12 +6,7 @@ export interface IRecurringIncomeRepository {
    * @param data Recurring income fields excluding generated identifiers, timestamps and validation methods.
    * @returns The created recurring income.
    */
-  create(
-    data: Omit<
-      RecurringIncome,
-      "id" | "createdAt" | "updatedAt" | "validateBaseFields"
-    >,
-  ): Promise<RecurringIncome>;
+  create(data: RecurringIncome): Promise<RecurringIncome>;
 
   /**
    * Finds a recurring income entry by its ID.
@@ -23,33 +18,21 @@ export interface IRecurringIncomeRepository {
   /**
    * Returns all recurring incomes belonging to a user.
    * @param userId The user's ID.
+   * @returns An array of recurring incomes.
    */
   findByUserId(userId: string): Promise<RecurringIncome[]>;
 
   /**
    * Updates a recurring income entry.
-   * @param id The recurring income's ID.
-   * @param data Fields to update.
-   * @returns The updated recurring income, or null if not found.
+   * @param data The recurring income entity with updated fields.
+   * @returns The updated recurring income.
    */
-  update(
-    id: string,
-    data: Partial<{
-      description: string;
-      grossIncome: number;
-      incomeType: string;
-      taxationMode: string;
-      taxationProfile: string | null;
-      taxationParameters: Record<string, unknown> | null;
-      kind: string;
-      occurrences: number | null;
-      status: string;
-    }>,
-  ): Promise<RecurringIncome | null>;
+  update(data: RecurringIncome): Promise<RecurringIncome>;
 
   /**
    * Deletes a recurring income entry.
    * @param income The recurring income entity to delete.
+   * @returns A promise that resolves when the deletion is complete.
    */
   delete(income: RecurringIncome): Promise<void>;
 }

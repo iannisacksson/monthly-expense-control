@@ -1,3 +1,4 @@
+import { MeProLaboreTaxationParametersDTO } from "../../dtos/monthly-income.dto";
 import { BadRequestError } from "../../utils/errors";
 import { Month } from "./month.entity";
 import { RecurringIncome } from "./recurring-income.entity";
@@ -24,7 +25,7 @@ export interface MonthlyIncome {
   incomeType: IncomeType;
   taxationMode: TaxationModeType;
   taxationProfile?: string; // todo: identificr valores.
-  taxationParameters?: Record<string, unknown>;
+  taxationParameters?: MeProLaboreTaxationParametersDTO;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -42,7 +43,7 @@ export class MonthlyIncomeEntity implements MonthlyIncome {
   incomeType: IncomeType;
   taxationMode: TaxationModeType;
   taxationProfile?: string; // todo: identificr valores.
-  taxationParameters?: Record<string, unknown>;
+  taxationParameters?: MeProLaboreTaxationParametersDTO;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;

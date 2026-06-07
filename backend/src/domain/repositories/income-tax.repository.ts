@@ -25,12 +25,7 @@ export interface IIncomeTaxRepository {
    * @returns The created income taxes.
    */
   createMany(
-    data: Array<{
-      monthlyIncomeId: string;
-      taxType: string;
-      value: number;
-      isAuto: boolean;
-    }>,
+    data: Array<IncomeTax>,
     options?: { transaction?: Transaction },
   ): Promise<IncomeTax[]>;
 
