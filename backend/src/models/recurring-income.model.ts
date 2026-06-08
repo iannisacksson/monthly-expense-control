@@ -12,6 +12,10 @@ import {
 } from "../domain/entities/monthly-income.entity";
 import { Month, MonthEntity } from "../domain/entities/month.entity";
 import { User, UserEntity } from "../domain/entities/user.entity";
+import {
+  IncomeTaxationProfile,
+  MeProLaboreTaxationParametersDTO,
+} from "../dtos/monthly-income.dto";
 
 type RecurringIncomeAttributes = RecurringIncome & {
   userId?: string;
@@ -38,8 +42,8 @@ export class RecurringIncomeModel
   occurrences?: number;
   status!: RecurringIncomeStatus;
   taxationMode!: TaxationModeType;
-  taxationProfile?: string;
-  taxationParameters?: Record<string, unknown>;
+  taxationProfile?: IncomeTaxationProfile;
+  taxationParameters?: MeProLaboreTaxationParametersDTO;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -63,6 +67,10 @@ export class RecurringIncomeModel
 
   validateBaseFields() {
     this.toDomain().validateBaseFields();
+  }
+
+  normalizeTaxation() {
+    this.toDomain().normalizeTaxation();
   }
 }
 
@@ -144,6 +152,12 @@ RecurringIncomeModel.init(
       type: DataTypes.VIRTUAL,
       get() {
         return this.validateBaseFields;
+      },
+    },
+    normalizeTaxation: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.normalizeTaxation;
       },
     },
   },

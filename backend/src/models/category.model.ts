@@ -36,6 +36,14 @@ export class CategoryModel
       user: new UserEntity({ id: this.userId }),
     });
   }
+
+  validateName() {
+    this.toDomain().validateName();
+  }
+
+  ensureUserOwnership() {
+    this.toDomain().ensureUserOwnership();
+  }
 }
 
 CategoryModel.init(
@@ -72,6 +80,18 @@ CategoryModel.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    validateName: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.validateName;
+      },
+    },
+    ensureUserOwnership: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.ensureUserOwnership;
+      },
     },
   },
   {

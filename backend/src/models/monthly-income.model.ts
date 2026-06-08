@@ -5,6 +5,7 @@ import {
   MonthlyIncomeEntity,
   IncomeType,
   TaxationModeType,
+  CalculatedIncomeTax,
 } from "../domain/entities/monthly-income.entity";
 import { Month, MonthEntity } from "../domain/entities/month.entity";
 import {
@@ -12,11 +13,12 @@ import {
   RecurringIncomeEntity,
 } from "../domain/entities/recurring-income.entity";
 import { User, UserEntity } from "../domain/entities/user.entity";
+import { MeProLaboreTaxationParametersDTO } from "../dtos/monthly-income.dto";
 
 type MonthlyIncomeAttributes = MonthlyIncome & {
   userId?: string;
   monthId?: string;
-  recurringIncomeId?: string | null;
+  recurringIncomeId?: string;
 };
 type MonthlyIncomeCreationAttributes = Omit<
   MonthlyIncomeAttributes,
@@ -32,14 +34,14 @@ export class MonthlyIncomeModel
   user!: User;
   monthId?: string;
   month!: Month;
-  recurringIncomeId?: string | null;
+  recurringIncomeId?: string;
   recurringIncome?: RecurringIncome;
   grossIncome!: number;
   incomeType!: IncomeType;
   taxationMode!: TaxationModeType;
-  taxationProfile?: string | null;
-  taxationParameters?: Record<string, unknown> | null;
-  notes?: string | null;
+  taxationProfile?: string;
+  taxationParameters?: MeProLaboreTaxationParametersDTO;
+  notes?: string;
   createdAt!: Date;
   updatedAt!: Date;
 
@@ -69,6 +71,14 @@ export class MonthlyIncomeModel
 
   validateNotes() {
     this.toDomain().validateNotes();
+  }
+
+  normalizeTaxation() {
+    this.toDomain().normalizeTaxation();
+  }
+
+  calculateAutomaticTaxes(): CalculatedIncomeTax[] {
+    return this.toDomain().calculateAutomaticTaxes();
   }
 }
 
@@ -140,6 +150,11 @@ MonthlyIncomeModel.init(
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
     validateGrossIncome: {
       type: DataTypes.VIRTUAL,
       get() {
@@ -150,6 +165,18 @@ MonthlyIncomeModel.init(
       type: DataTypes.VIRTUAL,
       get() {
         return this.validateNotes;
+      },
+    },
+    normalizeTaxation: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.normalizeTaxation;
+      },
+    },
+    calculateAutomaticTaxes: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.calculateAutomaticTaxes;
       },
     },
   },

@@ -36,8 +36,8 @@ export class BudgetRuleModel
     });
   }
 
-  validateName(name: string) {
-    this.toDomain().validateName(name);
+  validateName() {
+    this.toDomain().validateName();
   }
 }
 

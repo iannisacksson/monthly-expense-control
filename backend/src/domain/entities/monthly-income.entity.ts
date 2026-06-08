@@ -24,7 +24,7 @@ export enum TaxationModeType {
   AUTOMATIC = "automatic",
 }
 
-interface CalculatedIncomeTax {
+export interface CalculatedIncomeTax {
   tax_type: string;
   value: number;
   is_auto: true;

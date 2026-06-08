@@ -45,6 +45,22 @@ export class MonthModel
         : undefined,
     });
   }
+
+  isClosed(): boolean {
+    return this.toDomain().isClosed();
+  }
+
+  validatePeriod(year: number, month: number) {
+    this.toDomain().validatePeriod(year, month);
+  }
+
+  validateStatus(status: MonthStatus) {
+    this.toDomain().validateStatus(status);
+  }
+
+  ensureDeletionAllowed() {
+    this.toDomain().ensureDeletionAllowed();
+  }
 }
 
 MonthModel.init(
@@ -96,6 +112,30 @@ MonthModel.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    validatePeriod: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.validatePeriod;
+      },
+    },
+    validateStatus: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.validateStatus;
+      },
+    },
+    ensureDeletionAllowed: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.ensureDeletionAllowed;
+      },
+    },
+    isClosed: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.isClosed;
+      },
     },
   },
   {
