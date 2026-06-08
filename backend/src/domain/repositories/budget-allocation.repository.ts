@@ -1,5 +1,5 @@
 import type { BudgetAllocation } from "../entities/budget-allocation.entity";
-import type { Category } from "../entities/category.entity";
+import { BudgetRule } from "../entities/budget-rule.entity";
 
 export interface IBudgetAllocationRepository {
   /**
@@ -18,14 +18,14 @@ export interface IBudgetAllocationRepository {
 
   /**
    * Returns all allocations for a given budget rule.
-   * @param budgetRuleId The budget rule's ID.
+   * @param budgetRule The budget rule entity.
+   * @returns An array of budget allocations associated with the specified budget rule.
    */
-  findByBudgetRuleId(budgetRuleId: string): Promise<BudgetAllocation[]>;
+  findByBudgetRule(budgetRule: BudgetRule): Promise<BudgetAllocation[]>;
 
   /**
    * Updates a budget allocation.
-   * @param id The allocation's ID.
-   * @param data Fields to update.
+   * @param budgetAllocation The budget allocation entity to update.
    * @returns The updated allocation, or null if not found.
    */
   update(budgetAllocation: BudgetAllocation): Promise<BudgetAllocation>;

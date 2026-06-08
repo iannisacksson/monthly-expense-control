@@ -31,8 +31,8 @@ export class CreateBudgetAllocationUseCase {
     await this.ensureCategoryMatchesRuleOwner(budgetAllocation.category, rule);
 
     const existingAllocations =
-      await this.budgetAllocationRepository.findByBudgetRuleId(
-        budgetAllocation.budgetRule.id,
+      await this.budgetAllocationRepository.findByBudgetRule(
+        budgetAllocation.budgetRule,
       );
     const currentTotal = existingAllocations.reduce(
       (sum, alloc) => sum + Number(alloc.percentage),

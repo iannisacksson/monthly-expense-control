@@ -18,6 +18,6 @@ export class ListBudgetAllocationsByRuleUseCase {
     const rule = await this.budgetRuleRepository.findById(budgetRule.id);
     if (!rule || rule.user?.id !== requestingUser.id)
       throw new ForbiddenError();
-    return this.budgetAllocationRepository.findByBudgetRuleId(budgetRule.id);
+    return this.budgetAllocationRepository.findByBudgetRule(budgetRule);
   }
 }

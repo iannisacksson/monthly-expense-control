@@ -44,7 +44,7 @@ export class UpdateBudgetAllocationUseCase {
 
     if (budgetAllocation.percentage !== undefined) {
       const existingAllocations =
-        await this.budgetAllocationRepository.findByBudgetRuleId(ruleId);
+        await this.budgetAllocationRepository.findByBudgetRule(rule);
       const currentTotal = existingAllocations
         .filter((alloc) => alloc.id !== budgetAllocation.id)
         .reduce((sum, alloc) => sum + Number(alloc.percentage), 0);

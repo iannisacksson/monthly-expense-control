@@ -1,4 +1,5 @@
 import type { BudgetAllocation } from "../domain/entities/budget-allocation.entity";
+import { BudgetRule } from "../domain/entities/budget-rule.entity";
 import type { Category } from "../domain/entities/category.entity";
 import type { IBudgetAllocationRepository } from "../domain/repositories/budget-allocation.repository";
 import { BudgetAllocationModel } from "../models/budget-allocation.model";
@@ -14,9 +15,9 @@ export class BudgetAllocationRepository implements IBudgetAllocationRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByBudgetRuleId(budgetRuleId: string): Promise<BudgetAllocation[]> {
+  async findByBudgetRule(budgetRule: BudgetRule): Promise<BudgetAllocation[]> {
     const models = await BudgetAllocationModel.findAll({
-      where: { budgetRuleId },
+      where: { budgetRuleId: budgetRule.id },
     });
     return models.map((m) => m.toDomain());
   }
