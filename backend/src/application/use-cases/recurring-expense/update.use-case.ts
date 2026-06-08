@@ -65,8 +65,8 @@ export class UpdateRecurringExpenseUseCase {
 
     if (scope === Scope.SINGLE_OCCURRENCE) {
       const occurrence = await this.expenseRepository.findRecurringExpenseEntry(
-        recurringExpense.id,
-        recurringExpense.startMonth.id,
+        recurringExpense,
+        recurringExpense.startMonth,
       );
       if (!occurrence) {
         throw new NotFoundError(
@@ -156,8 +156,8 @@ export class UpdateRecurringExpenseUseCase {
       existingRecurringExpense.subcategory,
     );
 
-    await this.expenseRepository.deleteByRecurringExpenseIdFromDate(
-      existingRecurringExpense.id,
+    await this.expenseRepository.deleteByRecurringExpenseFromDate(
+      existingRecurringExpense,
       effectiveDate,
     );
     await this.recurringExpenseRepository.update(existingRecurringExpense);
@@ -217,7 +217,9 @@ export class UpdateRecurringExpenseUseCase {
       existingRecurringExpense,
     );
 
-    await this.expenseRepository.deleteByRecurringExpenseId(id);
+    await this.expenseRepository.deleteByRecurringExpense(
+      existingRecurringExpense,
+    );
 
     if (recurringExpense.status === RecurringExpenseStatus.ACTIVE) {
       await this.syncRecurringExpenseToOwnerMonths(recurringExpense);
@@ -271,8 +273,8 @@ export class UpdateRecurringExpenseUseCase {
     for (const month of months) {
       const existingExpense =
         await this.expenseRepository.findRecurringExpenseEntry(
-          recurringExpense.id,
-          month.id,
+          recurringExpense,
+          month,
         );
 
       if (existingExpense) {

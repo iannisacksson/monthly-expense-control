@@ -1,3 +1,4 @@
+import { Category } from "../entities/category.entity";
 import type { Subcategory } from "../entities/subcategory.entity";
 
 export interface ISubcategoryRepository {
@@ -6,12 +7,7 @@ export interface ISubcategoryRepository {
    * @param data Subcategory fields excluding generated identifiers, timestamps and validation methods.
    * @returns The created subcategory.
    */
-  create(
-    data: Omit<
-      Subcategory,
-      "id" | "createdAt" | "updatedAt" | "validateName" | "normalizeName"
-    >,
-  ): Promise<Subcategory>;
+  create(data: Subcategory): Promise<Subcategory>;
 
   /**
    * Finds a subcategory by its ID.
@@ -22,20 +18,17 @@ export interface ISubcategoryRepository {
 
   /**
    * Returns all subcategories belonging to a given category.
-   * @param categoryId The category's ID.
+   * @param category The category entity.
+   * @return An array of subcategories under the specified category.
    */
-  findByCategoryId(categoryId: string): Promise<Subcategory[]>;
+  findByCategory(category: Category): Promise<Subcategory[]>;
 
   /**
    * Updates a subcategory's name.
-   * @param id The subcategory's ID.
-   * @param data Fields to update.
-   * @returns The updated subcategory, or null if not found.
+   * @param subcategory The subcategory entity with updated fields.
+   * @returns The updated subcategory.
    */
-  update(
-    id: string,
-    data: Partial<{ name: string }>,
-  ): Promise<Subcategory | null>;
+  update(subcategory: Subcategory): Promise<Subcategory>;
 
   /**
    * Deletes a subcategory.

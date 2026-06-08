@@ -3,26 +3,15 @@ import type { MonthlyIncome } from "../domain/entities/monthly-income.entity";
 import type { IMonthlyIncomeRepository } from "../domain/repositories/monthly-income.repository";
 import { MonthlyIncomeModel } from "../models/monthly-income.model";
 import { User } from "../domain/entities/user.entity";
+import { Month } from "../domain/entities/month.entity";
+import { RecurringIncome } from "../domain/entities/recurring-income.entity";
 
 export class MonthlyIncomeRepository implements IMonthlyIncomeRepository {
   async create(
-    income: Omit<MonthlyIncome, "id" | "createdAt">,
+    income: MonthlyIncome,
     options?: { transaction?: Transaction },
   ): Promise<MonthlyIncome> {
-    const model = await MonthlyIncomeModel.create(
-      {
-        userId: income.user?.id,
-        monthId: income.month?.id,
-        recurringIncomeId: income.recurringIncome?.id,
-        grossIncome: income.grossIncome,
-        incomeType: income.incomeType,
-        taxationMode: income.taxationMode,
-        taxationProfile: income.taxationProfile,
-        taxationParameters: income.taxationParameters,
-        notes: income.notes,
-      },
-      options,
-    );
+    const model = await MonthlyIncomeModel.create(income, options);
     return model.toDomain();
   }
 
@@ -31,8 +20,10 @@ export class MonthlyIncomeRepository implements IMonthlyIncomeRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByMonthId(monthId: string): Promise<MonthlyIncome[]> {
-    const models = await MonthlyIncomeModel.findAll({ where: { monthId } });
+  async findByMonth(month: Month): Promise<MonthlyIncome[]> {
+    const models = await MonthlyIncomeModel.findAll({
+      where: { monthId: month.id },
+    });
     return models.map((m) => m.toDomain());
   }
 
@@ -43,48 +34,46 @@ export class MonthlyIncomeRepository implements IMonthlyIncomeRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async findByRecurringIncomeId(
-    recurringIncomeId: string,
+  async findByRecurringIncome(
+    recurringIncome: RecurringIncome,
   ): Promise<MonthlyIncome[]> {
     const models = await MonthlyIncomeModel.findAll({
-      where: { recurringIncomeId },
+      where: { recurringIncomeId: recurringIncome.id },
     });
     return models.map((m) => m.toDomain());
   }
 
   async findRecurringIncomeEntry(
-    recurringIncomeId: string,
-    monthId: string,
+    recurringIncome: RecurringIncome,
+    month: Month,
   ): Promise<MonthlyIncome | null> {
     const model = await MonthlyIncomeModel.findOne({
-      where: { recurringIncomeId, monthId },
+      where: { recurringIncomeId: recurringIncome.id, monthId: month.id },
     });
     return model ? model.toDomain() : null;
   }
 
   async update(
-    id: string,
-    data: {
-      grossIncome?: number;
-      incomeType?: string;
-      taxationMode?: "manual" | "automatic";
-      taxationProfile?: string | null;
-      taxationParameters?: Record<string, unknown> | null;
-      notes?: string | null;
-    },
+    monthlyIncome: MonthlyIncome,
     options?: { transaction?: Transaction },
-  ): Promise<MonthlyIncome | null> {
-    const model = await MonthlyIncomeModel.findByPk(id);
-    if (!model) return null;
-    await model.update(data, options);
-    return model.toDomain();
+  ): Promise<MonthlyIncome> {
+    const model = await MonthlyIncomeModel.update(monthlyIncome, {
+      where: { id: monthlyIncome.id },
+      returning: true,
+      ...options,
+    });
+    return model[1][0].toDomain();
   }
 
   async delete(income: MonthlyIncome): Promise<void> {
     await MonthlyIncomeModel.destroy({ where: { id: income.id } });
   }
 
-  async deleteByRecurringIncomeId(recurringIncomeId: string): Promise<number> {
-    return MonthlyIncomeModel.destroy({ where: { recurringIncomeId } });
+  async deleteByRecurringIncome(
+    recurringIncome: RecurringIncome,
+  ): Promise<number> {
+    return MonthlyIncomeModel.destroy({
+      where: { recurringIncomeId: recurringIncome.id },
+    });
   }
 }

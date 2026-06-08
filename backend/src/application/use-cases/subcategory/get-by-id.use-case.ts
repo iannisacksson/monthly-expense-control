@@ -11,7 +11,7 @@ export class GetSubcategoryByIdUseCase {
   async execute(id: string, requestingUserId: string) {
     const subcategory = await this.subcategoryRepository.findById(id);
     if (!subcategory) {
-      throw new Error("Subcategory not found");
+      throw new NotFoundError("Subcategory not found");
     }
 
     const category = await this.categoryRepository.findById(

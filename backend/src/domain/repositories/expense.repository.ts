@@ -1,8 +1,8 @@
 import type { Category } from "../entities/category.entity";
 import type { Expense, ExpenseKindType } from "../entities/expense.entity";
 import type { InstallmentGroup } from "../entities/installment-group.entity";
+import { Month } from "../entities/month.entity";
 import type { RecurringExpense } from "../entities/recurring-expense.entity";
-import type { Subcategory } from "../entities/subcategory.entity";
 import type { User } from "../entities/user.entity";
 
 export interface IExpenseRepository {
@@ -22,17 +22,18 @@ export interface IExpenseRepository {
 
   /**
    * Returns all expenses belonging to a month.
-   * @param monthId The month's ID.
+   * @param month The month entity.
    */
-  findByMonthId(monthId: string): Promise<Expense[]>;
+  findByMonth(month: Month): Promise<Expense[]>;
 
   /**
    * Returns all expenses of a given kind belonging to a month.
-   * @param monthId The month's ID.
+   * @param month The month entity.
    * @param expenseKind The expense kind filter.
+   * @return An array of expenses matching the criteria.
    */
-  findByMonthIdAndKind(
-    monthId: string,
+  findByMonthAndKind(
+    month: Month,
     expenseKind: ExpenseKindType,
   ): Promise<Expense[]>;
 
@@ -44,21 +45,28 @@ export interface IExpenseRepository {
 
   /**
    * Returns all expenses under a given category.
-   * @param categoryId The category's ID.
+   * @param category The category entity.
+   * @return An array of expenses under the category.
    */
-  findByCategoryId(categoryId: string): Promise<Expense[]>;
+  findByCategory(category: Category): Promise<Expense[]>;
 
   /**
    * Returns all expenses belonging to an installment group.
-   * @param installmentGroupId The installment group's ID.
+   * @param installmentGroup The installment group entity.
+   * @return An array of expenses belonging to the installment group.
    */
-  findByInstallmentGroupId(installmentGroupId: string): Promise<Expense[]>;
+  findByInstallmentGroup(
+    installmentGroup: InstallmentGroup,
+  ): Promise<Expense[]>;
 
   /**
    * Returns all expenses linked to a recurring expense template.
-   * @param recurringExpenseId The recurring expense's ID.
+   * @param recurringExpense The recurring expense entity.
+   * @return An array of expenses linked to the recurring expense.
    */
-  findByRecurringExpenseId(recurringExpenseId: string): Promise<Expense[]>;
+  findByRecurringExpense(
+    recurringExpense: RecurringExpense,
+  ): Promise<Expense[]>;
 
   /**
    * Finds the expense entry for a recurring expense in a given month.
@@ -67,19 +75,19 @@ export interface IExpenseRepository {
    * @returns The expense if found, otherwise null.
    */
   findRecurringExpenseEntry(
-    recurringExpenseId: string,
-    monthId: string,
+    recurringExpense: RecurringExpense,
+    month: Month,
   ): Promise<Expense | null>;
 
   /**
    * Finds the expense entry for an installment group in a given month.
-   * @param installmentGroupId The installment group's ID.
-   * @param monthId The month's ID.
+   * @param installmentGroup The installment group entity.
+   * @param month The month entity.
    * @returns The expense if found, otherwise null.
    */
   findInstallmentExpenseEntry(
-    installmentGroupId: string,
-    monthId: string,
+    installmentGroup: InstallmentGroup,
+    month: Month,
   ): Promise<Expense | null>;
 
   /**
@@ -126,30 +134,30 @@ export interface IExpenseRepository {
 
   /**
    * Deletes all expenses of an installment group on or after a given date.
-   * @param installmentGroupId The installment group's ID.
+   * @param installmentGroup The installment group entity.
    * @param expenseDate The lower-bound date (inclusive, ISO string).
    * @returns The number of deleted records.
    */
-  deleteByInstallmentGroupIdFromDate(
-    installmentGroupId: string,
+  deleteByInstallmentGroupFromDate(
+    installmentGroup: InstallmentGroup,
     expenseDate: string,
   ): Promise<number>;
 
   /**
    * Deletes all expenses linked to a recurring expense template.
-   * @param recurringExpenseId The recurring expense's ID.
+   * @param recurringExpense The recurring expense entity.
    * @returns The number of deleted records.
    */
-  deleteByRecurringExpenseId(recurringExpenseId: string): Promise<number>;
+  deleteByRecurringExpense(recurringExpense: RecurringExpense): Promise<number>;
 
   /**
    * Deletes all expenses of a recurring expense template on or after a given date.
-   * @param recurringExpenseId The recurring expense's ID.
+   * @param recurringExpense The recurring expense entity.
    * @param expenseDate The lower-bound date (inclusive, ISO string).
    * @returns The number of deleted records.
    */
-  deleteByRecurringExpenseIdFromDate(
-    recurringExpenseId: string,
+  deleteByRecurringExpenseFromDate(
+    recurringExpense: RecurringExpense,
     expenseDate: string,
   ): Promise<number>;
 }

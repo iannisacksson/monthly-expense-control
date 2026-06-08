@@ -20,21 +20,10 @@ import { IExpenseRepository } from "../../../domain/repositories/expense.reposit
 import { IInstallmentGroupRepository } from "../../../domain/repositories/installment-group.repository";
 import { IMonthRepository } from "../../../domain/repositories/month.repository";
 import { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
-
-type InstallmentGroupUpdate = Pick<InstallmentGroup, "id"> &
-  Partial<Omit<InstallmentGroup, "id" | "user" | "createdAt" | "updatedAt">>;
+import { Category } from "../../../domain/entities/category.entity";
+import { Subcategory } from "../../../domain/entities/subcategory.entity";
 
 type UpdateInstallmentGroupResult = InstallmentGroup | Expense;
-
-type ResolvedGroupState = {
-  description: string;
-  totalValue: number;
-  installments: number;
-  category: InstallmentGroup["category"];
-  subcategory?: InstallmentGroup["subcategory"];
-  paidBy?: InstallmentGroup["paidBy"];
-  responsibleUser?: InstallmentGroup["responsibleUser"];
-};
 
 export class UpdateInstallmentGroupUseCase {
   constructor(
@@ -108,17 +97,17 @@ export class UpdateInstallmentGroupUseCase {
       startingInstallmentNumber: effectiveInstallmentNumber,
     });
 
-    await this.validateCategoryAndSubcategory({
-      userId: existingGroup.user.id,
-      categoryId: nextState.category.id,
-      subcategoryId: nextState.subcategory?.id,
-    });
+    await this.validateCategoryAndSubcategory(
+      existingGroup.user,
+      nextState.category,
+      nextState.subcategory,
+    );
 
     const currentInstallmentValue =
       Number(existingGroup.totalValue) / existingGroup.installments;
 
-    await this.expenseRepository.deleteByInstallmentGroupIdFromDate(
-      existingGroup.id,
+    await this.expenseRepository.deleteByInstallmentGroupFromDate(
+      existingGroup,
       effectiveDate,
     );
 
@@ -153,26 +142,14 @@ export class UpdateInstallmentGroupUseCase {
       }),
     );
 
-    await this.generateInstallmentExpenses({
-      installmentGroupId: newGroup.id,
-      userId: existingGroup.user.id,
-      description: nextState.description,
-      totalValue: nextState.totalValue,
-      installments: nextState.installments,
-      startingInstallmentNumber: effectiveInstallmentNumber,
-      category: nextState.category,
-      subcategory: nextState.subcategory,
-      paidBy: nextState.paidBy,
-      responsibleUser: nextState.responsibleUser,
-      startMonthId: resolvedEffectiveMonth.id,
-    });
+    await this.generateInstallmentExpenses(newGroup, resolvedEffectiveMonth);
 
     return newGroup;
   }
 
   private async updateWholeSeries(
     existingGroup: InstallmentGroup,
-    installmentGroup: InstallmentGroupUpdate,
+    installmentGroup: InstallmentGroup,
   ): Promise<InstallmentGroup> {
     const nextState = this.resolveNextGroupState(
       existingGroup,
@@ -185,11 +162,11 @@ export class UpdateInstallmentGroupUseCase {
       startingInstallmentNumber: existingGroup.startingInstallmentNumber,
     });
 
-    await this.validateCategoryAndSubcategory({
-      userId: existingGroup.user.id,
-      categoryId: nextState.category.id,
-      subcategoryId: nextState.subcategory?.id,
-    });
+    await this.validateCategoryAndSubcategory(
+      existingGroup.user,
+      nextState.category,
+      nextState.subcategory,
+    );
 
     const group = await this.installmentGroupRepository.update(
       existingGroup.id,
@@ -209,31 +186,19 @@ export class UpdateInstallmentGroupUseCase {
     }
 
     await this.expenseRepository.deleteByInstallmentGroup(existingGroup);
-    await this.generateInstallmentExpenses({
-      installmentGroupId: group.id,
-      userId: existingGroup.user.id,
-      description: nextState.description,
-      totalValue: nextState.totalValue,
-      installments: nextState.installments,
-      startingInstallmentNumber: group.startingInstallmentNumber,
-      category: nextState.category,
-      subcategory: nextState.subcategory,
-      paidBy: nextState.paidBy,
-      responsibleUser: nextState.responsibleUser,
-      startMonthId: existingGroup.startMonth.id,
-    });
+    await this.generateInstallmentExpenses(group, existingGroup.startMonth);
 
     return group;
   }
 
   private async updateSingleOccurrence(
     existingGroup: InstallmentGroup,
-    installmentGroup: InstallmentGroupUpdate,
+    installmentGroup: InstallmentGroup,
     effectiveMonth: Month,
   ): Promise<Expense> {
     const occurrence = await this.expenseRepository.findInstallmentExpenseEntry(
-      existingGroup.id,
-      effectiveMonth.id,
+      existingGroup,
+      effectiveMonth,
     );
     if (!occurrence) {
       throw new NotFoundError(
@@ -260,11 +225,11 @@ export class UpdateInstallmentGroupUseCase {
       occurrence.responsibleUser,
     );
 
-    await this.validateCategoryAndSubcategory({
-      userId: existingGroup.user.id,
-      categoryId: nextCategory.id,
-      subcategoryId: nextSubcategory?.id,
-    });
+    await this.validateCategoryAndSubcategory(
+      existingGroup.user,
+      nextCategory,
+      nextSubcategory,
+    );
 
     const value =
       installmentGroup.totalValue !== undefined &&
@@ -291,9 +256,9 @@ export class UpdateInstallmentGroupUseCase {
 
   private resolveNextGroupState(
     existingGroup: InstallmentGroup,
-    installmentGroup: InstallmentGroupUpdate,
-  ): ResolvedGroupState {
-    return {
+    installmentGroup: InstallmentGroup,
+  ): InstallmentGroup {
+    Object.assign(existingGroup, {
       description: installmentGroup.description ?? existingGroup.description,
       totalValue: installmentGroup.totalValue ?? existingGroup.totalValue,
       installments: installmentGroup.installments ?? existingGroup.installments,
@@ -315,13 +280,15 @@ export class UpdateInstallmentGroupUseCase {
         "responsibleUser",
         existingGroup.responsibleUser,
       ),
-    };
+    });
+
+    return existingGroup;
   }
 
-  private resolveOptionalField<T extends keyof InstallmentGroupUpdate>(
-    installmentGroup: InstallmentGroupUpdate,
+  private resolveOptionalField<T extends keyof InstallmentGroup>(
+    installmentGroup: InstallmentGroup,
     field: T,
-    fallback: InstallmentGroupUpdate[T],
+    fallback: InstallmentGroup[T],
   ) {
     if (Object.prototype.hasOwnProperty.call(installmentGroup, field)) {
       return installmentGroup[field];
@@ -353,18 +320,18 @@ export class UpdateInstallmentGroupUseCase {
     }
   }
 
-  private async validateCategoryAndSubcategory(params: {
-    userId?: string;
-    categoryId: string;
-    subcategoryId?: string;
-  }) {
-    const category = await this.categoryRepository.findById(params.categoryId);
-    if (!category) {
+  private async validateCategoryAndSubcategory(
+    user: User,
+    category: Category,
+    subcategory?: Subcategory,
+  ): Promise<void> {
+    const categoryFound = await this.categoryRepository.findById(category.id);
+    if (!categoryFound) {
       throw new NotFoundError("Category not found");
     }
 
-    const categoryUserId = category.user?.id ?? null;
-    const isSameOwner = !!params.userId && categoryUserId === params.userId;
+    const categoryUserId = categoryFound.user?.id ?? null;
+    const isSameOwner = !!user.id && categoryUserId === user.id;
 
     if (!isSameOwner) {
       throw new Error(
@@ -372,15 +339,15 @@ export class UpdateInstallmentGroupUseCase {
       );
     }
 
-    if (params.subcategoryId) {
-      const subcategory = await this.subcategoryRepository.findById(
-        params.subcategoryId,
+    if (subcategory) {
+      const subcategoryFound = await this.subcategoryRepository.findById(
+        subcategory.id,
       );
-      if (!subcategory) {
+      if (!subcategoryFound) {
         throw new NotFoundError("Subcategory not found");
       }
 
-      if (subcategory.category?.id !== params.categoryId) {
+      if (subcategoryFound.category?.id !== categoryFound.id) {
         throw new ForbiddenError(
           "Subcategory must belong to the selected category",
         );
@@ -454,23 +421,15 @@ export class UpdateInstallmentGroupUseCase {
     );
   }
 
-  private async createInstallmentExpenseEntry(data: {
-    installmentGroupId: string;
-    description: string;
-    totalValue: number;
-    installments: number;
-    category: InstallmentGroup["category"];
-    subcategory?: InstallmentGroup["subcategory"];
-    paidBy?: InstallmentGroup["paidBy"];
-    responsibleUser?: InstallmentGroup["responsibleUser"];
-    monthId: string;
-    installmentNumber: number;
-  }): Promise<Expense | null> {
-    const month = await this.findMonthByIdOrThrow(data.monthId);
+  private async createInstallmentExpenseEntry(
+    installmentGroup: InstallmentGroup,
+    month: Month,
+    installmentNumber: number,
+  ): Promise<Expense | null> {
     const existingExpense =
       await this.expenseRepository.findInstallmentExpenseEntry(
-        data.installmentGroupId,
-        data.monthId,
+        installmentGroup,
+        month,
       );
 
     if (existingExpense) {
@@ -480,48 +439,42 @@ export class UpdateInstallmentGroupUseCase {
     await this.expenseRepository.create(
       new ExpenseEntity({
         month,
-        category: data.category,
-        subcategory: data.subcategory,
-        paidBy: data.paidBy,
-        responsibleUser: data.responsibleUser,
-        installmentGroup: new InstallmentGroupEntity({
-          id: data.installmentGroupId,
-        }),
+        category: installmentGroup.category,
+        subcategory: installmentGroup.subcategory,
+        paidBy: installmentGroup.paidBy,
+        responsibleUser: installmentGroup.responsibleUser,
+        installmentGroup,
         expenseKind: ExpenseKindType.STANDARD,
         isPaid: false,
-        description: `${data.description} (${data.installmentNumber}/${data.installments})`,
-        value: Number((data.totalValue / data.installments).toFixed(2)),
+        description: `${installmentGroup.description} (${installmentNumber}/${installmentGroup.installments})`,
+        value: Number(
+          (installmentGroup.totalValue / installmentGroup.installments).toFixed(
+            2,
+          ),
+        ),
         expenseDate: new Date(this.getMonthDate(month)),
       }),
     );
 
     return this.expenseRepository.findInstallmentExpenseEntry(
-      data.installmentGroupId,
-      data.monthId,
+      installmentGroup,
+      month,
     );
   }
 
-  private async generateInstallmentExpenses(data: {
-    installmentGroupId: string;
-    userId: string;
-    description: string;
-    totalValue: number;
-    installments: number;
-    startingInstallmentNumber: number;
-    category: InstallmentGroup["category"];
-    subcategory?: InstallmentGroup["subcategory"];
-    paidBy?: InstallmentGroup["paidBy"];
-    responsibleUser?: InstallmentGroup["responsibleUser"];
-    startMonthId: string;
-  }) {
-    const startMonth = await this.findMonthByIdOrThrow(data.startMonthId);
+  private async generateInstallmentExpenses(
+    installmentGroup: InstallmentGroup,
+    effectiveMonth: Month,
+  ): Promise<void> {
     const remainingInstallments =
-      data.installments - data.startingInstallmentNumber + 1;
+      installmentGroup.installments -
+      installmentGroup.startingInstallmentNumber +
+      1;
 
     for (let i = 0; i < remainingInstallments; i++) {
-      let targetMonth = startMonth.month + i;
-      let targetYear = startMonth.year;
-      const installmentNumber = data.startingInstallmentNumber + i;
+      let targetMonth = effectiveMonth.month + i;
+      let targetYear = effectiveMonth.year;
+      const installmentNumber = installmentGroup.startingInstallmentNumber + i;
 
       while (targetMonth > 12) {
         targetMonth -= 12;
@@ -529,23 +482,16 @@ export class UpdateInstallmentGroupUseCase {
       }
 
       const month = await this.ensureMonth({
-        userId: data.userId,
+        userId: installmentGroup.user.id,
         year: targetYear,
         month: targetMonth,
       });
 
-      await this.createInstallmentExpenseEntry({
-        installmentGroupId: data.installmentGroupId,
-        description: data.description,
-        totalValue: data.totalValue,
-        installments: data.installments,
-        category: data.category,
-        subcategory: data.subcategory,
-        paidBy: data.paidBy,
-        responsibleUser: data.responsibleUser,
-        monthId: month.id,
+      await this.createInstallmentExpenseEntry(
+        installmentGroup,
+        month,
         installmentNumber,
-      });
+      );
     }
   }
 }

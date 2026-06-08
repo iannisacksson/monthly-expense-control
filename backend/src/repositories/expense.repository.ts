@@ -7,6 +7,9 @@ import type { User } from "../domain/entities/user.entity";
 import type { IExpenseRepository } from "../domain/repositories/expense.repository";
 import { ExpenseModel } from "../models/expense.model";
 import { InstallmentGroup } from "../domain/entities/installment-group.entity";
+import { Month } from "../domain/entities/month.entity";
+import { Category } from "../domain/entities/category.entity";
+import { RecurringExpense } from "../domain/entities/recurring-expense.entity";
 
 export class ExpenseRepository implements IExpenseRepository {
   async create(data: Expense): Promise<Expense> {
@@ -19,17 +22,17 @@ export class ExpenseRepository implements IExpenseRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByMonthId(monthId: string): Promise<Expense[]> {
-    const models = await ExpenseModel.findAll({ where: { monthId } });
+  async findByMonth(month: Month): Promise<Expense[]> {
+    const models = await ExpenseModel.findAll({ where: { monthId: month.id } });
     return models.map((m) => m.toDomain());
   }
 
-  async findByMonthIdAndKind(
-    monthId: string,
+  async findByMonthAndKind(
+    month: Month,
     expenseKind: ExpenseKindType,
   ): Promise<Expense[]> {
     const models = await ExpenseModel.findAll({
-      where: { monthId, expenseKind },
+      where: { monthId: month.id, expenseKind },
     });
     return models.map((m) => m.toDomain());
   }
@@ -39,45 +42,47 @@ export class ExpenseRepository implements IExpenseRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async findByCategoryId(categoryId: string): Promise<Expense[]> {
-    const models = await ExpenseModel.findAll({ where: { categoryId } });
-    return models.map((m) => m.toDomain());
-  }
-
-  async findByInstallmentGroupId(
-    installmentGroupId: string,
-  ): Promise<Expense[]> {
+  async findByCategory(category: Category): Promise<Expense[]> {
     const models = await ExpenseModel.findAll({
-      where: { installmentGroupFkId: installmentGroupId },
+      where: { categoryId: category.id },
     });
     return models.map((m) => m.toDomain());
   }
 
-  async findByRecurringExpenseId(
-    recurringExpenseId: string,
+  async findByInstallmentGroup(
+    installmentGroup: InstallmentGroup,
   ): Promise<Expense[]> {
     const models = await ExpenseModel.findAll({
-      where: { recurringExpenseFkId: recurringExpenseId },
+      where: { installmentGroupId: installmentGroup.id },
+    });
+    return models.map((m) => m.toDomain());
+  }
+
+  async findByRecurringExpense(
+    recurringExpense: RecurringExpense,
+  ): Promise<Expense[]> {
+    const models = await ExpenseModel.findAll({
+      where: { recurringExpenseId: recurringExpense.id },
     });
     return models.map((m) => m.toDomain());
   }
 
   async findRecurringExpenseEntry(
-    recurringExpenseId: string,
-    monthId: string,
+    recurringExpense: RecurringExpense,
+    month: Month,
   ): Promise<Expense | null> {
     const model = await ExpenseModel.findOne({
-      where: { recurringExpenseFkId: recurringExpenseId, monthId },
+      where: { recurringExpenseId: recurringExpense.id, monthId: month.id },
     });
     return model ? model.toDomain() : null;
   }
 
   async findInstallmentExpenseEntry(
-    installmentGroupId: string,
-    monthId: string,
+    installmentGroup: InstallmentGroup,
+    month: Month,
   ): Promise<Expense | null> {
     const model = await ExpenseModel.findOne({
-      where: { installmentGroupFkId: installmentGroupId, monthId },
+      where: { installmentGroupId: installmentGroup.id, monthId: month.id },
     });
     return model ? model.toDomain() : null;
   }
@@ -122,37 +127,37 @@ export class ExpenseRepository implements IExpenseRepository {
     installmentGroup: InstallmentGroup,
   ): Promise<void> {
     await ExpenseModel.destroy({
-      where: { installmentGroupFkId: installmentGroup.id },
+      where: { installmentGroupId: installmentGroup.id },
     });
   }
 
-  async deleteByInstallmentGroupIdFromDate(
-    installmentGroupId: string,
+  async deleteByInstallmentGroupFromDate(
+    installmentGroup: InstallmentGroup,
     expenseDate: string,
   ): Promise<number> {
     return ExpenseModel.destroy({
       where: {
-        installmentGroupFkId: installmentGroupId,
+        installmentGroupId: installmentGroup.id,
         expenseDate: { [Op.gte]: expenseDate },
       },
     });
   }
 
-  async deleteByRecurringExpenseId(
-    recurringExpenseId: string,
+  async deleteByRecurringExpense(
+    recurringExpense: RecurringExpense,
   ): Promise<number> {
     return ExpenseModel.destroy({
-      where: { recurringExpenseFkId: recurringExpenseId },
+      where: { recurringExpenseId: recurringExpense.id },
     });
   }
 
-  async deleteByRecurringExpenseIdFromDate(
-    recurringExpenseId: string,
+  async deleteByRecurringExpenseFromDate(
+    recurringExpense: RecurringExpense,
     expenseDate: string,
   ): Promise<number> {
     return ExpenseModel.destroy({
       where: {
-        recurringExpenseFkId: recurringExpenseId,
+        recurringExpenseId: recurringExpense.id,
         expenseDate: { [Op.gte]: expenseDate },
       },
     });

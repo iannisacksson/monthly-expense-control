@@ -11,7 +11,7 @@ export class DeleteSubcategoryUseCase {
   async execute(id: string, requestingUserId: string) {
     const existing = await this.subcategoryRepository.findById(id);
     if (!existing) {
-      throw new Error("Subcategory not found");
+      throw new NotFoundError("Subcategory not found");
     }
 
     const category = await this.categoryRepository.findById(

@@ -1,16 +1,18 @@
 import type { Transaction } from "sequelize";
 import type { MonthlyIncome } from "../entities/monthly-income.entity";
 import { User } from "../entities/user.entity";
+import { Month } from "../entities/month.entity";
+import { RecurringIncome } from "../entities/recurring-income.entity";
 
 export interface IMonthlyIncomeRepository {
   /**
    * Creates a new monthly income entry.
-   * @param income Monthly income fields excluding the generated ID and creation timestamp.
+   * @param income The monthly income entity to create.
    * @param options Optional Sequelize transaction.
    * @returns The created monthly income.
    */
   create(
-    income: Omit<MonthlyIncome, "id" | "createdAt">,
+    income: MonthlyIncome,
     options?: { transaction?: Transaction },
   ): Promise<MonthlyIncome>;
 
@@ -23,9 +25,10 @@ export interface IMonthlyIncomeRepository {
 
   /**
    * Returns all monthly income entries for a given month.
-   * @param monthId The month's ID.
+   * @param month The month entity.
+   * @return An array of monthly income entries belonging to the month.
    */
-  findByMonthId(monthId: string): Promise<MonthlyIncome[]>;
+  findByMonth(month: Month): Promise<MonthlyIncome[]>;
 
   /**
    * Returns all monthly income entries belonging to a user.
@@ -36,19 +39,22 @@ export interface IMonthlyIncomeRepository {
 
   /**
    * Returns all monthly income entries linked to a recurring income template.
-   * @param recurringIncomeId The recurring income's ID.
+   * @param recurringIncome The recurring income entity.
+   * @return An array of monthly income entries linked to the recurring income.
    */
-  findByRecurringIncomeId(recurringIncomeId: string): Promise<MonthlyIncome[]>;
+  findByRecurringIncome(
+    recurringIncome: RecurringIncome,
+  ): Promise<MonthlyIncome[]>;
 
   /**
    * Finds the monthly income entry for a recurring income in a given month.
-   * @param recurringIncomeId The recurring income's ID.
-   * @param monthId The month's ID.
+   * @param recurringIncome The recurring income entity.
+   * @param month The month entity.
    * @returns The monthly income if found, otherwise null.
    */
   findRecurringIncomeEntry(
-    recurringIncomeId: string,
-    monthId: string,
+    recurringIncome: RecurringIncome,
+    month: Month,
   ): Promise<MonthlyIncome | null>;
 
   /**
@@ -60,7 +66,7 @@ export interface IMonthlyIncomeRepository {
   update(
     monthlyIncome: MonthlyIncome,
     options?: { transaction?: Transaction },
-  ): Promise<MonthlyIncome | null>;
+  ): Promise<MonthlyIncome>;
 
   /**
    * Deletes a monthly income entry.
@@ -70,8 +76,8 @@ export interface IMonthlyIncomeRepository {
 
   /**
    * Deletes all monthly income entries linked to a recurring income template.
-   * @param recurringIncomeId The recurring income's ID.
+   * @param recurringIncome The recurring income entity.
    * @returns The number of deleted records.
    */
-  deleteByRecurringIncomeId(recurringIncomeId: string): Promise<number>;
+  deleteByRecurringIncome(recurringIncome: RecurringIncome): Promise<number>;
 }

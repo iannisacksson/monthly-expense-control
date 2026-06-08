@@ -19,6 +19,6 @@ export class ListInstallmentGroupsByUserUseCase {
       installmentGroup.id,
     );
     if (!group || group.user.id !== user.id) throw new ForbiddenError();
-    return this.expenseRepository.findByInstallmentGroupId(group.id);
+    return this.expenseRepository.findByInstallmentGroup(group);
   }
 }

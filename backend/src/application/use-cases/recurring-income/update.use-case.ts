@@ -58,8 +58,8 @@ export class UpdateRecurringIncomeUseCase {
 
     await this.recurringIncomeRepository.update(existingRecurringIncome);
 
-    await this.monthlyIncomeRepository.deleteByRecurringIncomeId(
-      existingRecurringIncome.id,
+    await this.monthlyIncomeRepository.deleteByRecurringIncome(
+      existingRecurringIncome,
     );
 
     if (existingRecurringIncome.status === RecurringIncomeStatus.ACTIVE) {
@@ -118,8 +118,8 @@ export class UpdateRecurringIncomeUseCase {
     for (const month of months) {
       const existingIncome =
         await this.monthlyIncomeRepository.findRecurringIncomeEntry(
-          recurringIncome.id,
-          month.id,
+          recurringIncome,
+          month,
         );
 
       if (existingIncome) {

@@ -2,10 +2,7 @@ import {
   ExpenseEntity,
   ExpenseKindType,
 } from "../../../domain/entities/expense.entity";
-import {
-  MonthlyIncomeEntity,
-  TaxationModeType,
-} from "../../../domain/entities/monthly-income.entity";
+import { MonthlyIncomeEntity } from "../../../domain/entities/monthly-income.entity";
 import { Month } from "../../../domain/entities/month.entity";
 import {
   RecurringExpenseEntity,
@@ -25,26 +22,10 @@ import { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-i
 import { IRecurringExpenseRepository } from "../../../domain/repositories/recurring-expense.repository";
 import { IRecurringIncomeRepository } from "../../../domain/repositories/recurring-income.repository";
 import { IUserRepository } from "../../../domain/repositories/user.repository";
-import { ExpenseRepository } from "../../../repositories/expense.repository";
-import { IncomeTaxRepository } from "../../../repositories/income-tax.repository";
-import { MonthRepository } from "../../../repositories/month.repository";
-import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository";
-import { RecurringExpenseRepository } from "../../../repositories/recurring-expense.repository";
-import { RecurringIncomeRepository } from "../../../repositories/recurring-income.repository";
-import { UserRepository } from "../../../repositories/user.repository";
 import { IncomeTaxationService } from "../../../services/income-taxation.service";
 import { BadRequestError, NotFoundError } from "../../../utils/errors";
 import { isMonthWithinRecurringRange } from "../../../utils/month-period";
 import { IncomeTaxEntity } from "../../../domain/entities/income-tax.entity";
-
-type AutomaticTaxationParameters = {
-  accountant_fee: number;
-  das_rate?: number;
-  pro_labore_rate?: number;
-  inss_rate?: number;
-  irrf_mode?: "disabled" | "manual_amount";
-  irrf_manual_amount?: number;
-};
 
 export class CreateMonthUseCase {
   constructor(
@@ -144,8 +125,8 @@ export class CreateMonthUseCase {
   ): Promise<void> {
     const existingIncome =
       await this.monthlyIncomeRepository.findRecurringIncomeEntry(
-        recurringIncome.id,
-        month.id,
+        recurringIncome,
+        month,
       );
     if (existingIncome) {
       return;
@@ -199,8 +180,8 @@ export class CreateMonthUseCase {
   ) {
     const existingExpense =
       await this.expenseRepository.findRecurringExpenseEntry(
-        recurringExpense.id,
-        month.id,
+        recurringExpense,
+        month,
       );
     if (existingExpense) {
       return existingExpense;

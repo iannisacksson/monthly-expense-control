@@ -20,8 +20,8 @@ export class DeleteRecurringIncomeUseCase {
     if (recurringIncomeFound.user.id !== requestingUser.id)
       throw new ForbiddenError();
 
-    await this.monthlyIncomeRepository.deleteByRecurringIncomeId(
-      recurringIncomeFound.id,
+    await this.monthlyIncomeRepository.deleteByRecurringIncome(
+      recurringIncomeFound,
     );
     await this.recurringIncomeRepository.delete(recurringIncomeFound);
     return recurringIncomeFound;

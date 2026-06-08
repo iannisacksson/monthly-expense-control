@@ -5,7 +5,6 @@ import type { IMonthlyIncomeRepository } from "../../../domain/repositories/mont
 import type { IMonthRepository } from "../../../domain/repositories/month.repository";
 import type { IUserRepository } from "../../../domain/repositories/user.repository";
 import type { IIncomeTaxRepository } from "../../../domain/repositories/income-tax.repository";
-import { IncomeTaxationService } from "../../../services/income-taxation.service";
 import { BadRequestError, ForbiddenError } from "../../../utils/errors";
 import { IncomeTaxEntity } from "../../../domain/entities/income-tax.entity";
 

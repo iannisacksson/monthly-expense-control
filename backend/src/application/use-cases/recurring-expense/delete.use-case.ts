@@ -31,9 +31,7 @@ export class DeleteRecurringExpenseUseCase {
       throw new ForbiddenError();
 
     if (scope === Scope.WHOLE_SERIES) {
-      await this.expenseRepository.deleteByRecurringExpenseId(
-        recurringExpense.id,
-      );
+      await this.expenseRepository.deleteByRecurringExpense(recurringExpense);
       await this.recurringExpenseRepository.delete(recurringExpenseFound);
       return;
     }
@@ -51,8 +49,8 @@ export class DeleteRecurringExpenseUseCase {
     if (scope === Scope.SINGLE_OCCURRENCE) {
       const deletedOccurrence =
         await this.expenseRepository.findRecurringExpenseEntry(
-          recurringExpenseFound.id,
-          recurringExpenseFound.startMonth.id,
+          recurringExpenseFound,
+          recurringExpenseFound.startMonth,
         );
       if (!deletedOccurrence) {
         throw new NotFoundError(
@@ -65,15 +63,13 @@ export class DeleteRecurringExpenseUseCase {
     }
 
     if (distance === 0) {
-      await this.expenseRepository.deleteByRecurringExpenseId(
-        recurringExpense.id,
-      );
+      await this.expenseRepository.deleteByRecurringExpense(recurringExpense);
       await this.recurringExpenseRepository.delete(recurringExpense);
       return;
     }
 
-    await this.expenseRepository.deleteByRecurringExpenseIdFromDate(
-      recurringExpenseFound.id,
+    await this.expenseRepository.deleteByRecurringExpenseFromDate(
+      recurringExpenseFound,
       effectiveDate,
     );
     recurringExpenseFound.occurrences = distance;

@@ -47,18 +47,7 @@ export class RestoreInstallmentOccurrenceUseCase {
       throw new Error("Selected month is outside the installment range");
     }
 
-    return this.createInstallmentExpenseEntry({
-      installmentGroupId: group.id,
-      description: group.description,
-      totalValue: Number(group.totalValue),
-      installments,
-      category: group.category,
-      subcategory: group.subcategory,
-      paidBy: group.paidBy,
-      responsibleUser: group.responsibleUser,
-      monthId: month.id,
-      installmentNumber,
-    });
+    return this.createInstallmentExpenseEntry(group, month, installmentNumber);
   }
 
   private async getEffectiveMonthContext(
@@ -102,41 +91,28 @@ export class RestoreInstallmentOccurrenceUseCase {
     return `${month.year}-${String(month.month).padStart(2, "0")}-01`;
   }
 
-  private async createInstallmentExpenseEntry(data: {
-    installmentGroupId: string;
-    description: string;
-    totalValue: number;
-    installments: number;
-    category: InstallmentGroup["category"];
-    subcategory?: InstallmentGroup["subcategory"];
-    paidBy?: InstallmentGroup["paidBy"];
-    responsibleUser?: InstallmentGroup["responsibleUser"];
-    monthId: string;
-    installmentNumber: number;
-  }): Promise<Expense> {
-    const month = await this.findMonthByIdOrThrow(data.monthId);
+  private async createInstallmentExpenseEntry(
+    group: InstallmentGroup,
+    month: Month,
+    installmentNumber: number,
+  ): Promise<Expense> {
     const existingExpense =
-      await this.expenseRepository.findInstallmentExpenseEntry(
-        data.installmentGroupId,
-        data.monthId,
-      );
+      await this.expenseRepository.findInstallmentExpenseEntry(group, month);
 
     if (existingExpense) return existingExpense;
 
     return this.expenseRepository.create(
       new ExpenseEntity({
         month,
-        category: data.category,
-        subcategory: data.subcategory,
-        paidBy: data.paidBy,
-        responsibleUser: data.responsibleUser,
-        installmentGroup: new InstallmentGroupEntity({
-          id: data.installmentGroupId,
-        }),
+        category: group.category,
+        subcategory: group.subcategory,
+        paidBy: group.paidBy,
+        responsibleUser: group.responsibleUser,
+        installmentGroup: group,
         expenseKind: ExpenseKindType.STANDARD,
         isPaid: false,
-        description: `${data.description} (${data.installmentNumber}/${data.installments})`,
-        value: Number((data.totalValue / data.installments).toFixed(2)),
+        description: `${group.description} (${installmentNumber}/${group.installments})`,
+        value: Number((group.totalValue / group.installments).toFixed(2)),
         expenseDate: new Date(this.getMonthDate(month)),
       }),
     );

@@ -1,7 +1,8 @@
-import type { UpdateSubcategoryDTO } from "../../../dtos/subcategory.dto";
 import type { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import type { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
-import { ForbiddenError } from "../../../utils/errors";
+import { ForbiddenError, NotFoundError } from "../../../utils/errors";
+import { Subcategory } from "../../../domain/entities/subcategory.entity";
+import { User } from "../../../domain/entities/user.entity";
 
 export class UpdateSubcategoryUseCase {
   constructor(
@@ -9,30 +10,26 @@ export class UpdateSubcategoryUseCase {
     private readonly categoryRepository: ICategoryRepository,
   ) {}
 
-  async execute(
-    id: string,
-    data: UpdateSubcategoryDTO,
-    requestingUserId: string,
-  ) {
-    const existing = await this.subcategoryRepository.findById(id);
+  async execute(subcategory: Subcategory, requestingUser: User) {
+    const existing = await this.subcategoryRepository.findById(subcategory.id);
     if (!existing) {
-      throw new Error("Subcategory not found");
+      throw new NotFoundError("Subcategory not found");
     }
 
     const category = await this.categoryRepository.findById(
       existing.category.id,
     );
-    if (!category || category.user.id !== requestingUserId) {
+    if (!category || category.user.id !== requestingUser.id) {
       throw new ForbiddenError();
     }
 
-    const subcategory = await this.subcategoryRepository.update(id, {
-      name: data.name,
-    });
-    if (!subcategory) {
-      throw new Error("Subcategory not found");
+    const updatedSubcategory =
+      await this.subcategoryRepository.update(subcategory);
+
+    if (!updatedSubcategory) {
+      throw new NotFoundError("Subcategory not found");
     }
 
-    return subcategory;
+    return updatedSubcategory;
   }
 }

@@ -21,8 +21,8 @@ export class GetRecurringIncomeByIdUseCase {
       throw new ForbiddenError("Recurring income not found");
     }
     const monthlyIncomes =
-      await this.monthlyIncomeRepository.findByRecurringIncomeId(
-        recurringIncomeFound.id,
+      await this.monthlyIncomeRepository.findByRecurringIncome(
+        recurringIncomeFound,
       );
 
     return monthlyIncomes;

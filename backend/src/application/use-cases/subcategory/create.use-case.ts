@@ -3,6 +3,8 @@ import { CategoryEntity } from "../../../domain/entities/category.entity";
 import type { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import type { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
 import { ForbiddenError } from "../../../utils/errors";
+import { User } from "../../../domain/entities/user.entity";
+import { Subcategory } from "../../../domain/entities/subcategory.entity";
 
 export class CreateSubcategoryUseCase {
   constructor(
@@ -10,19 +12,18 @@ export class CreateSubcategoryUseCase {
     private readonly categoryRepository: ICategoryRepository,
   ) {}
 
-  async execute(data: CreateSubcategoryDTO, requestingUserId: string) {
-    const category = await this.categoryRepository.findById(data.category_id);
+  async execute(subcategory: Subcategory, requestingUser: User) {
+    const category = await this.categoryRepository.findById(
+      subcategory.category.id,
+    );
     if (!category) {
       throw new Error("Category not found");
     }
 
-    if (category.user.id !== requestingUserId) {
+    if (category.user.id !== requestingUser.id) {
       throw new ForbiddenError();
     }
 
-    return this.subcategoryRepository.create({
-      category: new CategoryEntity({ id: data.category_id }),
-      name: data.name,
-    });
+    return this.subcategoryRepository.create(subcategory);
   }
 }

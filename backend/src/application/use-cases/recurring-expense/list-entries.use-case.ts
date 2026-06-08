@@ -26,8 +26,8 @@ export class ListRecurringExpenseEntriesUseCase {
       throw new NotFoundError("Recurring expense not found");
     }
 
-    const expenses = await this.expenseRepository.findByRecurringExpenseId(
-      recurringExpenseFound.id,
+    const expenses = await this.expenseRepository.findByRecurringExpense(
+      recurringExpenseFound,
     );
 
     return expenses;

@@ -59,8 +59,8 @@ export class RestoreRecurringExpenseOccurrenceUseCase {
 
     const existingExpense =
       await this.expenseRepository.findRecurringExpenseEntry(
-        recurringExpenseFound.id,
-        month.id,
+        recurringExpenseFound,
+        month,
       );
 
     if (existingExpense) {

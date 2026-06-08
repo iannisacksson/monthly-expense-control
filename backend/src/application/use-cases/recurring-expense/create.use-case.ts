@@ -149,8 +149,8 @@ export class CreateRecurringExpenseUseCase {
     for (const month of months) {
       const existingExpense =
         await this.expenseRepository.findRecurringExpenseEntry(
-          recurringExpense.id,
-          month.id,
+          recurringExpense,
+          month,
         );
 
       if (existingExpense) {

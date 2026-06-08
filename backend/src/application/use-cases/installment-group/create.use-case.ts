@@ -79,19 +79,7 @@ export class CreateInstallmentGroupUseCase {
     const group =
       await this.installmentGroupRepository.create(newInstallmentGroup);
 
-    await this.generateInstallmentExpenses({
-      installmentGroupId: group.id,
-      userId: requestingUser.id,
-      description: group.description,
-      totalValue: group.totalValue,
-      installments: group.installments,
-      startingInstallmentNumber: group.startingInstallmentNumber,
-      category: group.category,
-      subcategory: group.subcategory,
-      paidBy: group.paidBy,
-      responsibleUser: group.responsibleUser,
-      startMonthId: startMonth.id,
-    });
+    await this.generateInstallmentExpenses(group);
 
     return group;
   }
@@ -190,23 +178,15 @@ export class CreateInstallmentGroupUseCase {
     );
   }
 
-  private async createInstallmentExpenseEntry(data: {
-    installmentGroupId: string;
-    description: string;
-    totalValue: number;
-    installments: number;
-    category: InstallmentGroup["category"];
-    subcategory?: InstallmentGroup["subcategory"];
-    paidBy?: InstallmentGroup["paidBy"];
-    responsibleUser?: InstallmentGroup["responsibleUser"];
-    monthId: string;
-    installmentNumber: number;
-  }): Promise<Expense | null> {
-    const month = await this.findMonthByIdOrThrow(data.monthId);
+  private async createInstallmentExpenseEntry(
+    installmentGroup: InstallmentGroup,
+    installmentNumber: number,
+    month: Month,
+  ): Promise<Expense | null> {
     const existingExpense =
       await this.expenseRepository.findInstallmentExpenseEntry(
-        data.installmentGroupId,
-        data.monthId,
+        installmentGroup,
+        month,
       );
 
     if (existingExpense) {
@@ -216,50 +196,46 @@ export class CreateInstallmentGroupUseCase {
     await this.expenseRepository.create(
       new ExpenseEntity({
         month,
-        category: data.category,
-        subcategory: data.subcategory,
-        paidBy: data.paidBy,
-        responsibleUser: data.responsibleUser,
-        installmentGroup: new InstallmentGroupEntity({
-          id: data.installmentGroupId,
-        }),
+        category: installmentGroup.category,
+        subcategory: installmentGroup.subcategory,
+        paidBy: installmentGroup.paidBy,
+        responsibleUser: installmentGroup.responsibleUser,
+        installmentGroup: installmentGroup,
         expenseKind: ExpenseKindType.STANDARD,
         isPaid: false,
-        description: `${data.description} (${data.installmentNumber}/${data.installments})`,
-        value: Number((data.totalValue / data.installments).toFixed(2)),
+        description: `${installmentGroup.description} (${installmentNumber}/${installmentGroup.installments})`,
+        value: Number(
+          (installmentGroup.totalValue / installmentGroup.installments).toFixed(
+            2,
+          ),
+        ),
         expenseDate: new Date(this.getMonthDate(month)),
       }),
     );
 
     return this.expenseRepository.findInstallmentExpenseEntry(
-      data.installmentGroupId,
-      data.monthId,
+      installmentGroup,
+      month,
     );
   }
 
-  private async generateInstallmentExpenses(data: {
-    installmentGroupId: string;
-    userId: string;
-    description: string;
-    totalValue: number;
-    installments: number;
-    startingInstallmentNumber: number;
-    category: InstallmentGroup["category"];
-    subcategory?: InstallmentGroup["subcategory"];
-    paidBy?: InstallmentGroup["paidBy"];
-    responsibleUser?: InstallmentGroup["responsibleUser"];
-    startMonthId: string;
-  }) {
-    const startMonth = await this.findMonthByIdOrThrow(data.startMonthId);
+  private async generateInstallmentExpenses(
+    installmentGroup: InstallmentGroup,
+  ): Promise<void> {
+    const startMonth = await this.findMonthByIdOrThrow(
+      installmentGroup.startMonth.id,
+    );
     const startYear = startMonth.year;
     const startMonthNum = startMonth.month;
     const remainingInstallments =
-      data.installments - data.startingInstallmentNumber + 1;
+      installmentGroup.installments -
+      installmentGroup.startingInstallmentNumber +
+      1;
 
     for (let i = 0; i < remainingInstallments; i++) {
       let targetMonth = startMonthNum + i;
       let targetYear = startYear;
-      const installmentNumber = data.startingInstallmentNumber + i;
+      const installmentNumber = installmentGroup.startingInstallmentNumber + i;
 
       while (targetMonth > 12) {
         targetMonth -= 12;
@@ -267,23 +243,16 @@ export class CreateInstallmentGroupUseCase {
       }
 
       const month = await this.ensureMonth({
-        userId: data.userId,
+        userId: installmentGroup.user.id,
         year: targetYear,
         month: targetMonth,
       });
 
-      await this.createInstallmentExpenseEntry({
-        installmentGroupId: data.installmentGroupId,
-        description: data.description,
-        totalValue: data.totalValue,
-        installments: data.installments,
-        category: data.category,
-        subcategory: data.subcategory,
-        paidBy: data.paidBy,
-        responsibleUser: data.responsibleUser,
-        monthId: month.id,
+      await this.createInstallmentExpenseEntry(
+        installmentGroup,
         installmentNumber,
-      });
+        month,
+      );
     }
   }
 }

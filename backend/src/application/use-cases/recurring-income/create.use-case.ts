@@ -128,8 +128,8 @@ export class CreateRecurringIncomeUseCase {
     for (const month of months) {
       const existingIncome =
         await this.monthlyIncomeRepository.findRecurringIncomeEntry(
-          recurringIncome.id,
-          month.id,
+          recurringIncome,
+          month,
         );
 
       if (existingIncome) {

@@ -323,7 +323,7 @@ export class RecurringIncomeService {
     requestingUserId: string,
   ) {
     await this.findRecurringIncomeById(id, requestingUserId);
-    return monthlyIncomeRepository.findByRecurringIncomeId(id);
+    return monthlyIncomeRepository.findByRecurringIncome(id);
   }
 
   async updateRecurringIncome(
@@ -388,7 +388,7 @@ export class RecurringIncomeService {
       throw new Error("Recurring income not found");
     }
 
-    await monthlyIncomeRepository.deleteByRecurringIncomeId(id);
+    await monthlyIncomeRepository.deleteByRecurringIncome(id);
 
     if (nextStatus === "active") {
       await this.syncRecurringIncomeToOwnerMonths({
@@ -416,7 +416,7 @@ export class RecurringIncomeService {
     if (recurringIncome.getDataValue("user_id") !== requestingUserId)
       throw new ForbiddenError();
 
-    await monthlyIncomeRepository.deleteByRecurringIncomeId(id);
+    await monthlyIncomeRepository.deleteByRecurringIncome(id);
     await recurringIncomeRepository.delete(id);
     return recurringIncome;
   }

@@ -3,16 +3,8 @@ import type { ISubcategoryRepository } from "../domain/repositories/subcategory.
 import { SubcategoryModel } from "../models/subcategory.model";
 
 export class SubcategoryRepository implements ISubcategoryRepository {
-  async create(
-    data: Omit<
-      Subcategory,
-      "id" | "createdAt" | "updatedAt" | "validateName" | "normalizeName"
-    >,
-  ): Promise<Subcategory> {
-    const model = await SubcategoryModel.create({
-      category: data.category,
-      name: data.name,
-    });
+  async create(data: Subcategory): Promise<Subcategory> {
+    const model = await SubcategoryModel.create(data);
     return model.toDomain();
   }
 

@@ -55,8 +55,8 @@ export class DeleteInstallmentGroupUseCase {
     if (scope === InstallmentGroupScope.SINGLE_OCCURRENCE) {
       const deletedOccurrence =
         await this.expenseRepository.findInstallmentExpenseEntry(
-          installmentGroup.id,
-          effectiveMonth.id,
+          installmentGroup,
+          effectiveMonth,
         );
       if (!deletedOccurrence) {
         throw new NotFoundError(
@@ -77,8 +77,8 @@ export class DeleteInstallmentGroupUseCase {
     const currentInstallmentValue =
       Number(existingGroup.totalValue) / installments;
 
-    await this.expenseRepository.deleteByInstallmentGroupIdFromDate(
-      installmentGroup.id,
+    await this.expenseRepository.deleteByInstallmentGroupFromDate(
+      installmentGroup,
       effectiveDate,
     );
     const updatedGroup = await this.installmentGroupRepository.update(

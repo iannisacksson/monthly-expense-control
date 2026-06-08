@@ -21,6 +21,6 @@ export class ListExpenseByMonthUseCase {
       throw new ForbiddenError();
     }
 
-    return this.expenseRepository.findByMonthId(month.id);
+    return this.expenseRepository.findByMonth(monthFound);
   }
 }

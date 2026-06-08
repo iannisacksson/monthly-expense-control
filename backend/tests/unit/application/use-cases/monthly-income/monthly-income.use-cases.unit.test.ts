@@ -93,13 +93,11 @@ describe("monthly-income use cases", () => {
       };
       const incomeTaxRepository = { createMany: vi.fn().mockResolvedValue([]) };
       const incomeTaxationService = {
-        normalizeTaxation: vi
-          .fn()
-          .mockReturnValue({
-            mode: "automatic",
-            profile: "me_pro_labore",
-            parameters: {},
-          }),
+        normalizeTaxation: vi.fn().mockReturnValue({
+          mode: "automatic",
+          profile: "me_pro_labore",
+          parameters: {},
+        }),
         calculateAutomaticTaxes: vi
           .fn()
           .mockReturnValue([{ tax_type: "das", value: 300, is_auto: true }]),
@@ -246,7 +244,7 @@ describe("monthly-income use cases", () => {
     it("returns incomes when requester owns the month", async () => {
       const incomes = [makeIncome()];
       const monthlyIncomeRepository = {
-        findByMonthId: vi.fn().mockResolvedValue(incomes),
+        findByMonth: vi.fn().mockResolvedValue(incomes),
       };
       const monthRepository = {
         findById: vi.fn().mockResolvedValue(makeMonth("user-1")),
@@ -265,7 +263,7 @@ describe("monthly-income use cases", () => {
         findById: vi.fn().mockResolvedValue(makeMonth("user-2")),
       };
       const useCase = new ListMonthlyIncomesByMonthUseCase(
-        { findByMonthId: vi.fn() },
+        { findByMonth: vi.fn() },
         monthRepository as any,
       );
 
@@ -277,7 +275,7 @@ describe("monthly-income use cases", () => {
     it("throws ForbiddenError when month does not exist", async () => {
       const monthRepository = { findById: vi.fn().mockResolvedValue(null) };
       const useCase = new ListMonthlyIncomesByMonthUseCase(
-        { findByMonthId: vi.fn() },
+        { findByMonth: vi.fn() },
         monthRepository as any,
       );
 

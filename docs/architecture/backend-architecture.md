@@ -846,7 +846,7 @@ export class SubcategoryRepository implements ISubcategoryRepository {
 - **camelCase**: Sequelize com `underscored: true` armazena snake_case no banco, mas todos os campos no TypeScript são camelCase. Nunca usar `getDataValue("snake_case_field")` nos use-cases.
 - **toDomain()**: todo resultado de query deve passar por `model.toDomain()` antes de ser retornado. Nunca retornar instâncias Sequelize fora dos repositórios.
 - **delete entity-based**: o método `delete` recebe a entity (não o ID), garantindo que o use-case já tenha verificado a existência antes de deletar.
-- **FKs compostos**: quando o model tem FK com nome diferente do campo da entity (ex: `installmentGroupFkId` ≠ `installmentGroupId`), as queries WHERE devem usar o nome do campo no model.
+- **FKs compostos**: quando o model tem FK com nome diferente do campo da entity (ex: `installmentGroupId` ≠ `installmentGroupId`), as queries WHERE devem usar o nome do campo no model.
 
 ### Uso nos Use-Cases
 
