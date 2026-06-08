@@ -4,21 +4,27 @@ import {
   IsString,
   MaxLength,
   MinLength,
-  validate,
 } from "class-validator";
-import { plainToInstance } from "class-transformer";
 import { UpdateCategoryUseCase } from "../../../../application/use-cases/category/update.use-case";
 import { CategoryType } from "../../../../domain/entities/category.entity";
-import { BadRequestError } from "../../../../utils/errors";
 import { HttpStatusCode } from "../../http-status-code";
 import type {
   AuthenticatedHttpRequest,
   HttpResponse,
   IController,
 } from "../../http.types";
-import { CategoryResponse, toCategoryResponse } from "./category.response";
+import { CategoryResponse } from "./category.response";
+import { Validation } from "../../../../utils/validation";
 
-class UpdateCategoryBody {
+type TUpdateCategoryBody = {
+  name?: string;
+  type?: CategoryType;
+};
+
+class UpdateCategoryBody
+  extends Validation<TUpdateCategoryBody>
+  implements TUpdateCategoryBody
+{
   @IsOptional()
   @IsString()
   @MinLength(2, {
@@ -43,22 +49,20 @@ export class UpdateCategoryController implements IController<
   async handle(
     request: AuthenticatedHttpRequest<UpdateCategoryBody, { id: string }>,
   ): Promise<HttpResponse<CategoryResponse>> {
-    const body = plainToInstance(UpdateCategoryBody, request.body);
-    const errors = await validate(body);
-    if (errors.length > 0) {
-      const message = Object.values(errors[0].constraints ?? {})[0];
-      throw new BadRequestError(message);
-    }
+    const playload = new UpdateCategoryBody({
+      name: request.body.name,
+      type: request.body.type,
+    });
 
     const result = await this.useCase.execute(
       request.params.id,
-      body,
+      playload,
       request.userId,
     );
 
     return {
       statusCode: HttpStatusCode.OK,
-      body: toCategoryResponse(result),
+      body: new CategoryResponse(result),
     };
   }
 }

@@ -1,12 +1,8 @@
-import {
-  Category,
-  CategoryEntity,
-  CategoryType,
-} from "../../../domain/entities/category.entity";
+import { Category } from "../../../domain/entities/category.entity";
 import { BadRequestError } from "../../../utils/errors";
 import { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import { IUserRepository } from "../../../domain/repositories/user.repository";
-import { UserEntity } from "../../../domain/entities/user.entity";
+import { User } from "../../../domain/entities/user.entity";
 
 export class CreateCategoryUseCase {
   constructor(
@@ -14,22 +10,14 @@ export class CreateCategoryUseCase {
     private readonly userRepository: IUserRepository,
   ) {}
 
-  async execute(data: {
-    userId: string;
-    name: string;
-    type: CategoryType;
-  }): Promise<Category> {
-    const user = await this.userRepository.findById(data.userId);
+  async execute(category: Category, user: User): Promise<Category> {
+    const userFound = await this.userRepository.findById(user.id);
 
-    if (!user) {
+    if (!userFound) {
       throw new BadRequestError("User not found");
     }
 
-    const category = new CategoryEntity({
-      name: data.name,
-      type: data.type,
-      user: new UserEntity({ id: data.userId }),
-    });
+    category.user = userFound;
 
     return this.categoryRepository.create(category);
   }
