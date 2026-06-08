@@ -1,13 +1,11 @@
 import type { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import type { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
-import { CategoryRepository } from "../../../repositories/category.repository";
-import { SubcategoryRepository } from "../../../repositories/subcategory.repository";
 import { ForbiddenError } from "../../../utils/errors";
 
 export class DeleteSubcategoryUseCase {
   constructor(
-    private readonly subcategoryRepository: ISubcategoryRepository = new SubcategoryRepository(),
-    private readonly categoryRepository: ICategoryRepository = new CategoryRepository(),
+    private readonly subcategoryRepository: ISubcategoryRepository,
+    private readonly categoryRepository: ICategoryRepository,
   ) {}
 
   async execute(id: string, requestingUserId: string) {

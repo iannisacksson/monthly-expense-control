@@ -1,12 +1,11 @@
 import type { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-income.repository";
 import type { IMonthRepository } from "../../../domain/repositories/month.repository";
-import { MonthRepository } from "../../../repositories/month.repository";
 import { ForbiddenError } from "../../../utils/errors";
 
 export class ListMonthlyIncomesByMonthUseCase {
   constructor(
     private readonly monthlyIncomeRepository: IMonthlyIncomeRepository,
-    private readonly monthRepository: IMonthRepository = new MonthRepository(),
+    private readonly monthRepository: IMonthRepository,
   ) {}
 
   async execute(monthId: string, requestingUserId: string) {

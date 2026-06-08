@@ -1,13 +1,10 @@
 import type { UpdateUserDTO } from "../../../dtos/user.dto";
 import type { User } from "../../../domain/entities/user.entity";
 import type { IUserRepository } from "../../../domain/repositories/user.repository";
-import { UserRepository } from "../../../repositories/user.repository";
 import { NotFoundError } from "../../../utils/errors";
 
 export class UpdateUserUseCase {
-  constructor(
-    private readonly userRepository: IUserRepository = new UserRepository(),
-  ) {}
+  constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(id: string, data: UpdateUserDTO): Promise<User> {
     const existingUser = await this.userRepository.findById(id);

@@ -51,21 +51,12 @@ export interface IMonthlyIncomeRepository {
 
   /**
    * Updates a monthly income entry.
-   * @param id The monthly income's ID.
-   * @param data Fields to update.
+   * @param monthlyIncome The monthly income entity to update.
    * @param options Optional Sequelize transaction.
    * @returns The updated monthly income, or null if not found.
    */
   update(
-    id: string,
-    data: {
-      grossIncome?: number;
-      incomeType?: string;
-      taxationMode?: "manual" | "automatic";
-      taxationProfile?: string | null;
-      taxationParameters?: Record<string, unknown> | null;
-      notes?: string | null;
-    },
+    monthlyIncome: MonthlyIncome,
     options?: { transaction?: Transaction },
   ): Promise<MonthlyIncome | null>;
 

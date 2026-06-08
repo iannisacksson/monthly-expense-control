@@ -1,13 +1,11 @@
 import type { IIncomeTaxRepository } from "../../../domain/repositories/income-tax.repository";
 import type { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-income.repository";
-import { IncomeTaxRepository } from "../../../repositories/income-tax.repository";
-import { MonthlyIncomeRepository } from "../../../repositories/monthly-income.repository";
 import { ForbiddenError } from "../../../utils/errors";
 
 export class ListIncomeTaxesByIncomeUseCase {
   constructor(
-    private readonly incomeTaxRepository: IIncomeTaxRepository = new IncomeTaxRepository(),
-    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository = new MonthlyIncomeRepository(),
+    private readonly incomeTaxRepository: IIncomeTaxRepository,
+    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository,
   ) {}
 
   async execute(monthlyIncomeId: string, requestingUserId: string) {

@@ -484,7 +484,7 @@ export class UpdateInstallmentGroupUseCase {
         subcategory: data.subcategory,
         paidBy: data.paidBy,
         responsibleUser: data.responsibleUser,
-        installmentGroupId: new InstallmentGroupEntity({
+        installmentGroup: new InstallmentGroupEntity({
           id: data.installmentGroupId,
         }),
         expenseKind: ExpenseKindType.STANDARD,

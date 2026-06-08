@@ -856,9 +856,7 @@ import type { ISubcategoryRepository } from "../../../domain/repositories/subcat
 import { SubcategoryRepository } from "../../../repositories/subcategory.repository";
 
 export class CreateSubcategoryUseCase {
-  constructor(
-    private readonly subcategoryRepository: ISubcategoryRepository = new SubcategoryRepository(),
-  ) {}
+  constructor(private readonly subcategoryRepository: ISubcategoryRepository) {}
 }
 ```
 

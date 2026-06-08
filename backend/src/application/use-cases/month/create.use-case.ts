@@ -35,6 +35,7 @@ import { UserRepository } from "../../../repositories/user.repository";
 import { IncomeTaxationService } from "../../../services/income-taxation.service";
 import { BadRequestError, NotFoundError } from "../../../utils/errors";
 import { isMonthWithinRecurringRange } from "../../../utils/month-period";
+import { IncomeTaxEntity } from "../../../domain/entities/income-tax.entity";
 
 type AutomaticTaxationParameters = {
   accountant_fee: number;
@@ -47,14 +48,14 @@ type AutomaticTaxationParameters = {
 
 export class CreateMonthUseCase {
   constructor(
-    private readonly userRepository: IUserRepository = new UserRepository(),
-    private readonly monthRepository: IMonthRepository = new MonthRepository(),
-    private readonly recurringIncomeRepository: IRecurringIncomeRepository = new RecurringIncomeRepository(),
-    private readonly recurringExpenseRepository: IRecurringExpenseRepository = new RecurringExpenseRepository(),
-    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository = new MonthlyIncomeRepository(),
-    private readonly expenseRepository: IExpenseRepository = new ExpenseRepository(),
-    private readonly incomeTaxRepository: IIncomeTaxRepository = new IncomeTaxRepository(),
-    private readonly incomeTaxationService: IncomeTaxationService = new IncomeTaxationService(),
+    private readonly userRepository: IUserRepository,
+    private readonly monthRepository: IMonthRepository,
+    private readonly recurringIncomeRepository: IRecurringIncomeRepository,
+    private readonly recurringExpenseRepository: IRecurringExpenseRepository,
+    private readonly monthlyIncomeRepository: IMonthlyIncomeRepository,
+    private readonly expenseRepository: IExpenseRepository,
+    private readonly incomeTaxRepository: IIncomeTaxRepository,
+    private readonly incomeTaxationService: IncomeTaxationService,
   ) {}
 
   async execute(month: Month, user: User): Promise<Month> {
@@ -137,25 +138,6 @@ export class CreateMonthUseCase {
     }
   }
 
-  private normalizeRecurringIncomeTaxation(recurringIncome: RecurringIncome) {
-    if (recurringIncome.taxationMode === TaxationModeType.AUTOMATIC) {
-      return this.incomeTaxationService.normalizeTaxation({
-        mode: TaxationModeType.AUTOMATIC,
-        profile:
-          recurringIncome.taxationProfile === "me_pro_labore"
-            ? "me_pro_labore"
-            : undefined,
-        parameters: recurringIncome.taxationParameters as
-          | AutomaticTaxationParameters
-          | undefined,
-      });
-    }
-
-    return this.incomeTaxationService.normalizeTaxation({
-      mode: TaxationModeType.MANUAL,
-    });
-  }
-
   private async generateMonthlyIncome(
     recurringIncome: RecurringIncome,
     month: Month,
@@ -170,8 +152,7 @@ export class CreateMonthUseCase {
       return;
     }
 
-    const normalizedTaxation =
-      this.normalizeRecurringIncomeTaxation(recurringIncome);
+    recurringIncome.normalizeTaxation();
 
     const incomeEntity = new MonthlyIncomeEntity({
       user,
@@ -179,11 +160,9 @@ export class CreateMonthUseCase {
       recurringIncome: new RecurringIncomeEntity({ id: recurringIncome.id }),
       grossIncome: recurringIncome.grossIncome,
       incomeType: recurringIncome.incomeType,
-      taxationMode: normalizedTaxation.mode as TaxationModeType,
-      taxationProfile: normalizedTaxation.profile ?? undefined,
-      taxationParameters:
-        (normalizedTaxation.parameters as Record<string, unknown> | null) ??
-        undefined,
+      taxationMode: recurringIncome.taxationMode,
+      taxationProfile: recurringIncome.taxationProfile ?? undefined,
+      taxationParameters: recurringIncome.taxationParameters ?? undefined,
       notes: recurringIncome.description,
     });
 
@@ -193,20 +172,25 @@ export class CreateMonthUseCase {
     const income = await this.monthlyIncomeRepository.create(incomeEntity);
     const automaticTaxes = this.incomeTaxationService.calculateAutomaticTaxes(
       recurringIncome.grossIncome,
-      normalizedTaxation,
+      {
+        mode: recurringIncome.taxationMode,
+        profile: recurringIncome.taxationProfile,
+        parameters: recurringIncome.taxationParameters,
+      },
     );
 
-    if (automaticTaxes.length === 0) {
-      return;
-    }
+    if (automaticTaxes.length === 0) return;
 
     await this.incomeTaxRepository.createMany(
-      automaticTaxes.map((tax) => ({
-        monthlyIncomeId: income.id,
-        taxType: tax.tax_type,
-        value: tax.value,
-        isAuto: true,
-      })),
+      automaticTaxes.map(
+        (tax) =>
+          new IncomeTaxEntity({
+            monthlyIncome: income,
+            taxType: tax.tax_type,
+            value: tax.value,
+            isAuto: true,
+          }),
+      ),
     );
   }
 

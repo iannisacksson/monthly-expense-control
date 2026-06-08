@@ -1,14 +1,12 @@
 import type { UpdateSubcategoryDTO } from "../../../dtos/subcategory.dto";
 import type { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import type { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
-import { CategoryRepository } from "../../../repositories/category.repository";
-import { SubcategoryRepository } from "../../../repositories/subcategory.repository";
 import { ForbiddenError } from "../../../utils/errors";
 
 export class UpdateSubcategoryUseCase {
   constructor(
-    private readonly subcategoryRepository: ISubcategoryRepository = new SubcategoryRepository(),
-    private readonly categoryRepository: ICategoryRepository = new CategoryRepository(),
+    private readonly subcategoryRepository: ISubcategoryRepository,
+    private readonly categoryRepository: ICategoryRepository,
   ) {}
 
   async execute(

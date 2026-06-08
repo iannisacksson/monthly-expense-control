@@ -1,14 +1,11 @@
 import type { CreateUserDTO } from "../../../dtos/user.dto";
 import { UserEntity } from "../../../domain/entities/user.entity";
 import type { IUserRepository } from "../../../domain/repositories/user.repository";
-import { UserRepository } from "../../../repositories/user.repository";
 
 const _validator = new UserEntity({});
 
 export class CreateUserUseCase {
-  constructor(
-    private readonly userRepository: IUserRepository = new UserRepository(),
-  ) {}
+  constructor(private readonly userRepository: IUserRepository) {}
 
   async execute(data: CreateUserDTO) {
     _validator.validateName(data.name);

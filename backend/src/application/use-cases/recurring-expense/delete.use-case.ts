@@ -1,11 +1,9 @@
 import { Month } from "../../../domain/entities/month.entity";
 import { RecurringExpense } from "../../../domain/entities/recurring-expense.entity";
 import { User } from "../../../domain/entities/user.entity";
-import { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import { IExpenseRepository } from "../../../domain/repositories/expense.repository";
 import { IMonthRepository } from "../../../domain/repositories/month.repository";
 import { IRecurringExpenseRepository } from "../../../domain/repositories/recurring-expense.repository";
-import { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
 import { ForbiddenError, NotFoundError } from "../../../utils/errors";
 import { getMonthDistance } from "../../../utils/month-period";
 import { Scope } from "../../../utils/scope";
@@ -15,8 +13,6 @@ export class DeleteRecurringExpenseUseCase {
     private readonly recurringExpenseRepository: IRecurringExpenseRepository,
     private readonly expenseRepository: IExpenseRepository,
     private readonly monthRepository: IMonthRepository,
-    private readonly categoryRepository: ICategoryRepository,
-    private readonly subcategoryRepository: ISubcategoryRepository,
   ) {}
 
   async execute(
