@@ -10,9 +10,7 @@ export interface IInstallmentGroupRepository {
    * @param data Installment group fields excluding generated identifiers and timestamps.
    * @returns The created installment group.
    */
-  create(
-    data: Omit<InstallmentGroup, "id" | "createdAt" | "updatedAt">,
-  ): Promise<InstallmentGroup>;
+  create(data: InstallmentGroup): Promise<InstallmentGroup>;
 
   /**
    * Finds an installment group by its ID.
@@ -30,24 +28,10 @@ export interface IInstallmentGroupRepository {
 
   /**
    * Updates an installment group.
-   * @param id The installment group's ID.
-   * @param data Fields to update.
-   * @returns The updated installment group, or null if not found.
+   * @param installmentGroup The installment group entity to update.
+   * @returns The updated installment group.
    */
-  update(
-    id: string,
-    data: Partial<{
-      description: string;
-      totalValue: number;
-      installments: number;
-      startingInstallmentNumber: number;
-      category: Category;
-      subcategory: Subcategory | null;
-      paidBy: User | null;
-      responsibleUser: User | null;
-      startMonth: Month | null;
-    }>,
-  ): Promise<InstallmentGroup | null>;
+  update(installmentGroup: InstallmentGroup): Promise<InstallmentGroup>;
 
   /**
    * Deletes an installment group.

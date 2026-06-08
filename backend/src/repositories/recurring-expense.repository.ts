@@ -33,8 +33,6 @@ export class RecurringExpenseRepository implements IRecurringExpenseRepository {
   }
 
   async delete(expense: RecurringExpense): Promise<void> {
-    const model = await RecurringExpenseModel.findByPk(expense.id);
-    if (!model) return;
-    await model.destroy();
+    await RecurringExpenseModel.destroy({ where: { id: expense.id } });
   }
 }

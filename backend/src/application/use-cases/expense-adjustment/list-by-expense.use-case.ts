@@ -36,9 +36,8 @@ export class ListExpenseItemsUseCase {
       throw new ForbiddenError();
     }
 
-    const expenseItems = await this.expenseItemRepository.findByExpenseId(
-      expense.id,
-    );
+    const expenseItems =
+      await this.expenseItemRepository.findByExpense(expenseFound);
 
     return expenseItems;
   }

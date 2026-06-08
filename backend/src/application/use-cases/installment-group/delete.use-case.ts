@@ -81,17 +81,12 @@ export class DeleteInstallmentGroupUseCase {
       installmentGroup,
       effectiveDate,
     );
-    const updatedGroup = await this.installmentGroupRepository.update(
-      installmentGroup.id,
-      {
-        installments: effectiveInstallmentNumber - 1,
-        totalValue: Number(
-          (currentInstallmentValue * (effectiveInstallmentNumber - 1)).toFixed(
-            2,
-          ),
-        ),
-      },
+    existingGroup.installments = effectiveInstallmentNumber - 1;
+    existingGroup.totalValue = Number(
+      (currentInstallmentValue * (effectiveInstallmentNumber - 1)).toFixed(2),
     );
+    const updatedGroup =
+      await this.installmentGroupRepository.update(existingGroup);
 
     if (!updatedGroup) {
       throw new Error("Installment group not found");

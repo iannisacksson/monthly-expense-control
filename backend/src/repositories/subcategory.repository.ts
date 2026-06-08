@@ -1,3 +1,4 @@
+import { Category } from "../domain/entities/category.entity";
 import type { Subcategory } from "../domain/entities/subcategory.entity";
 import type { ISubcategoryRepository } from "../domain/repositories/subcategory.repository";
 import { SubcategoryModel } from "../models/subcategory.model";
@@ -13,24 +14,22 @@ export class SubcategoryRepository implements ISubcategoryRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByCategoryId(categoryId: string): Promise<Subcategory[]> {
-    const models = await SubcategoryModel.findAll({ where: { categoryId } });
+  async findByCategory(category: Category): Promise<Subcategory[]> {
+    const models = await SubcategoryModel.findAll({
+      where: { categoryId: category.id },
+    });
     return models.map((m) => m.toDomain());
   }
 
-  async update(
-    id: string,
-    data: Partial<{ name: string }>,
-  ): Promise<Subcategory | null> {
-    const model = await SubcategoryModel.findByPk(id);
-    if (!model) return null;
-    await model.update(data);
+  async update(subcategory: Subcategory): Promise<Subcategory> {
+    const [_, [model]] = await SubcategoryModel.update(subcategory, {
+      where: { id: subcategory.id },
+      returning: true,
+    });
     return model.toDomain();
   }
 
   async delete(subcategory: Subcategory): Promise<void> {
-    const model = await SubcategoryModel.findByPk(subcategory.id);
-    if (!model) return;
-    await model.destroy();
+    await SubcategoryModel.destroy({ where: { id: subcategory.id } });
   }
 }

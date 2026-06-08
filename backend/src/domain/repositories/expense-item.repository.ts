@@ -1,4 +1,5 @@
 import type { ExpenseItem } from "../entities/expense-item.entity";
+import { Expense } from "../entities/expense.entity";
 
 export interface IExpenseItemRepository {
   /**
@@ -17,9 +18,10 @@ export interface IExpenseItemRepository {
 
   /**
    * Returns all items belonging to an expense.
-   * @param expenseId The expense's ID.
+   * @param expense The expense entity.
+   * @returns An array of expense items associated with the specified expense.
    */
-  findByExpenseId(expenseId: string): Promise<ExpenseItem[]>;
+  findByExpense(expense: Expense): Promise<ExpenseItem[]>;
 
   /**
    * Updates an expense item.
@@ -36,8 +38,8 @@ export interface IExpenseItemRepository {
 
   /**
    * Calculates the sum of amounts for all items belonging to an expense.
-   * @param expenseId The expense's ID.
+   * @param expense The expense entity.
    * @returns The total amount.
    */
-  sumAmountByExpenseId(expenseId: string): Promise<number>;
+  sumAmountByExpense(expense: Expense): Promise<number>;
 }

@@ -7,9 +7,7 @@ export interface IBudgetRuleRepository {
    * @param data Budget rule fields excluding generated identifiers, timestamps and validation methods.
    * @returns The created budget rule.
    */
-  create(
-    data: Omit<BudgetRule, "id" | "createdAt" | "updatedAt" | "validateName">,
-  ): Promise<BudgetRule>;
+  create(data: BudgetRule): Promise<BudgetRule>;
 
   /**
    * Finds a budget rule by its ID.
@@ -27,14 +25,10 @@ export interface IBudgetRuleRepository {
 
   /**
    * Updates a budget rule's name.
-   * @param id The budget rule's ID.
-   * @param data Fields to update.
-   * @returns The updated budget rule, or null if not found.
+   * @param budgetRule The budget rule entity to update.
+   * @returns The updated budget rule.
    */
-  update(
-    id: string,
-    data: Partial<{ name: string }>,
-  ): Promise<BudgetRule | null>;
+  update(budgetRule: BudgetRule): Promise<BudgetRule>;
 
   /**
    * Deletes a budget rule.

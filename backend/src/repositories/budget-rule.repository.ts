@@ -4,13 +4,8 @@ import type { IBudgetRuleRepository } from "../domain/repositories/budget-rule.r
 import { BudgetRuleModel } from "../models/budget-rule.model";
 
 export class BudgetRuleRepository implements IBudgetRuleRepository {
-  async create(
-    data: Omit<BudgetRule, "id" | "createdAt" | "updatedAt" | "validateName">,
-  ): Promise<BudgetRule> {
-    const model = await BudgetRuleModel.create({
-      user: data.user,
-      name: data.name,
-    });
+  async create(data: BudgetRule): Promise<BudgetRule> {
+    const model = await BudgetRuleModel.create(data);
     return model.toDomain();
   }
 
@@ -26,13 +21,11 @@ export class BudgetRuleRepository implements IBudgetRuleRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async update(
-    id: string,
-    data: Partial<{ name: string }>,
-  ): Promise<BudgetRule | null> {
-    const model = await BudgetRuleModel.findByPk(id);
-    if (!model) return null;
-    await model.update(data);
+  async update(budgetRule: BudgetRule): Promise<BudgetRule> {
+    const [_, [model]] = await BudgetRuleModel.update(budgetRule, {
+      where: { id: budgetRule.id },
+      returning: true,
+    });
     return model.toDomain();
   }
 

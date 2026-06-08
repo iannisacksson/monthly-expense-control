@@ -1,4 +1,5 @@
 import type { ExpenseItem } from "../domain/entities/expense-item.entity";
+import { Expense } from "../domain/entities/expense.entity";
 import type { IExpenseItemRepository } from "../domain/repositories/expense-item.repository";
 import { ExpenseItemModel } from "../models/expense-item.model";
 
@@ -13,9 +14,9 @@ export class ExpenseItemRepository implements IExpenseItemRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByExpenseId(expenseId: string): Promise<ExpenseItem[]> {
+  async findByExpense(expense: Expense): Promise<ExpenseItem[]> {
     const models = await ExpenseItemModel.findAll({
-      where: { expenseId },
+      where: { expenseId: expense.id },
       order: [["createdAt", "DESC"]],
     });
     return models.map((m) => m.toDomain());
@@ -35,8 +36,8 @@ export class ExpenseItemRepository implements IExpenseItemRepository {
     await model.destroy();
   }
 
-  async sumAmountByExpenseId(expenseId: string): Promise<number> {
-    const items = await this.findByExpenseId(expenseId);
+  async sumAmountByExpense(expense: Expense): Promise<number> {
+    const items = await this.findByExpense(expense);
     return items.reduce((sum, item) => sum + Number(item.amount), 0);
   }
 }

@@ -111,21 +111,12 @@ export class UpdateInstallmentGroupUseCase {
       effectiveDate,
     );
 
-    const updatedCurrentGroup = await this.installmentGroupRepository.update(
-      existingGroup.id,
-      {
-        installments: effectiveInstallmentNumber - 1,
-        totalValue: Number(
-          (currentInstallmentValue * (effectiveInstallmentNumber - 1)).toFixed(
-            2,
-          ),
-        ),
-      },
+    existingGroup.installments = effectiveInstallmentNumber - 1;
+    existingGroup.totalValue = Number(
+      (currentInstallmentValue * (effectiveInstallmentNumber - 1)).toFixed(2),
     );
 
-    if (!updatedCurrentGroup) {
-      throw new NotFoundError("Installment group not found");
-    }
+    await this.installmentGroupRepository.update(existingGroup);
 
     const newGroup = await this.installmentGroupRepository.create(
       new InstallmentGroupEntity({
@@ -168,18 +159,15 @@ export class UpdateInstallmentGroupUseCase {
       nextState.subcategory,
     );
 
-    const group = await this.installmentGroupRepository.update(
-      existingGroup.id,
-      {
-        description: nextState.description,
-        totalValue: nextState.totalValue,
-        installments: nextState.installments,
-        category: nextState.category,
-        subcategory: nextState.subcategory ?? null,
-        paidBy: nextState.paidBy ?? null,
-        responsibleUser: nextState.responsibleUser ?? null,
-      },
-    );
+    existingGroup.description = nextState.description;
+    existingGroup.totalValue = nextState.totalValue;
+    existingGroup.installments = nextState.installments;
+    existingGroup.category = nextState.category;
+    existingGroup.subcategory = nextState.subcategory ?? undefined;
+    existingGroup.paidBy = nextState.paidBy ?? undefined;
+    existingGroup.responsibleUser = nextState.responsibleUser ?? undefined;
+
+    const group = await this.installmentGroupRepository.update(existingGroup);
 
     if (!group) {
       throw new NotFoundError("Installment group not found");

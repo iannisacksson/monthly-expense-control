@@ -1,5 +1,4 @@
-import type { BudgetRule } from "../entities/budget-rule.entity";
-import type { Month, MonthStatus } from "../entities/month.entity";
+import type { Month } from "../entities/month.entity";
 import { User } from "../entities/user.entity";
 
 export interface IMonthRepository {
