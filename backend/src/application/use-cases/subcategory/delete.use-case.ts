@@ -1,6 +1,6 @@
 import type { ICategoryRepository } from "../../../domain/repositories/category.repository";
 import type { ISubcategoryRepository } from "../../../domain/repositories/subcategory.repository";
-import { ForbiddenError } from "../../../utils/errors";
+import { ForbiddenError, NotFoundError } from "../../../utils/errors";
 
 export class DeleteSubcategoryUseCase {
   constructor(

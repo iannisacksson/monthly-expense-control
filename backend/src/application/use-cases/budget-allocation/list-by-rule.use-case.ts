@@ -1,4 +1,4 @@
-import { ForbiddenError, NotFoundError } from "../../../utils/errors";
+import { ForbiddenError } from "../../../utils/errors";
 import { User } from "../../../domain/entities/user.entity";
 import { BudgetAllocation } from "../../../domain/entities/budget-allocation.entity";
 import { IBudgetAllocationRepository } from "../../../domain/repositories/budget-allocation.repository";

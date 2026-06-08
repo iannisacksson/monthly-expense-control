@@ -51,9 +51,8 @@ export class UpdateExpenseItemUseCase {
     const updatedItem = await this.expenseItemRepository.update(existingItem);
 
     const previousValue = Number(expenseFound.value);
-    const nextValue = await this.expenseItemRepository.sumAmountByExpenseId(
-      expenseFound.id,
-    );
+    const nextValue =
+      await this.expenseItemRepository.sumAmountByExpense(expenseFound);
 
     if (previousValue === nextValue) {
       return updatedItem;

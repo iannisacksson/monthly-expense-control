@@ -49,9 +49,8 @@ export class DeleteExpenseItemUseCase {
     await this.expenseItemRepository.delete(expenseItem);
 
     const previousValue = Number(expense.value);
-    const nextValue = await this.expenseItemRepository.sumAmountByExpenseId(
-      expense.id,
-    );
+    const nextValue =
+      await this.expenseItemRepository.sumAmountByExpense(expense);
 
     if (previousValue === nextValue) {
       return;

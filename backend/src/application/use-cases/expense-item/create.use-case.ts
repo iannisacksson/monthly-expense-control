@@ -50,9 +50,8 @@ export class CreateExpenseItemUseCase {
     const item = await this.expenseItemRepository.create(newExpenseItem);
 
     const previousValue = Number(expenseFound.value);
-    const nextValue = await this.expenseItemRepository.sumAmountByExpenseId(
-      expenseFound.id,
-    );
+    const nextValue =
+      await this.expenseItemRepository.sumAmountByExpense(expenseFound);
 
     if (previousValue === nextValue) {
       return item;

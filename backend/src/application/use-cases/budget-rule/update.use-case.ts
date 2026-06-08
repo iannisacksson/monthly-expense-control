@@ -16,10 +16,7 @@ export class UpdateBudgetRuleUseCase {
     if (!existing) throw new NotFoundError("Budget rule not found");
     if (existing.user.id !== requestingUser.id) throw new ForbiddenError();
 
-    const rule = await this.budgetRuleRepository.update(
-      budgetRule.id,
-      budgetRule,
-    );
+    const rule = await this.budgetRuleRepository.update(budgetRule);
     if (!rule) {
       throw new NotFoundError("Budget rule not found");
     }
