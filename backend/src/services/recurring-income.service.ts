@@ -187,7 +187,7 @@ export class RecurringIncomeService {
       throw new Error("Start month not found");
     }
 
-    const ownerMonths = await monthRepository.findByUserId(data.userId);
+    const ownerMonths = await monthRepository.findByUser(data.userId);
     const eligibleMonthIds = ownerMonths
       .filter((month) =>
         this.isMonthWithinRecurringRange(startMonth, month, data.occurrences),
@@ -216,8 +216,7 @@ export class RecurringIncomeService {
       return;
     }
 
-    const recurringIncomes =
-      await recurringIncomeRepository.findByUserId(userId);
+    const recurringIncomes = await recurringIncomeRepository.findByUser(userId);
 
     for (const recurringIncome of recurringIncomes) {
       if ((recurringIncome.getDataValue("status") as string) !== "active") {
@@ -306,7 +305,7 @@ export class RecurringIncomeService {
   }
 
   async listRecurringIncomesByUser(userId: string) {
-    return recurringIncomeRepository.findByUserId(userId);
+    return recurringIncomeRepository.findByUser(userId);
   }
 
   async findRecurringIncomeById(id: string, requestingUserId: string) {

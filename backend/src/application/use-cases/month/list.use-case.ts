@@ -6,6 +6,6 @@ export class ListMonthsUseCase {
   constructor(private readonly monthRepository: IMonthRepository) {}
 
   async execute(user: User): Promise<Month[]> {
-    return this.monthRepository.findByUserId(user.id);
+    return this.monthRepository.findByUser(user);
   }
 }

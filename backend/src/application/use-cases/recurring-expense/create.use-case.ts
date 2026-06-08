@@ -107,8 +107,8 @@ export class CreateRecurringExpenseUseCase {
   private async syncRecurringExpenseToOwnerMonths(
     recurringExpense: RecurringExpense,
   ) {
-    const ownerMonths = await this.monthRepository.findByUserId(
-      recurringExpense.user?.id,
+    const ownerMonths = await this.monthRepository.findByUser(
+      recurringExpense.user,
     );
 
     const eligibleMonths = ownerMonths

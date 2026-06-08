@@ -8,6 +8,6 @@ export class ListInstallmentGroupsByUserUseCase {
   ) {}
 
   async execute(user: User): Promise<InstallmentGroup[]> {
-    return this.installmentGroupRepository.findByUserId(user.id);
+    return this.installmentGroupRepository.findByUser(user);
   }
 }

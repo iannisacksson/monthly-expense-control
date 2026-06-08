@@ -6,6 +6,6 @@ export class ListBudgetRulesUseCase {
   constructor(private readonly budgetRuleRepository: IBudgetRuleRepository) {}
 
   async execute(requestingUser: User): Promise<BudgetRule[]> {
-    return this.budgetRuleRepository.findByUserId(requestingUser.id);
+    return this.budgetRuleRepository.findByUser(requestingUser);
   }
 }

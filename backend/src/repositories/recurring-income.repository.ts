@@ -1,4 +1,5 @@
 import type { RecurringIncome } from "../domain/entities/recurring-income.entity";
+import { User } from "../domain/entities/user.entity";
 import type { IRecurringIncomeRepository } from "../domain/repositories/recurring-income.repository";
 import { RecurringIncomeModel } from "../models/recurring-income.model";
 
@@ -13,8 +14,10 @@ export class RecurringIncomeRepository implements IRecurringIncomeRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string): Promise<RecurringIncome[]> {
-    const models = await RecurringIncomeModel.findAll({ where: { userId } });
+  async findByUser(user: User): Promise<RecurringIncome[]> {
+    const models = await RecurringIncomeModel.findAll({
+      where: { userId: user.id },
+    });
     return models.map((m) => m.toDomain());
   }
 

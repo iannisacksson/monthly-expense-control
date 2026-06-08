@@ -1,5 +1,6 @@
 import type { BudgetRule } from "../domain/entities/budget-rule.entity";
 import type { Month, MonthStatus } from "../domain/entities/month.entity";
+import { User } from "../domain/entities/user.entity";
 import type { IMonthRepository } from "../domain/repositories/month.repository";
 import { MonthModel } from "../models/month.model";
 
@@ -14,8 +15,8 @@ export class MonthRepository implements IMonthRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string): Promise<Month[]> {
-    const models = await MonthModel.findAll({ where: { userId } });
+  async findByUser(user: User): Promise<Month[]> {
+    const models = await MonthModel.findAll({ where: { userId: user.id } });
     return models.map((m) => m.toDomain());
   }
 

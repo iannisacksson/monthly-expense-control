@@ -1,4 +1,5 @@
 import type { RecurringExpense } from "../entities/recurring-expense.entity";
+import { User } from "../entities/user.entity";
 
 export interface IRecurringExpenseRepository {
   /**
@@ -17,9 +18,10 @@ export interface IRecurringExpenseRepository {
 
   /**
    * Returns all recurring expenses belonging to a user.
-   * @param userId The user's ID.
+   * @param user The user entity.
+   * @returns An array of recurring expenses belonging to the user.
    */
-  findByUserId(userId: string): Promise<RecurringExpense[]>;
+  findByUser(user: User): Promise<RecurringExpense[]>;
 
   /**
    * Updates a recurring expense entry.

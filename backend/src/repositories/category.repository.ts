@@ -19,11 +19,6 @@ export class CategoryRepository implements ICategoryRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async findByUserId(userId: string): Promise<Category[]> {
-    const models = await CategoryModel.findAll({ where: { userId } });
-    return models.map((m) => m.toDomain());
-  }
-
   async findAll(): Promise<Category[]> {
     const models = await CategoryModel.findAll();
     return models.map((m) => m.toDomain());

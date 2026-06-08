@@ -1,5 +1,6 @@
 import type { Transaction } from "sequelize";
 import type { MonthlyIncome } from "../entities/monthly-income.entity";
+import { User } from "../entities/user.entity";
 
 export interface IMonthlyIncomeRepository {
   /**
@@ -28,9 +29,10 @@ export interface IMonthlyIncomeRepository {
 
   /**
    * Returns all monthly income entries belonging to a user.
-   * @param userId The user's ID.
+   * @param user The user entity.
+   * @returns An array of monthly income entries belonging to the user.
    */
-  findByUserId(userId: string): Promise<MonthlyIncome[]>;
+  findByUser(user: User): Promise<MonthlyIncome[]>;
 
   /**
    * Returns all monthly income entries linked to a recurring income template.

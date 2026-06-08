@@ -9,7 +9,7 @@ export class ListRecurringExpensesUseCase {
 
   async execute(requestingUser: User): Promise<RecurringExpense[]> {
     const recurringExpenseFound =
-      await this.recurringExpenseRepository.findByUserId(requestingUser.id);
+      await this.recurringExpenseRepository.findByUser(requestingUser);
 
     return recurringExpenseFound;
   }

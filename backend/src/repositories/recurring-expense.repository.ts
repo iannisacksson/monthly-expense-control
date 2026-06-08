@@ -1,4 +1,5 @@
 import type { RecurringExpense } from "../domain/entities/recurring-expense.entity";
+import { User } from "../domain/entities/user.entity";
 import type { IRecurringExpenseRepository } from "../domain/repositories/recurring-expense.repository";
 import { RecurringExpenseModel } from "../models/recurring-expense.model";
 
@@ -13,8 +14,10 @@ export class RecurringExpenseRepository implements IRecurringExpenseRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string): Promise<RecurringExpense[]> {
-    const models = await RecurringExpenseModel.findAll({ where: { userId } });
+  async findByUser(user: User): Promise<RecurringExpense[]> {
+    const models = await RecurringExpenseModel.findAll({
+      where: { userId: user.id },
+    });
     return models.map((m) => m.toDomain());
   }
 

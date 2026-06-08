@@ -1,4 +1,5 @@
 import type { BudgetRule } from "../entities/budget-rule.entity";
+import { User } from "../entities/user.entity";
 
 export interface IBudgetRuleRepository {
   /**
@@ -19,9 +20,10 @@ export interface IBudgetRuleRepository {
 
   /**
    * Returns all budget rules belonging to a user.
-   * @param userId The user's ID.
+   * @param user The user entity.
+   * @returns An array of budget rules associated with the specified user.
    */
-  findByUserId(userId: string): Promise<BudgetRule[]>;
+  findByUser(user: User): Promise<BudgetRule[]>;
 
   /**
    * Updates a budget rule's name.

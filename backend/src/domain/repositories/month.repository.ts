@@ -1,5 +1,6 @@
 import type { BudgetRule } from "../entities/budget-rule.entity";
 import type { Month, MonthStatus } from "../entities/month.entity";
+import { User } from "../entities/user.entity";
 
 export interface IMonthRepository {
   /**
@@ -18,9 +19,10 @@ export interface IMonthRepository {
 
   /**
    * Returns all months belonging to a user.
-   * @param userId The user's ID.
+   * @param user The user entity.
+   * @returns An array of months belonging to the user.
    */
-  findByUserId(userId: string): Promise<Month[]>;
+  findByUser(user: User): Promise<Month[]>;
 
   /**
    * Finds a month by user and calendar period.

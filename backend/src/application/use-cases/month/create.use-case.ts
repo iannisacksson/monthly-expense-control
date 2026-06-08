@@ -84,9 +84,8 @@ export class CreateMonthUseCase {
   }
 
   async syncRecurringIncomesForMonth(month: Month, user: User): Promise<void> {
-    const recurringIncomes = await this.recurringIncomeRepository.findByUserId(
-      user.id,
-    );
+    const recurringIncomes =
+      await this.recurringIncomeRepository.findByUser(user);
 
     for (const recurringIncome of recurringIncomes) {
       if (recurringIncome.status !== RecurringIncomeStatus.ACTIVE) {
@@ -113,7 +112,7 @@ export class CreateMonthUseCase {
 
   async syncRecurringExpensesForMonth(month: Month, user: User): Promise<void> {
     const recurringExpenses =
-      await this.recurringExpenseRepository.findByUserId(user.id);
+      await this.recurringExpenseRepository.findByUser(user);
 
     for (const recurringExpense of recurringExpenses) {
       if (recurringExpense.status !== RecurringExpenseStatus.ACTIVE) {

@@ -23,9 +23,10 @@ export interface IInstallmentGroupRepository {
 
   /**
    * Returns all installment groups belonging to a user.
-   * @param userId The user's ID.
+   * @param user The user entity.
+   * @returns An array of installment groups belonging to the user.
    */
-  findByUserId(userId: string): Promise<InstallmentGroup[]>;
+  findByUser(user: User): Promise<InstallmentGroup[]>;
 
   /**
    * Updates an installment group.

@@ -2,6 +2,7 @@ import type { Transaction } from "sequelize";
 import type { MonthlyIncome } from "../domain/entities/monthly-income.entity";
 import type { IMonthlyIncomeRepository } from "../domain/repositories/monthly-income.repository";
 import { MonthlyIncomeModel } from "../models/monthly-income.model";
+import { User } from "../domain/entities/user.entity";
 
 export class MonthlyIncomeRepository implements IMonthlyIncomeRepository {
   async create(
@@ -35,8 +36,10 @@ export class MonthlyIncomeRepository implements IMonthlyIncomeRepository {
     return models.map((m) => m.toDomain());
   }
 
-  async findByUserId(userId: string): Promise<MonthlyIncome[]> {
-    const models = await MonthlyIncomeModel.findAll({ where: { userId } });
+  async findByUser(user: User): Promise<MonthlyIncome[]> {
+    const models = await MonthlyIncomeModel.findAll({
+      where: { userId: user.id },
+    });
     return models.map((m) => m.toDomain());
   }
 

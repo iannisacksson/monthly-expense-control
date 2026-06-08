@@ -88,7 +88,7 @@ export class CreateRecurringIncomeUseCase {
     startMonth: Month,
     user: User,
   ) {
-    const ownerMonths = await this.monthRepository.findByUserId(user.id);
+    const ownerMonths = await this.monthRepository.findByUser(user);
     const eligibleMonths = ownerMonths
       .filter((month) =>
         this.isMonthWithinRecurringRange(

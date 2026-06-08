@@ -1,4 +1,5 @@
 import type { BudgetRule } from "../domain/entities/budget-rule.entity";
+import { User } from "../domain/entities/user.entity";
 import type { IBudgetRuleRepository } from "../domain/repositories/budget-rule.repository";
 import { BudgetRuleModel } from "../models/budget-rule.model";
 
@@ -18,8 +19,10 @@ export class BudgetRuleRepository implements IBudgetRuleRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string): Promise<BudgetRule[]> {
-    const models = await BudgetRuleModel.findAll({ where: { userId } });
+  async findByUser(user: User): Promise<BudgetRule[]> {
+    const models = await BudgetRuleModel.findAll({
+      where: { userId: user.id },
+    });
     return models.map((m) => m.toDomain());
   }
 

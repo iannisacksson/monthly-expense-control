@@ -7,9 +7,8 @@ export class ListRecurringIncomesUseCase {
   ) {}
 
   async execute(requestingUser: User) {
-    const recurringIncomes = await this.recurringIncomeRepository.findByUserId(
-      requestingUser.id,
-    );
+    const recurringIncomes =
+      await this.recurringIncomeRepository.findByUser(requestingUser);
 
     return recurringIncomes;
   }

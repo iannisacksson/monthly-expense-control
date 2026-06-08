@@ -30,8 +30,10 @@ export class InstallmentGroupRepository implements IInstallmentGroupRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByUserId(userId: string): Promise<InstallmentGroup[]> {
-    const models = await InstallmentGroupModel.findAll({ where: { userId } });
+  async findByUser(user: User): Promise<InstallmentGroup[]> {
+    const models = await InstallmentGroupModel.findAll({
+      where: { userId: user.id },
+    });
     return models.map((m) => m.toDomain());
   }
 
