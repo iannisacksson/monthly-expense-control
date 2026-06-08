@@ -1,7 +1,13 @@
 import type { UpdateIncomeTaxDTO } from "../../../dtos/income-tax.dto";
 import type { IIncomeTaxRepository } from "../../../domain/repositories/income-tax.repository";
 import type { IMonthlyIncomeRepository } from "../../../domain/repositories/monthly-income.repository";
-import { ForbiddenError } from "../../../utils/errors";
+import {
+  ForbiddenError,
+  NotFoundError,
+  UnprocessableEntityError,
+} from "../../../utils/errors";
+import { IncomeTax } from "../../../domain/entities/income-tax.entity";
+import { User } from "../../../domain/entities/user.entity";
 
 export class UpdateIncomeTaxUseCase {
   constructor(
@@ -9,47 +15,43 @@ export class UpdateIncomeTaxUseCase {
     private readonly monthlyIncomeRepository: IMonthlyIncomeRepository,
   ) {}
 
-  async execute(
-    id: string,
-    data: UpdateIncomeTaxDTO,
-    requestingUserId: string,
-  ) {
-    const existingTax = await this.incomeTaxRepository.findById(id);
+  async execute(incomeTax: IncomeTax, requestingUser: User) {
+    const existingTax = await this.incomeTaxRepository.findById(incomeTax.id);
     if (!existingTax) {
-      throw new Error("Income tax not found");
+      throw new NotFoundError("Income tax not found");
     }
 
     const income = await this.monthlyIncomeRepository.findById(
       existingTax.monthlyIncome.id,
     );
-    if (!income || income.user.id !== requestingUserId) {
+    if (!income || income.user.id !== requestingUser.id) {
       throw new ForbiddenError();
     }
 
     if (existingTax.isAuto) {
-      throw new Error("Automatic income taxes cannot be edited manually");
+      throw new UnprocessableEntityError(
+        "Automatic income taxes cannot be edited manually",
+      );
     }
 
-    const normalizedTaxType = data.tax_type?.trim();
     if (
-      data.tax_type !== undefined &&
-      (!normalizedTaxType || normalizedTaxType.length === 0)
+      incomeTax.taxType !== undefined &&
+      (!incomeTax.taxType || incomeTax.taxType.length === 0)
     ) {
-      throw new Error("Tax type is required");
+      throw new UnprocessableEntityError("Tax type is required");
     }
 
-    if (data.value !== undefined && data.value < 0) {
-      throw new Error("Tax value must be greater than or equal to zero");
+    if (incomeTax.value !== undefined && incomeTax.value < 0) {
+      throw new UnprocessableEntityError(
+        "Tax value must be greater than or equal to zero",
+      );
     }
 
-    const tax = await this.incomeTaxRepository.update(id, {
-      isAuto: false,
-      taxType: normalizedTaxType,
-      value: data.value,
-    });
-    if (!tax) {
-      throw new Error("Income tax not found");
-    }
+    existingTax.taxType = incomeTax.taxType ?? existingTax.taxType;
+    existingTax.value = incomeTax.value ?? existingTax.value;
+    existingTax.isAuto = false;
+
+    const tax = await this.incomeTaxRepository.update(existingTax);
 
     return tax;
   }

@@ -52,12 +52,9 @@ export class UpdateMonthlyIncomeUseCase {
 
       if (!updated) throw new NotFoundError("Monthly income not found");
 
-      await this.incomeTaxRepository.deleteAutoByMonthlyIncomeId(
-        monthlyIncome.id,
-        {
-          transaction,
-        },
-      );
+      await this.incomeTaxRepository.deleteAutoByMonthlyIncome(monthlyIncome, {
+        transaction,
+      });
 
       const automaticTaxes = existing.calculateAutomaticTaxes();
       if (automaticTaxes.length > 0) {

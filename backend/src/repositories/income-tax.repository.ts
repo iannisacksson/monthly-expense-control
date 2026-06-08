@@ -2,15 +2,11 @@ import type { Transaction } from "sequelize";
 import type { IncomeTax } from "../domain/entities/income-tax.entity";
 import type { IIncomeTaxRepository } from "../domain/repositories/income-tax.repository";
 import { IncomeTaxModel } from "../models/income-tax.model";
+import { MonthlyIncome } from "../domain/entities/monthly-income.entity";
 
 export class IncomeTaxRepository implements IIncomeTaxRepository {
   async create(
-    data: {
-      monthlyIncomeId: string;
-      taxType: string;
-      value: number;
-      isAuto: boolean;
-    },
+    data: IncomeTax,
     options?: { transaction?: Transaction },
   ): Promise<IncomeTax> {
     const model = await IncomeTaxModel.create(data, options);
@@ -18,12 +14,7 @@ export class IncomeTaxRepository implements IIncomeTaxRepository {
   }
 
   async createMany(
-    data: Array<{
-      monthlyIncomeId: string;
-      taxType: string;
-      value: number;
-      isAuto: boolean;
-    }>,
+    data: Array<IncomeTax>,
     options?: { transaction?: Transaction },
   ): Promise<IncomeTax[]> {
     const models = await IncomeTaxModel.bulkCreate(data, options);
@@ -35,28 +26,31 @@ export class IncomeTaxRepository implements IIncomeTaxRepository {
     return model ? model.toDomain() : null;
   }
 
-  async findByMonthlyIncomeId(monthlyIncomeId: string): Promise<IncomeTax[]> {
-    const models = await IncomeTaxModel.findAll({ where: { monthlyIncomeId } });
+  async findByMonthlyIncome(
+    monthlyIncome: MonthlyIncome,
+  ): Promise<IncomeTax[]> {
+    const models = await IncomeTaxModel.findAll({
+      where: { monthlyIncomeId: monthlyIncome.id },
+    });
     return models.map((m) => m.toDomain());
   }
 
-  async deleteAutoByMonthlyIncomeId(
-    monthlyIncomeId: string,
+  async deleteAutoByMonthlyIncome(
+    monthlyIncome: MonthlyIncome,
     options?: { transaction?: Transaction },
   ): Promise<number> {
     return IncomeTaxModel.destroy({
-      where: { monthlyIncomeId, isAuto: true },
+      where: { monthlyIncomeId: monthlyIncome.id, isAuto: true },
       ...options,
     });
   }
 
-  async update(
-    id: string,
-    data: Partial<{ taxType: string; value: number; isAuto: boolean }>,
-  ): Promise<IncomeTax | null> {
-    const model = await IncomeTaxModel.findByPk(id);
-    if (!model) return null;
-    await model.update(data);
+  async update(incomeTax: IncomeTax): Promise<IncomeTax> {
+    const [_, [model]] = await IncomeTaxModel.update(incomeTax, {
+      where: { id: incomeTax.id },
+      returning: true,
+    });
+
     return model.toDomain();
   }
 

@@ -1,13 +1,10 @@
 import { Month } from "../../../domain/entities/month.entity";
-import { User, UserEntity } from "../../../domain/entities/user.entity";
+import { UserEntity } from "../../../domain/entities/user.entity";
 import { IMonthRepository } from "../../../domain/repositories/month.repository";
-import { MonthRepository } from "../../../repositories/month.repository";
 import { ForbiddenError, NotFoundError } from "../../../utils/errors";
 
 export class FindMonthByIdUseCase {
-  constructor(
-    private readonly monthRepository: IMonthRepository = new MonthRepository(),
-  ) {}
+  constructor(private readonly monthRepository: IMonthRepository) {}
 
   async execute(month: Month, requestingUser: UserEntity): Promise<Month> {
     const monthFound = await this.monthRepository.findById(month.id);

@@ -1,5 +1,6 @@
 import type { Transaction } from "sequelize";
 import type { IncomeTax } from "../entities/income-tax.entity";
+import { MonthlyIncome } from "../entities/monthly-income.entity";
 
 export interface IIncomeTaxRepository {
   /**
@@ -9,12 +10,7 @@ export interface IIncomeTaxRepository {
    * @returns The created income tax.
    */
   create(
-    data: {
-      monthlyIncomeId: string;
-      taxType: string;
-      value: number;
-      isAuto: boolean;
-    },
+    data: IncomeTax,
     options?: { transaction?: Transaction },
   ): Promise<IncomeTax>;
 
@@ -38,31 +34,28 @@ export interface IIncomeTaxRepository {
 
   /**
    * Returns all income taxes associated with a monthly income entry.
-   * @param monthlyIncomeId The monthly income's ID.
+   * @param monthlyIncome The monthly income entity.
+   * @returns An array of income taxes for the given monthly income.
    */
-  findByMonthlyIncomeId(monthlyIncomeId: string): Promise<IncomeTax[]>;
+  findByMonthlyIncome(monthlyIncome: MonthlyIncome): Promise<IncomeTax[]>;
 
   /**
    * Deletes all automatically-generated taxes for a monthly income entry.
-   * @param monthlyIncomeId The monthly income's ID.
+   * @param monthlyIncome The monthly income entity.
    * @param options Optional Sequelize transaction.
    * @returns The number of deleted records.
    */
-  deleteAutoByMonthlyIncomeId(
-    monthlyIncomeId: string,
+  deleteAutoByMonthlyIncome(
+    monthlyIncome: MonthlyIncome,
     options?: { transaction?: Transaction },
   ): Promise<number>;
 
   /**
    * Updates an income tax entry.
-   * @param id The income tax's ID.
-   * @param data Fields to update.
-   * @returns The updated income tax, or null if not found.
+   * @param incomeTax The income tax entity to update.
+   * @returns The updated income tax.
    */
-  update(
-    id: string,
-    data: Partial<{ taxType: string; value: number; isAuto: boolean }>,
-  ): Promise<IncomeTax | null>;
+  update(incomeTax: IncomeTax): Promise<IncomeTax>;
 
   /**
    * Deletes an income tax entry.
